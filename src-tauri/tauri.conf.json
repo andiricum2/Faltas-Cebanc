@@ -1,0 +1,39 @@
+{
+  "$schema": "https://schema.tauri.app/config/v2",
+  "productName": "Faltas Cebanc",
+  "version": "0.1.0",
+  "identifier": "com.faltas.cebanc",
+  "build": {
+    "beforeDevCommand": "",
+    "beforeBuildCommand": "",
+    "frontendDist": "./empty",
+    "devUrl": "http://localhost:3000"
+  },
+  "app": {
+    "windows": [
+      {
+        "title": "Faltas Cebanc",
+        "width": 1200,
+        "height": 800,
+        "resizable": true
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["msi"],
+    "icon": [
+      "icons/icon.ico"
+    ],
+    "resources": [
+      "next/",
+      "bin/"
+    ]
+  },
+  "plugins": {}
+}
+
+

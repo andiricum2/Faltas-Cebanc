@@ -58,20 +58,30 @@ function parseSessions($: cheerio.CheerioAPI, daysISO: string[]): SessionCell[] 
 }
 
 function parseLegend($: cheerio.CheerioAPI): { modules: LegendModules; absence: LegendAbsenceTypes } {
-  const containers = $(".form-container:contains('LEYENDA')").nextAll(".form-container").first();
-  const text = containers.text();
+  // The legend sits inside the same ".form-container" that contains the text "LEYENDA"
+  const legendContainer = $(".form-container:contains('LEYENDA')").first();
+
   const modules: LegendModules = {};
   const absence: LegendAbsenceTypes = {};
 
-  // Parse modules lines like: 2DM3 - R1: Reto 1 2DM3
-  const moduleMatches = text.match(/([A-Za-z0-9_\-]+\s?-\s?[A-Za-z0-9_\-]+):\s*([^\n]+)/g) || [];
-  moduleMatches.forEach((line) => {
-    const m = /^([^:]+):\s*(.+)$/.exec(line.trim());
-    if (m) modules[m[1].trim()] = m[2].trim();
-  });
+  // The modules block is plain text with <br> separators inside the left <td>
+  // Extract text, split by <br>, and parse "CODE: Description" pairs
+  const modulesTd = legendContainer.find("td").filter((_, el) => $(el).find("h2:contains('MODULOS')").length > 0).first();
+  if (modulesTd.length) {
+    const html = modulesTd.html() || "";
+    const lines = html
+      .split(/<br\s*\/?>(?:\s*)/i)
+      .map((s) => s.replace(/<[^>]+>/g, "").trim())
+      .filter(Boolean);
+    lines.forEach((line) => {
+      const m = /^([^:]+):\s*(.+)$/.exec(line);
+      if (m) modules[m[1].trim()] = m[2].trim();
+    });
+  }
 
-  // Parse absence spans: <span class='falta_J'>J: FALTA JUSTIFICADA ...</span>
-  containers.find("span").each((_, el) => {
+  // The absence types are in spans in the right <td>
+  const absenceTd = legendContainer.find("td").filter((_, el) => $(el).find("h2:contains('FALTAS')").length > 0).first();
+  absenceTd.find("span").each((_, el) => {
     const t = $(el).text().trim();
     const m = /^([A-Z]):\s*(.+)$/.exec(t);
     if (m) absence[m[1]] = m[2].trim();

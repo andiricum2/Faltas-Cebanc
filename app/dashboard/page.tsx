@@ -129,12 +129,22 @@ export default function DashboardPage() {
   }, [snapshot, selectedWeekIdx, moduleFilter, absenceFilter]);
 
   useEffect(() => {
-    const isElectron = typeof (window as any).process !== "undefined" && (window as any).process?.versions?.electron;
     const stored = localStorage.getItem("autosync") === "1";
     setAutoSync(stored);
     fetchSnapshot().then(async (snap) => {
       setSnapshot(snap);
-      if (isElectron && stored) {
+      // Auto-sync if there is no local data yet
+      if (!snap) {
+        try {
+          setLoading(true);
+          await syncNow();
+          const s2 = await fetchSnapshot();
+          setSnapshot(s2);
+        } catch {}
+        finally {
+          setLoading(false);
+        }
+      } else if (stored) {
         try { await syncNow(); const s2 = await fetchSnapshot(); setSnapshot(s2); } catch {}
       }
     }).catch(() => {});
@@ -155,13 +165,19 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6 bg-gradient-to-br from-background to-muted">
-      <div className="w-full max-w-5xl space-y-6">
-        <Card>
+      <div className="w-full space-y-6">
           <CardHeader>
             <CardTitle className="flex items-center justify-between">
               <span>Panel de asistencia</span>
-              <Button onClick={onSync} disabled={loading}>{loading ? "Sincronizando..." : "Sincronizar"}</Button>
+              <Button onClick={onSync} disabled={loading}>
+                {loading && (
+                  <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                )}
+                {loading ? "Sincronizando..." : "Sincronizar"}
+              </Button>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -369,13 +385,42 @@ export default function DashboardPage() {
                 </TabsContent>
               </Tabs>
             ) : (
-              <div className="text-muted-foreground">No hay datos. Pulsa sincronizar.</div>
+              loading ? (
+                <div className="space-y-4">
+                  <div className="space-y-2 animate-pulse">
+                    <div className="h-4 bg-muted rounded w-40"></div>
+                    <div className="h-6 bg-muted rounded w-64"></div>
+                    <div className="h-4 bg-muted rounded w-72"></div>
+                  </div>
+                  <div className="grid md:grid-cols-2 gap-4 animate-pulse">
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="h-16 bg-muted rounded"></div>
+                        <div className="h-16 bg-muted rounded"></div>
+                      </div>
+                      <div className="h-32 bg-muted rounded"></div>
+                      <div className="h-4 bg-muted rounded w-56"></div>
+                    </div>
+                    <div className="space-y-3">
+                      <div className="h-6 bg-muted rounded w-40"></div>
+                      <div className="border rounded-md">
+                        <div className="h-8 bg-muted rounded-t"></div>
+                        <div className="divide-y">
+                          <div className="h-8 bg-muted"></div>
+                          <div className="h-8 bg-muted"></div>
+                          <div className="h-8 bg-muted"></div>
+                          <div className="h-8 bg-muted"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="h-72 bg-muted rounded animate-pulse"></div>
+                </div>
+              ) : (
+                <div className="text-muted-foreground">No hay datos. Pulsa sincronizar.</div>
+              )
             )}
           </CardContent>
-        </Card>
       </div>
-    </div>
   );
 }
-
-

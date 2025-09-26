@@ -2,9 +2,17 @@ import { httpConfig, withBase } from "@/lib/config";
 import { logger } from "@/lib/logging/logger";
 import { LoginBody, LoginResult } from "@/lib/types/faltas";
 
-function parseSetCookieForPhpsessid(setCookie: string[] | null): string | undefined {
-  if (!setCookie || setCookie.length === 0) return undefined;
-  for (const cookie of setCookie) {
+function normalizeSetCookie(header: string | string[] | null | undefined): string[] {
+  if (!header) return [];
+  if (Array.isArray(header)) return header;
+  // Split combined Set-Cookie header into individual cookies (handles commas inside attributes)
+  const parts = header.split(/,(?=[^;]+=)/);
+  return parts.map((p) => p.trim()).filter(Boolean);
+}
+
+function parseSetCookieForPhpsessid(header: string | string[] | null | undefined): string | undefined {
+  const cookies = normalizeSetCookie(header);
+  for (const cookie of cookies) {
     const match = /PHPSESSID=([^;]+)/.exec(cookie);
     if (match) return match[1];
   }
@@ -36,8 +44,8 @@ export class FaltasClient {
       });
 
       const location = res.headers.get("location") || "";
-      const setCookie = res.headers.getSetCookie?.() || res.headers.get("set-cookie")?.split(/,(?=[^;]+=)/) || null;
-      const renewedSession = parseSetCookieForPhpsessid(setCookie);
+      const setCookieHeader = (res.headers as any).getSetCookie?.() ?? res.headers.get("set-cookie");
+      const renewedSession = parseSetCookieForPhpsessid(setCookieHeader);
       if (renewedSession) this.sessionId = renewedSession;
 
       logger.debug({ msg: "login response", status: res.status, location });
@@ -93,14 +101,20 @@ export class FaltasClient {
         signal: controller.signal,
       });
 
+      if (res.status === 401 || res.status === 403) {
+        const err: any = new Error("No autenticado");
+        err.code = "UNAUTHENTICATED";
+        throw err;
+      }
+
       if (res.status >= 300 && res.status < 400) {
         const location = res.headers.get("location") || "";
         logger.warn({ msg: "Redirect encountered on mostraralumno", location, status: res.status });
       }
 
       const text = await res.text();
-      const setCookie = res.headers.getSetCookie?.() || res.headers.get("set-cookie")?.split(/,(?=[^;]+=)/) || null;
-      const renewedSession = parseSetCookieForPhpsessid(setCookie);
+      const setCookieHeader = (res.headers as any).getSetCookie?.() ?? res.headers.get("set-cookie");
+      const renewedSession = parseSetCookieForPhpsessid(setCookieHeader);
       if (renewedSession) this.sessionId = renewedSession;
       return text;
     } catch (error: any) {

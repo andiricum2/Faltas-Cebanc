@@ -2,15 +2,20 @@
 
 use anyhow::Context;
 use std::{
-    fs::OpenOptions,
-    io::{Read, Write},
     path::PathBuf,
     process::{Command, Stdio},
+};
+#[cfg(not(debug_assertions))]
+use std::{
+    fs::OpenOptions,
+    io::{Read, Write},
     thread,
 };
+#[cfg(not(debug_assertions))]
 use url::Url;
 use tauri::{AppHandle, Manager};
 
+#[cfg(not(debug_assertions))]
 fn wait_for_server(host: &str, port: u16, total_timeout_ms: u64) -> bool {
     let deadline = std::time::Instant::now() + std::time::Duration::from_millis(total_timeout_ms);
     while std::time::Instant::now() < deadline {
@@ -23,7 +28,8 @@ fn wait_for_server(host: &str, port: u16, total_timeout_ms: u64) -> bool {
     false
 }
 
-fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<std::process::Child>> {
+#[cfg(not(debug_assertions))]
+fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::process::Child, u16)>> {
     let resource_dir = app.path().resource_dir()?;
     // Use resources/next/standalone (mirrored from project .next/standalone at build time)
     let standalone_dir = resource_dir.join("next").join("standalone");
@@ -46,7 +52,17 @@ fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<std::process::Ch
     };
 
     let host = "127.0.0.1";
-    let port: u16 = 3000;
+    // Pick an available random port
+    let port: u16 = {
+        match std::net::TcpListener::bind((host, 0)) {
+            Ok(listener) => {
+                let chosen = listener.local_addr().ok().map(|a| a.port()).unwrap_or(3000);
+                drop(listener);
+                if chosen == 0 { 3000 } else { chosen }
+            }
+            Err(_) => 3000,
+        }
+    };
 
     let mut cmd = Command::new(node_path);
     cmd.current_dir(&standalone_dir)
@@ -115,7 +131,7 @@ fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<std::process::Ch
         // Continue anyway; the window load will retry internally via web stack
     }
 
-    Ok(Some(child))
+    Ok(Some((child, port)))
 }
 
 #[tauri::command]
@@ -123,15 +139,17 @@ fn ready(_app: AppHandle) {}
 
 fn main() {
     tauri::Builder::default()
-        .setup(|app| {
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .setup(|_app| {
             // En producción, lanzar servidor y navegar cuando esté listo
             #[cfg(not(debug_assertions))]
             {
-                let _child = spawn_next_sidecar(&app.handle()).ok().flatten();
-                let url = Url::parse("http://127.0.0.1:3000").unwrap();
-                if let Some(win) = app.get_webview_window("main") {
+                let launched = spawn_next_sidecar(&_app.handle()).ok().flatten();
+                let port = launched.as_ref().map(|(_, p)| *p).unwrap_or(3000);
+                let url = Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
+                if let Some(win) = _app.get_webview_window("main") {
                     let _ = win.navigate(url);
-                } else if let Some(win) = app.webview_windows().values().next() {
+                } else if let Some(win) = _app.webview_windows().values().next() {
                     let _ = win.navigate(url);
                 }
             }

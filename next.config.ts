@@ -6,10 +6,8 @@ const nextConfig = {
     root: __dirname,
   },
   // Do not copy local data directory into the standalone build output
-  experimental: {
-    outputFileTracingExcludes: {
-      "*": [".data/**"],
-    },
+  outputFileTracingExcludes: {
+    "*": [".data/**"],
   },
 };
 

@@ -109,6 +109,9 @@ export default function CalcularPage() {
 				</div>
 			) : (
 				<>
+					<div className="rounded-md border bg-amber-50 text-amber-900 px-3 py-2 text-sm">
+						Aviso: esta herramienta ofrece estimaciones que pueden no corresponder con la realidad. No nos hacemos responsables del uso de estos cálculos.
+					</div>
 					<Card>
 						<CardHeader>
 							<CardTitle>General</CardTitle>

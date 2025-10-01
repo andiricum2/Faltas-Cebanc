@@ -62,7 +62,7 @@ export default function AutoUpdate() {
           `Nueva versión disponible (${latest.version}). Descárgala e instálala.`,
           {
             action: {
-              label: "Descargar…",
+              label: "Descargar",
               onClick: () => {
                 window.open(latest.url, "_blank", "noopener,noreferrer");
               },

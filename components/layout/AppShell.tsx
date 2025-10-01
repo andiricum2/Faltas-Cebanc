@@ -10,7 +10,6 @@ import { useSnapshot } from "@/lib/services/snapshotContext";
 import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
 import pkg from "@/package.json";
-import AutoUpdate from "@/app/updates";
 import { Download } from "lucide-react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
@@ -104,14 +103,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   <Download className="h-4 w-4" />
                   <div className="text-sm font-medium">Actualización disponible</div>
                 </div>
-                <div className="text-xs text-muted-foreground">v {updateInfo.version}</div>
                 <Button
                   variant="default"
                   size="sm"
                   onClick={() => window.open(updateInfo.url, "_blank", "noopener,noreferrer")}
                   className="w-full justify-center"
                 >
-                  Descargar…
+                <div className="text-xs justify-center text-white">
+                  Descargar v{updateInfo.version}
+                </div>
                 </Button>
               </div>
             </div>
@@ -149,8 +149,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-semibold">Faltas</span>
         </header>
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full">{children}</div>
-        {/* Auto update checker (shows toast on entry) */}
-        <AutoUpdate />
         {showConfigModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => setShowConfigModal(false)} />

@@ -4,20 +4,24 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { usePathname } from "next/navigation";
-import { RefreshCcw, LogOut, LayoutDashboard, LineChart, CalendarDays } from "lucide-react";
+import { usePathname, useRouter } from "next/navigation";
+import { RefreshCcw, LogOut, LayoutDashboard, LineChart, CalendarDays, Calculator } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
   const { syncNow, loading, error } = useSnapshot();
+  const [showConfigModal, setShowConfigModal] = React.useState(false);
+  const [configReasons, setConfigReasons] = React.useState<string[]>([]);
   const [loggingOut, setLoggingOut] = React.useState<boolean>(false);
   const isLogin = pathname === "/login";
   const isDashboard = pathname === "/" || pathname?.startsWith("/dashboard");
   const isTendencias = pathname?.startsWith("/tendencias");
   const isSemanal = pathname?.startsWith("/semanal");
+  const isCalcular = pathname?.startsWith("/calcular");
   const onSync = React.useCallback(async () => { await syncNow(); }, [syncNow]);
   const onLogout = async () => {
     try {
@@ -33,6 +37,25 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (error) { toast.error(error); }
   }, [error]);
+
+  // Check configuration status on mount (except login page)
+  React.useEffect(() => {
+    if (isLogin) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch("/api/faltas/config/status", { cache: "no-store" });
+        if (!res.ok) return;
+        const data = await res.json();
+        if (cancelled) return;
+        if (data?.needsConfig) {
+          setConfigReasons(data.reasons || []);
+          setShowConfigModal(true);
+        }
+      } catch {}
+    })();
+    return () => { cancelled = true; };
+  }, [isLogin]);
   if (isLogin) {
     return (
       <main className="min-h-screen">
@@ -43,7 +66,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="min-h-screen grid grid-cols-1 md:grid-cols-[240px_1fr]">
-      <aside className="hidden md:flex flex-col border-r bg-sidebar">
+      <aside className="hidden md:flex sticky top-0 h-screen flex-col border-r bg-sidebar overflow-y-auto">
         <div className="h-14 px-4 flex items-center gap-2 border-b">
           <Image src="/logo.png" alt="Logo" width={24} height={24} />
           <span className="font-semibold">Faltas</span>
@@ -52,6 +75,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <NavItem href="/dashboard" active={isDashboard} label="Vista general" icon={LayoutDashboard} />
           <NavItem href="/tendencias" active={isTendencias} label="Tendencias" icon={LineChart} />
           <NavItem href="/semanal" active={isSemanal} label="Semanal" icon={CalendarDays} />
+          <NavItem href="/calcular" active={isCalcular} label="Calcular" icon={Calculator} />
           <NavItem href="/configuracion" label="Configuración" icon={SlidersHorizontal} />
         </nav>
         <div className="mt-auto p-3 border-t space-y-2">
@@ -86,6 +110,24 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-semibold">Faltas</span>
         </header>
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full">{children}</div>
+        {showConfigModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            <div className="absolute inset-0 bg-black/40" onClick={() => setShowConfigModal(false)} />
+            <div className="relative bg-background border rounded-md shadow-lg w-[92%] max-w-md p-4 space-y-3">
+              <h3 className="text-base font-semibold">Configuración requerida</h3>
+              <p className="text-sm text-muted-foreground">Para que los cálculos sean correctos, completa:</p>
+              <ul className="list-disc pl-5 text-sm">
+                {configReasons.map((r)=> (
+                  <li key={r}>{r}</li>
+                ))}
+              </ul>
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowConfigModal(false)}>Cerrar</Button>
+                <Button onClick={() => { setShowConfigModal(false); router.push("/configuracion"); }}>Ir a Configuración</Button>
+              </div>
+            </div>
+          </div>
+        )}
       </main>
     </div>
   );
@@ -104,5 +146,6 @@ function NavItem({ href, label, active, icon: Icon }: { href: string; label: str
     </Link>
   );
 }
+
 
 

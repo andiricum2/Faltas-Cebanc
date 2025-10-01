@@ -5,34 +5,55 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import type { StudentSnapshot as Snapshot } from "@/lib/types/faltas";
 import { StatCard } from "@/components/ui/stat-card";
-import { buildKpis, buildModulesTable, buildMonthlySeries, buildSelectedWeek, buildTopLine, buildWeeklySeries } from "@/lib/services/snapshotService";
 import { useSnapshot } from "@/lib/services/snapshotContext";
+import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
 
 
 export default function DashboardPage() {
   const { snapshot, loading, error, syncNow } = useSnapshot();
   const [selectedWeekIdx, setSelectedWeekIdx] = useState<number | null>(null);
   const [autoSync, setAutoSync] = useState<boolean>(false);
+  const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
+  const [statisticsLoading, setStatisticsLoading] = useState(false);
+  
   const absenceLegend = snapshot?.legend.absenceTypes || {};
+  
+  // Los datos ya vienen calculados del servidor
+  const retoCalculations = (snapshot as any)?.retoCalculations || {};
 
-  const modulesTable = useMemo(
-    () => (snapshot ? buildModulesTable(snapshot, "all", "all") : []),
-    [snapshot]
-  );
-  const topLine = useMemo(() => snapshot ? buildTopLine(snapshot) : "", [snapshot]);
-  const weeklySeries = useMemo(
-    () => (snapshot ? buildWeeklySeries(snapshot, "all", "all") : []),
-    [snapshot]
-  );
-  const monthlySeries = useMemo(
-    () => (snapshot ? buildMonthlySeries(snapshot, "all", "all") : []),
-    [snapshot]
-  );
-  const kpis = useMemo(() => snapshot ? buildKpis(snapshot) : null, [snapshot]);
-  const selectedWeek = useMemo(
-    () => (snapshot ? buildSelectedWeek(snapshot, selectedWeekIdx, "all", "all") : null),
-    [snapshot, selectedWeekIdx]
-  );
+  // Cargar estadísticas cuando cambie el snapshot
+  useEffect(() => {
+    if (!snapshot?.identity?.dni) return;
+    
+    const loadStatistics = async () => {
+      setStatisticsLoading(true);
+      try {
+        const result = await getStatistics(snapshot.identity.dni, "all", "all");
+        setStatistics(result);
+      } catch (error) {
+        console.error("Error loading statistics:", error);
+      } finally {
+        setStatisticsLoading(false);
+      }
+    };
+
+    loadStatistics();
+  }, [snapshot?.identity?.dni]);
+
+  // Usar datos del endpoint de estadísticas
+  const modulesTable = useMemo(() => {
+    return statistics?.modulesTable || { normalModules: [], retoModules: [] };
+  }, [statistics]);
+  
+  const topLine = useMemo(() => statistics?.topLine || "", [statistics]);
+  const weeklySeries = useMemo(() => statistics?.weeklySeries || [], [statistics]);
+  const monthlySeries = useMemo(() => statistics?.monthlySeries || [], [statistics]);
+  const kpis = useMemo(() => statistics?.kpis || null, [statistics]);
+  const selectedWeek = useMemo(() => {
+    if (!snapshot || selectedWeekIdx === null) return null;
+    const week = snapshot.weeks[selectedWeekIdx];
+    return week ? { ...week, sessions: week.sessions } : null;
+  }, [snapshot, selectedWeekIdx]);
 
   useEffect(() => {
     const stored = localStorage.getItem("autosync") === "1";
@@ -55,7 +76,7 @@ export default function DashboardPage() {
                       <div className="text-sm text-muted-foreground">{topLine}</div>
                       <div className="text-xl font-semibold">{snapshot.identity.fullName} ({snapshot.identity.dni})</div>
                       {snapshot.identity.group && <div className="text-muted-foreground">{snapshot.identity.group}</div>}
-                      {kpis && (
+                      {kpis ? (
                         <div className="mt-3 grid grid-cols-2 gap-2">
                           <StatCard label="Faltas (total)" value={kpis.totalAbsences} />
                           <StatCard
@@ -73,7 +94,9 @@ export default function DashboardPage() {
                             </CardContent>
                           </Card>
                         </div>
-                      )}
+                      ) : statisticsLoading ? (
+                        <div className="text-muted-foreground">Cargando estadísticas...</div>
+                      ) : null}
                       <div className="mt-4">
                         <div className="font-semibold mb-1">Porcentajes globales</div>
                         <div className="text-sm">Total: {snapshot.percentages.totalPercent}%</div>
@@ -87,21 +110,70 @@ export default function DashboardPage() {
                         Leyenda faltas: {Object.entries(absenceLegend).map(([k, v]) => `${k}=${v}`).join(" · ")}
                       </div>
                     </div>
-                    <div>
-                      <div className="font-semibold mb-2">Resumen por módulo</div>
-                      <div className="border rounded-md divide-y">
-                        <div className="grid grid-cols-3 text-sm font-medium bg-muted px-3 py-2">
-                          <div>Módulo</div>
-                          <div className="text-center">Sesiones</div>
-                          <div className="text-right">Faltas</div>
-                        </div>
-                        {modulesTable.map((row) => (
-                          <div key={row.key} className="grid grid-cols-3 text-sm px-3 py-2">
-                            <div className="truncate" title={row.key}>{row.key}</div>
-                            <div className="text-center">{row.classes}</div>
-                            <div className="text-right font-mono">{row.absences}</div>
+                    <div className="space-y-4">
+                      {/* Tabla de módulos normales */}
+                      <div>
+                        <div className="font-semibold mb-2">Módulos</div>
+                        <div className="border rounded-md divide-y">
+                          <div className="grid grid-cols-7 text-sm font-medium bg-muted px-3 py-2">
+                            <div>Módulo</div>
+                            <div className="text-center">Sesiones directas</div>
+                            <div className="text-center">Sesiones de retos</div>
+                            <div className="text-center">Total sesiones</div>
+                            <div className="text-center">Faltas directas</div>
+                            <div className="text-center">Faltas de retos</div>
+                            <div className="text-center">Total faltas</div>
                           </div>
-                        ))}
+                          {modulesTable.normalModules?.map((row) => {
+                            const calculations = retoCalculations[row.key] || {
+                              faltasDirectas: 0,
+                              faltasDerivadas: 0,
+                              asistenciasDirectas: 0,
+                              asistenciasDerivadas: 0,
+                              totalFaltas: 0,
+                              totalAsistencias: 0
+                            };
+                            
+                            return (
+                              <div key={row.key} className="grid grid-cols-7 text-sm px-3 py-2">
+                                <div className="truncate" title={row.key}>{row.key}</div>
+                                <div className="text-center font-mono">{calculations.asistenciasDirectas.toFixed(2)}</div>
+                                <div className="text-center font-mono text-blue-600">
+                                  {calculations.asistenciasDerivadas.toFixed(2)}
+                                </div>
+                                <div className="text-center font-mono font-semibold">
+                                  {calculations.totalAsistencias.toFixed(2)}
+                                </div>
+                                <div className="text-center font-mono">{calculations.faltasDirectas.toFixed(2)}</div>
+                                <div className="text-center font-mono text-blue-600">
+                                  {calculations.faltasDerivadas.toFixed(2)}
+                                </div>
+                                <div className="text-center font-mono font-semibold">
+                                  {calculations.totalFaltas.toFixed(2)}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      
+                      {/* Tabla de retos */}
+                      <div>
+                        <div className="font-semibold mb-2">Retos</div>
+                        <div className="border rounded-md divide-y">
+                          <div className="grid grid-cols-3 text-sm font-medium bg-muted px-3 py-2">
+                            <div>Reto</div>
+                            <div className="text-center">Sesiones</div>
+                            <div className="text-right">Faltas</div>
+                          </div>
+                          {modulesTable.retoModules?.map((row) => (
+                            <div key={row.key} className="grid grid-cols-3 text-sm px-3 py-2">
+                              <div className="truncate" title={row.key}>{row.key}</div>
+                              <div className="text-center font-mono">{Number(row.classes).toFixed(2)}</div>
+                              <div className="text-right font-mono">{row.absences}</div>
+                            </div>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   </div>

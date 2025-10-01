@@ -1,5 +1,5 @@
 import * as cheerio from "cheerio";
-import { AggregatedStats, GlobalPercentages, LegendAbsenceTypes, LegendModules, SessionCell, StudentSnapshot, UserIdentity, WeekSessions } from "@/lib/types/faltas";
+import { AggregatedStats, GlobalPercentages, LegendAbsenceTypes, LegendModules, SessionCell, StudentSnapshot, UserIdentity, WeekSessions, RetoInfo } from "@/lib/types/faltas";
 import { extractAbsenceCode } from "@/lib/utils";
 
 function parseIdentity($: cheerio.CheerioAPI): UserIdentity {
@@ -64,18 +64,40 @@ function parseLegend($: cheerio.CheerioAPI): { modules: LegendModules; absence: 
   const modules: LegendModules = {};
   const absence: LegendAbsenceTypes = {};
 
-  // The modules block is plain text with <br> separators inside the left <td>
-  // Extract text, split by <br>, and parse "CODE: Description" pairs
-  const modulesTd = legendContainer.find("td").filter((_, el) => $(el).find("h2:contains('MODULOS')").length > 0).first();
+  // The modules block may be malformed: the <h2> MODULOS header can bleed into
+  // the first line and tabs/newlines may appear before the actual "CODE: Label".
+  // Strategy:
+  // 1) Remove the <h2> header HTML from the cell entirely.
+  // 2) Split by <br> or newlines as fallback.
+  // 3) For each candidate line, drop everything before the last tab (if any).
+  // 4) Parse "CODE: Description" pairs.
+  const modulesTd = legendContainer
+    .find("td")
+    .filter((_, el) => $(el).find("h2:contains('MODULOS')").length > 0)
+    .first();
   if (modulesTd.length) {
-    const html = modulesTd.html() || "";
-    const lines = html
-      .split(/<br\s*\/?>(?:\s*)/i)
+    // Clone to avoid mutating DOM selection chain unexpectedly
+    const $cell = cheerio.load(`<div>${modulesTd.html() || ''}</div>`);
+    // Remove header h2 (e.g., "MODULOS") inside the cell
+    $cell("div h2").remove();
+    const innerHtml = $cell("div").html() || "";
+    const rawLines = innerHtml
+      .replace(/&nbsp;/g, " ")
+      .split(/<br\s*\/?>(?:\s*)|\n/gi)
       .map((s) => s.replace(/<[^>]+>/g, "").trim())
       .filter(Boolean);
-    lines.forEach((line) => {
+    rawLines.forEach((raw) => {
+      let line = raw;
+      // If the line contains tabs, content before the last tab is junk from malformed HTML
+      const tabIdx = line.lastIndexOf("\t");
+      if (tabIdx >= 0) line = line.slice(tabIdx + 1).trim();
+      // Now extract CODE: Description
       const m = /^([^:]+):\s*(.+)$/.exec(line);
-      if (m) modules[m[1].trim()] = m[2].trim();
+      if (m) {
+        const code = m[1].trim();
+        const desc = m[2].trim();
+        if (code && desc) modules[code] = desc;
+      }
     });
   }
 
@@ -161,7 +183,79 @@ export function parseMostrarAlumno(html: string): {
 
 export function buildSnapshot(weeks: WeekSessions[], identity: UserIdentity, legend: { modules: LegendModules; absenceTypes: LegendAbsenceTypes }, percentages: GlobalPercentages): StudentSnapshot {
   const aggregated = aggregateStats(weeks);
-  return { identity, legend, percentages, weeks, aggregated };
+  Object.keys(legend.modules || {}).forEach((key) => {
+    if (!aggregated.modules[key]) {
+      aggregated.modules[key] = { classesGiven: 0, absenceCounts: {} };
+    }
+  });
+  
+  // Detect retos and compute default coefficients server-side
+  const isReto = (code: string, label: string | undefined) => /(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i.test(`${code} ${label || ""}`);
+  const extractGroup = (code: string, label: string | undefined) => {
+    const m = (`${code} ${label || ""}`).match(/(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i);
+    return m ? m[0].toUpperCase() : null;
+  };
+  
+  const retos: RetoInfo[] = Object.keys(aggregated.modules)
+    .filter((code) => isReto(code, legend.modules[code]))
+    .map((code) => ({
+      id: code,
+      label: legend.modules[code] || code,
+      faltas: Object.entries(aggregated.modules[code]?.absenceCounts || {})
+        .filter(([k]) => k !== "J")
+        .reduce((a, [, v]) => a + (v as number), 0),
+      group: extractGroup(code, legend.modules[code]),
+    }));
+
+  const nonReto = Object.keys(aggregated.modules).filter((code) => !isReto(code, legend.modules[code]));
+  
+  // Distribuir faltas de retos proporcionalmente según horas semanales configuradas
+  const retoDistributed = { ...aggregated };
+  
+  for (const r of retos) {
+    const retoFaltas = Object.entries(aggregated.modules[r.id]?.absenceCounts || {})
+      .filter(([k]) => k !== "J")
+      .reduce((a, [, v]) => a + (v as number), 0);
+    
+    if (retoFaltas > 0) {
+      // Obtener horas semanales configuradas (simuladas para el servidor)
+      // En el cliente se usarán las horas reales desde localStorage
+      const hoursPerModule: Record<string, number> = {};
+      const retoTargets: Record<string, Record<string, boolean>> = {};
+      
+      // Por ahora, distribuir a todos los módulos no-reto con coeficientes iguales
+      // En el cliente se reemplazará con la lógica real de horas configuradas
+      const targets = nonReto;
+      if (targets.length > 0) {
+        const equal = 1 / targets.length;
+        
+        // Distribuir faltas del reto a los módulos destino
+        for (const targetCode of targets) {
+          if (!retoDistributed.modules[targetCode]) {
+            retoDistributed.modules[targetCode] = { classesGiven: 0, absenceCounts: {} };
+          }
+          
+          // Añadir faltas del reto proporcionalmente
+          const distributedFaltas = Math.round(retoFaltas * equal);
+          retoDistributed.modules[targetCode].absenceCounts["F"] = 
+            (retoDistributed.modules[targetCode].absenceCounts["F"] || 0) + distributedFaltas;
+          
+          // Actualizar totales de faltas
+          retoDistributed.absenceTotals["F"] = 
+            (retoDistributed.absenceTotals["F"] || 0) + distributedFaltas;
+        }
+        
+        // Restar las faltas del reto original (ya distribuidas)
+        retoDistributed.modules[r.id].absenceCounts = {};
+        retoDistributed.absenceTotals["F"] = 
+          (retoDistributed.absenceTotals["F"] || 0) - retoFaltas;
+      }
+    }
+  }
+
+  const coeficientes: Record<string, Record<string, number>> = {};
+
+  return { identity, legend, percentages, weeks, aggregated: retoDistributed, retos, coeficientes };
 }
 
 

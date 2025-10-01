@@ -4,24 +4,63 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
-import { buildModulesTable, buildWeeklySeries } from "@/lib/services/snapshotService";
 import { useSnapshot } from "@/lib/services/snapshotContext";
+import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
 
 export default function TendenciasPage() {
   const { snapshot } = useSnapshot();
   const [moduleFilter, setModuleFilter] = useState<string>("all");
   const [absenceFilter, setAbsenceFilter] = useState<string>("all");
+  const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
+  const [statisticsLoading, setStatisticsLoading] = useState(false);
 
   const absenceLegend = snapshot?.legend.absenceTypes || {};
-  const weeklySeries = useMemo(() => snapshot ? buildWeeklySeries(snapshot, moduleFilter, absenceFilter) : [], [snapshot, moduleFilter, absenceFilter]);
-  const modulesTable = useMemo(() => snapshot ? buildModulesTable(snapshot, moduleFilter, absenceFilter) : [], [snapshot, moduleFilter, absenceFilter]);
+
+  // Cargar estadísticas cuando cambien los filtros
+  useEffect(() => {
+    if (!snapshot?.identity?.dni) return;
+    
+    const loadStatistics = async () => {
+      setStatisticsLoading(true);
+      try {
+        const result = await getStatistics(
+          snapshot.identity.dni,
+          moduleFilter,
+          absenceFilter
+        );
+        setStatistics(result);
+      } catch (error) {
+        console.error("Error loading statistics:", error);
+      } finally {
+        setStatisticsLoading(false);
+      }
+    };
+
+    loadStatistics();
+  }, [snapshot?.identity?.dni, moduleFilter, absenceFilter]);
+
+  // Usar datos del endpoint
+  const weeklySeries = useMemo(() => statistics?.weeklySeries || [], [statistics]);
+  const monthlySeries = useMemo(() => statistics?.monthlySeries || [], [statistics]);
+  const modulesTable = useMemo(() => {
+    const allModules = [
+      ...(statistics?.modulesTable.normalModules || []),
+      ...(statistics?.modulesTable.retoModules || [])
+    ];
+    return allModules;
+  }, [statistics]);
 
   if (!snapshot) return <div className="text-muted-foreground">Cargando...</div>;
 
   return (
     <div className="w-full space-y-6">
       <CardHeader className="p-0">
-        <CardTitle>Tendencias</CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle>Tendencias</CardTitle>
+          {statisticsLoading && (
+            <div className="text-sm text-muted-foreground">Cargando datos...</div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="p-0">
         <Tabs defaultValue="evolucion" className="w-full">

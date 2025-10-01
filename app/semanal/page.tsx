@@ -3,15 +3,44 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
-import { extractAbsenceCode } from "@/lib/utils";
-import { buildSelectedWeek } from "@/lib/services/snapshotService";
 import { useSnapshot } from "@/lib/services/snapshotContext";
+import { getSelectedWeek, type SelectedWeekResponse } from "@/lib/services/apiClient";
+import { extractAbsenceCode } from "@/lib/utils";
 
 export default function SemanalPage() {
   const { snapshot } = useSnapshot();
   const [selectedWeekIdx, setSelectedWeekIdx] = useState<number | null>(null);
+  const [selectedWeekData, setSelectedWeekData] = useState<SelectedWeekResponse | null>(null);
+  const [selectedWeekLoading, setSelectedWeekLoading] = useState(false);
 
-  const selectedWeek = useMemo(() => snapshot ? buildSelectedWeek(snapshot, selectedWeekIdx, "all", "all") : null, [snapshot, selectedWeekIdx]);
+  // Cargar datos de semana seleccionada
+  useEffect(() => {
+    if (!snapshot?.identity?.dni) return;
+    if (selectedWeekIdx === null) return;
+    
+    const loadSelectedWeek = async () => {
+      setSelectedWeekLoading(true);
+      try {
+        const result = await getSelectedWeek(
+          snapshot.identity.dni,
+          selectedWeekIdx,
+          "all",
+          "all"
+        );
+        setSelectedWeekData(result);
+      } catch (error) {
+        console.error("Error loading selected week:", error);
+      } finally {
+        setSelectedWeekLoading(false);
+      }
+    };
+
+    loadSelectedWeek();
+  }, [snapshot?.identity?.dni, selectedWeekIdx]);
+
+  const selectedWeek = selectedWeekData?.week || null;
+  const absenceLegend = selectedWeekData?.absenceLegend || snapshot?.legend.absenceTypes || {};
+  const moduleLegend = selectedWeekData?.moduleLegend || snapshot?.legend.modules || {};
 
   // Ensure the current (latest) week is selected by default when snapshot arrives
   useEffect(() => {
@@ -30,9 +59,6 @@ export default function SemanalPage() {
   }, [snapshot, selectedWeekIdx]);
 
   if (!snapshot) return <div className="text-muted-foreground">Cargando...</div>;
-
-  const absenceLegend = snapshot.legend.absenceTypes || {};
-  const moduleLegend = snapshot.legend.modules || {};
 
   const absenceColorClass = (code: string | null): string => {
     switch (code) {
@@ -116,7 +142,11 @@ export default function SemanalPage() {
         </div>
       </div>
 
-      {selectedWeek && (
+      {selectedWeekLoading ? (
+        <div className="text-center py-8 text-muted-foreground">
+          Cargando datos de la semana...
+        </div>
+      ) : selectedWeek ? (
         <div className="space-y-6">
           <div className="text-sm text-muted-foreground">Detalle semanal ({selectedWeek.weekStartISO} → {selectedWeek.weekEndISO})</div>
           <div className="overflow-auto rounded-md border">
@@ -185,6 +215,10 @@ export default function SemanalPage() {
               </div>
             </section>
           </div>
+        </div>
+      ) : (
+        <div className="text-center py-8 text-muted-foreground">
+          No se pudo cargar la semana seleccionada
         </div>
       )}
     </div>

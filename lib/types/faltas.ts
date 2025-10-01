@@ -67,6 +67,13 @@ export type AggregatedStats = {
   absenceTotals: Record<string, number>; // absence code -> total count across modules
 };
 
+export type RetoInfo = {
+  id: string;
+  label: string;
+  faltas: number;
+  group: string | null;
+};
+
 export type StudentSnapshot = {
   identity: UserIdentity;
   legend: {
@@ -76,6 +83,16 @@ export type StudentSnapshot = {
   percentages: GlobalPercentages;
   weeks: WeekSessions[];
   aggregated: AggregatedStats;
+  retos?: RetoInfo[];
+  coeficientes?: Record<string, Record<string, number>>; // c[retoId][moduleId]
+  retoCalculations?: Record<string, {
+    faltasDirectas: number;
+    faltasDerivadas: number;
+    asistenciasDirectas: number;
+    asistenciasDerivadas: number;
+    totalFaltas: number;
+    totalAsistencias: number;
+  }>; // Datos calculados para cada módulo
 };
 
 

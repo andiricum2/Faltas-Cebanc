@@ -17,7 +17,26 @@ const SnapshotContext = React.createContext<SnapshotContextType | undefined>(und
 async function getSnapshot(): Promise<Snapshot | null> {
   const res = await fetch("/api/faltas/snapshot", { cache: "no-store" });
   if (!res.ok) return null;
-  return res.json();
+  const data = await res.json();
+  return data;
+}
+
+async function saveRetoTargets(retoTargets: Record<string, Record<string, boolean>>): Promise<void> {
+  const res = await fetch("/api/faltas/config/retoTargets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ retoTargets })
+  });
+  if (!res.ok) throw new Error("Failed to save reto targets");
+}
+
+async function saveHoursPerModule(hoursPerModule: Record<string, number>): Promise<void> {
+  const res = await fetch("/api/faltas/config/hoursPerModule", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ hoursPerModule })
+  });
+  if (!res.ok) throw new Error("Failed to save hours per module");
 }
 
 async function postSync(): Promise<void> {

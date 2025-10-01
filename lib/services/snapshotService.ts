@@ -1,4 +1,4 @@
-import type { StudentSnapshot as Snapshot, WeekSessions } from "@/lib/types/faltas";
+import type { StudentSnapshot as Snapshot, WeekSessions, AggregatedStats } from "@/lib/types/faltas";
 import { extractAbsenceCode } from "@/lib/utils";
 
 export type ModuleRow = { key: string; classes: number; absences: string };
@@ -10,6 +10,92 @@ export type Kpis = {
   delta: number;
   topModules: Array<{ key: string; count: number }>;
 };
+
+// Aplicar distribución de retos basada en horas configuradas
+export function applyRetoDistribution(
+  snapshot: Snapshot,
+  retoTargets: Record<string, Record<string, boolean>>,
+  hoursPerModule: Record<string, number>
+): Snapshot {
+  const isReto = (code: string, label: string | undefined) => 
+    /(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i.test(`${code} ${label || ""}`);
+  
+  const retos = Object.keys(snapshot.aggregated.modules).filter(code => 
+    isReto(code, snapshot.legend.modules[code])
+  );
+  
+  const nonRetoModules = Object.keys(snapshot.aggregated.modules).filter(code => 
+    !isReto(code, snapshot.legend.modules[code])
+  );
+  
+  // Crear una copia del snapshot para modificar
+  const distributedSnapshot = {
+    ...snapshot,
+    aggregated: {
+      ...snapshot.aggregated,
+      modules: { ...snapshot.aggregated.modules },
+      absenceTotals: { ...snapshot.aggregated.absenceTotals }
+    },
+    coeficientes: {} as Record<string, Record<string, number>>
+  };
+  
+  for (const retoId of retos) {
+    const retoFaltas = Object.entries(snapshot.aggregated.modules[retoId]?.absenceCounts || {})
+      .filter(([k]) => k !== "J")
+      .reduce((a, [, v]) => a + (v as number), 0);
+    
+    if (retoFaltas > 0) {
+      // Obtener módulos asignados al reto
+      let targets = nonRetoModules;
+      const selected = retoTargets[retoId];
+      if (selected && Object.values(selected).some(Boolean)) {
+        targets = nonRetoModules.filter(m => !!selected[m]);
+      }
+      
+      if (targets.length > 0) {
+        // Calcular coeficientes basados en horas semanales
+        const hours = targets.map(m => Math.max(0, Number(hoursPerModule[m] || 0)));
+        const sumHours = hours.reduce((a, b) => a + b, 0);
+        
+        let coeficientes: Record<string, number>;
+        if (sumHours > 0) {
+          coeficientes = Object.fromEntries(
+            targets.map((m, i) => [m, hours[i] / sumHours])
+          );
+        } else {
+          const equal = 1 / targets.length;
+          coeficientes = Object.fromEntries(
+            targets.map(m => [m, equal])
+          );
+        }
+        
+        // Distribuir faltas del reto
+        for (const targetCode of targets) {
+          const coeficiente = coeficientes[targetCode] || 0;
+          const distributedFaltas = Math.round(retoFaltas * coeficiente);
+          
+          if (distributedFaltas > 0) {
+            // Añadir faltas al módulo destino
+            if (!distributedSnapshot.aggregated.modules[targetCode]) {
+              distributedSnapshot.aggregated.modules[targetCode] = { classesGiven: 0, absenceCounts: {} };
+            }
+            
+            distributedSnapshot.aggregated.modules[targetCode].absenceCounts["F"] = 
+              (distributedSnapshot.aggregated.modules[targetCode].absenceCounts["F"] || 0) + distributedFaltas;
+          }
+        }
+        
+        // Limpiar faltas del reto original (ya distribuidas)
+        distributedSnapshot.aggregated.modules[retoId].absenceCounts = {};
+        
+        // Guardar coeficientes calculados para este reto
+        distributedSnapshot.coeficientes[retoId] = coeficientes;
+      }
+    }
+  }
+  
+  return distributedSnapshot;
+}
 
 export function buildModulesTable(
   snapshot: Snapshot,

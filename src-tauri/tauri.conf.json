@@ -33,19 +33,7 @@
       "bin/"
     ]
   },
-  "plugins": {
-    "updater": {
-      "active": true,
-      "endpoints": [
-        "https://github.com/andiricum2/Faltas-Cebanc/releases/latest/download/latest.json"
-      ],
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDhFRENCMjQyQTU3OUUwMUYKUldRZjRIbWxRckxjanRhanByWmNiSXNCU2dQUGhvbEQ3cnZJdkhNK3QwWXRwbmNuMUlNV01ick8K",
-      "dialog": true,
-      "windows": {
-        "installMode": "basicUi"
-      }
-    }
-  }
+  "plugins": {}
 }
 
 

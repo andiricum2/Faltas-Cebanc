@@ -9,6 +9,9 @@ import { RefreshCcw, LogOut, LayoutDashboard, LineChart, CalendarDays, Calculato
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
+import pkg from "@/package.json";
+import AutoUpdate from "@/app/updates";
+import { Download } from "lucide-react";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -17,6 +20,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [showConfigModal, setShowConfigModal] = React.useState(false);
   const [configReasons, setConfigReasons] = React.useState<string[]>([]);
   const [loggingOut, setLoggingOut] = React.useState<boolean>(false);
+  const [updateInfo, setUpdateInfo] = React.useState<{ version: string; url: string } | null>(null);
   const isLogin = pathname === "/login";
   const isDashboard = pathname === "/" || pathname?.startsWith("/dashboard");
   const isTendencias = pathname?.startsWith("/tendencias");
@@ -37,6 +41,18 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   React.useEffect(() => {
     if (error) { toast.error(error); }
   }, [error]);
+
+  // Listen for update availability from AutoUpdate
+  React.useEffect(() => {
+    const onUpdate = (e: Event) => {
+      const custom = e as CustomEvent<{ version: string; url: string }>;
+      setUpdateInfo(custom.detail);
+    };
+    window.addEventListener("faltas:update-available", onUpdate as EventListener);
+    return () => {
+      window.removeEventListener("faltas:update-available", onUpdate as EventListener);
+    };
+  }, []);
 
   // Check configuration status on mount (except login page)
   React.useEffect(() => {
@@ -78,7 +94,30 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <NavItem href="/calcular" active={isCalcular} label="Calcular" icon={Calculator} />
           <NavItem href="/configuracion" label="Configuración" icon={SlidersHorizontal} />
         </nav>
+        
         <div className="mt-auto p-3 border-t space-y-2">
+
+        {updateInfo ? (
+            <div className="pt-2 mt-auto sticky bottom-0">
+              <div className="rounded-md border bg-sidebar-accent/50 p-3 space-y-2">
+                <div className="flex items-center gap-2">
+                  <Download className="h-4 w-4" />
+                  <div className="text-sm font-medium">Actualización disponible</div>
+                </div>
+                <div className="text-xs text-muted-foreground">v {updateInfo.version}</div>
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={() => window.open(updateInfo.url, "_blank", "noopener,noreferrer")}
+                  className="w-full justify-center"
+                >
+                  Descargar…
+                </Button>
+              </div>
+            </div>
+          ) : null}
+
+
           <div className="grid grid-cols-4 gap-2">
             <Button onClick={onSync} disabled={loading} variant="outline" size="sm" className="col-span-3 w-full justify-center" aria-label="Sincronizar">
             {loading ? (
@@ -102,7 +141,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </Button>
           </div>
-          <div className="text-xs text-muted-foreground">v0.1.0</div>
+          <div className="text-xs text-muted-foreground">v {pkg.version}</div>
         </div>
       </aside>
       <main className="min-h-screen">
@@ -110,6 +149,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-semibold">Faltas</span>
         </header>
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full">{children}</div>
+        {/* Auto update checker (shows toast on entry) */}
+        <AutoUpdate />
         {showConfigModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => setShowConfigModal(false)} />

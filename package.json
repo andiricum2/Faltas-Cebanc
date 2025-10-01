@@ -1,6 +1,6 @@
 {
   "name": "faltas",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "private": true,
   "main": "src-tauri/src/main.rs",
   "scripts": {
@@ -14,7 +14,6 @@
   },
   "dependencies": {
     "@tauri-apps/plugin-process": "^2.3.0",
-    "@tauri-apps/plugin-updater": "^2.9.0",
     "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

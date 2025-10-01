@@ -139,7 +139,6 @@ fn ready(_app: AppHandle) {}
 
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_updater::Builder::new().build())
         .setup(|_app| {
             // En producción, lanzar servidor y navegar cuando esté listo
             #[cfg(not(debug_assertions))]

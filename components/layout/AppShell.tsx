@@ -12,6 +12,7 @@ import { SlidersHorizontal } from "lucide-react";
 import pkg from "@/package.json";
 import { Download } from "lucide-react";
 import { openExternalUrl } from "@/lib/utils/externalLinks";
+import NoticeBanner from "@/components/ui/notice-banner";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -149,7 +150,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <header className="h-14 border-b flex items-center px-4 md:hidden">
           <span className="font-semibold">Faltas</span>
         </header>
-        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full">{children}</div>
+        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full">
+          <NoticeBanner />
+          {children}
+        </div>
         {showConfigModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div className="absolute inset-0 bg-black/40" onClick={() => setShowConfigModal(false)} />

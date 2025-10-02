@@ -115,7 +115,7 @@ export default function DashboardPage() {
                       <div>
                         <div className="font-semibold mb-2">Módulos</div>
                         <div className="border rounded-md divide-y">
-                          <div className="grid grid-cols-7 text-sm font-medium bg-muted px-3 py-2">
+                            <div className="grid grid-cols-7 text-sm font-medium bg-muted px-3 py-2">
                             <div>Módulo</div>
                             <div className="text-center">Sesiones directas</div>
                             <div className="text-center">Sesiones de retos</div>
@@ -128,21 +128,20 @@ export default function DashboardPage() {
                             const calculations = moduleCalculations[row.key] || {
                               faltasDirectas: 0,
                               faltasDerivadas: 0,
-                              asistenciasDirectas: 0,
-                              asistenciasDerivadas: 0,
+                              sesionesDirectas: 0,
+                              sesionesDerivadas: 0,
                               totalFaltas: 0,
-                              totalAsistencias: 0
                             };
                             
                             return (
                               <div key={row.key} className="grid grid-cols-7 text-sm px-3 py-2">
                                 <div className="truncate" title={row.key}>{row.key}</div>
-                                <div className="text-center font-mono">{calculations.asistenciasDirectas.toFixed(2)}</div>
+                                <div className="text-center font-mono">{calculations.sesionesDirectas.toFixed(2)}</div>
                                 <div className="text-center font-mono text-blue-600">
-                                  {calculations.asistenciasDerivadas.toFixed(2)}
+                                  {calculations.sesionesDerivadas.toFixed(2)}
                                 </div>
                                 <div className="text-center font-mono font-semibold">
-                                  {calculations.totalAsistencias.toFixed(2)}
+                                  {(calculations.sesionesDirectas + calculations.sesionesDerivadas).toFixed(2)}
                                 </div>
                                 <div className="text-center font-mono">{calculations.faltasDirectas.toFixed(2)}</div>
                                 <div className="text-center font-mono text-blue-600">

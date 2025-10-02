@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { StudentSnapshot } from "@/lib/types/faltas";
 import { loadProcessedSnapshot } from "@/lib/server/snapshot";
-import { sumRecordValuesExcludingJ, calcPercent, isRetoModule, extractGroupToken } from "@/lib/utils/calculations";
+import { sumarFaltas, calcPercent, isRetoModule, extractGroupToken } from "@/lib/utils/calculations";
 
 export type CalculateResponse = {
   general: {
@@ -54,18 +54,48 @@ export async function GET(request: NextRequest) {
     // Cargar snapshot procesado directamente (evitar llamada HTTP interna)
     const snapshot: StudentSnapshot = await loadProcessedSnapshot(dni);
 
+    // Helpers para evitar duplicación
+    const getModuleBaseStats = (snap: StudentSnapshot, code: string) => {
+      const moduleCalcs = (snap as any).moduleCalculations?.[code];
+      const classes = moduleCalcs
+        ? ((moduleCalcs?.sesionesDirectas || 0) + (moduleCalcs?.sesionesDerivadas || 0))
+        : (snap.aggregated?.modules?.[code]?.classesGiven || 0);
+      const absences = moduleCalcs?.totalFaltas ??
+        sumarFaltas(snap.aggregated?.modules?.[code]?.absenceCounts);
+      return { classes, absences };
+    };
+
+    const sumGeneral = (snap: StudentSnapshot) => {
+      const hasModuleCalcs = !!(snap as any).moduleCalculations;
+      const totalSessions = hasModuleCalcs
+        ? Object.values((snap as any).moduleCalculations || {}).reduce((acc: number, m: any) => acc + ((m?.sesionesDirectas || 0) + (m?.sesionesDerivadas || 0)), 0)
+        : Object.values(snap.aggregated?.modules || {}).reduce((acc, m: any) => acc + (m?.classesGiven || 0), 0);
+      const totalAbsences = hasModuleCalcs
+        ? Object.values((snap as any).moduleCalculations || {}).reduce((acc: number, m: any) => acc + (m?.totalFaltas || 0), 0)
+        : sumarFaltas(snap.aggregated?.absenceTotals);
+      return { totalSessions, totalAbsences };
+    };
+
+    const computeRetoProjection = (moduleClasses: number, moduleAbsences: number, added: number, coef: number) => {
+      const retoFaltasDistribuidasProjected = added > 0 ? moduleAbsences + (added * coef) : moduleAbsences;
+      const retoClasesImpartidasDistribuidasProjected = added > 0 ? moduleClasses + (added * coef) : moduleClasses;
+      const totalFaltasProjected = moduleAbsences + retoFaltasDistribuidasProjected;
+      const totalSessionsProjected = moduleClasses + retoClasesImpartidasDistribuidasProjected;
+      const current = calcPercent(moduleAbsences, moduleClasses);
+      const projected = calcPercent(totalFaltasProjected, totalSessionsProjected);
+      return { current, projected };
+    };
+
     // Calcular estadísticas generales
-    const totalSessionsGeneral = Object.values(snapshot.aggregated?.modules || {})
-      .reduce((acc, m) => acc + (m?.classesGiven || 0), 0);
-    const totalAbsencesGeneral = sumRecordValuesExcludingJ(snapshot.aggregated?.absenceTotals);
+    const { totalSessions: totalSessionsGeneral, totalAbsences: totalAbsencesGeneral } = sumGeneral(snapshot);
     const currentPercentGeneral = calcPercent(totalAbsencesGeneral, totalSessionsGeneral);
     const projectedPercentGeneral = calcPercent(totalAbsencesGeneral + addedAbsences, totalSessionsGeneral);
 
-    // Calcular estadísticas del módulo seleccionado
-    const totalSessionsModule = selectedModule === "__general__" ? 0 : 
-      (snapshot.aggregated?.modules?.[selectedModule]?.classesGiven || 0);
-    const totalAbsencesModule = selectedModule === "__general__" ? 0 :
-      sumRecordValuesExcludingJ(snapshot.aggregated?.modules?.[selectedModule]?.absenceCounts);
+    // Calcular estadísticas del módulo seleccionado (usar moduleCalculations del snapshot si existe)
+    const { classes: totalSessionsModule, absences: totalAbsencesModule } = selectedModule === "__general__"
+      ? { classes: 0, absences: 0 }
+      : getModuleBaseStats(snapshot, selectedModule);
+
     const currentPercentModule = calcPercent(totalAbsencesModule, totalSessionsModule);
     const projectedPercentModule = calcPercent(totalAbsencesModule + addedAbsences, totalSessionsModule);
 
@@ -73,7 +103,7 @@ export async function GET(request: NextRequest) {
     const moduleMeta = Object.keys(snapshot.aggregated?.modules || {}).map((code) => {
       const label = snapshot.legend?.modules?.[code] || code;
       const classes = snapshot.aggregated?.modules?.[code]?.classesGiven || 0;
-      const absDirectas = sumRecordValuesExcludingJ(snapshot.aggregated?.modules?.[code]?.absenceCounts);
+      const absDirectas = sumarFaltas(snapshot.aggregated?.modules?.[code]?.absenceCounts);
       const reto = isRetoModule(code, label);
       const group = extractGroupToken(code, label);
       return { code, label, classes, absDirectas, isReto: reto, group };
@@ -87,7 +117,7 @@ export async function GET(request: NextRequest) {
       
       if (isReto) {
         const retoClasses = snapshot.aggregated?.modules?.[selectedModule]?.classesGiven || 0;
-        const retoDirectAbs = sumRecordValuesExcludingJ(snapshot.aggregated?.modules?.[selectedModule]?.absenceCounts);
+        const retoDirectAbs = sumarFaltas(snapshot.aggregated?.modules?.[selectedModule]?.absenceCounts);
         const retoCurrent = calcPercent(retoDirectAbs, retoClasses);
         const retoProjected = calcPercent(retoDirectAbs + addedAbsences, retoClasses);
 
@@ -108,27 +138,9 @@ export async function GET(request: NextRequest) {
           const coeficiente = coeficientes[m] || 0;
           if (coeficiente === 0) continue; // Solo módulos asignados
 
-          const moduleClasses = snapshot.aggregated?.modules?.[m]?.classesGiven || 0;
-          const moduleDirectAbs = sumRecordValuesExcludingJ(snapshot.aggregated?.modules?.[m]?.absenceCounts);
-
-          // Faltas del reto distribuidas a este módulo
-          const retoFaltasDistribuidas = retoDirectAbs * coeficiente;
-          const retoFaltasDistribuidasProjected = (retoDirectAbs + addedAbsences) * coeficiente;
-
-          // Sesiones derivadas del reto ponderadas para el módulo
-          const derivedSessionsFromReto = retoClasses * coeficiente;
-
-          // Total faltas = directas + distribuidas del reto
-          const totalCurrent = moduleDirectAbs + retoFaltasDistribuidas;
-          const totalProjected = moduleDirectAbs + retoFaltasDistribuidasProjected;
-
-          // Denominador: sesiones del módulo + sesiones derivadas del reto
-          const totalSessionsForPercent = moduleClasses + derivedSessionsFromReto;
-
-          const current = calcPercent(totalCurrent, totalSessionsForPercent);
-          const projected = calcPercent(totalProjected, totalSessionsForPercent);
-
-          modules.push({ code: m, label: moduleLabel, current, projected, classes: moduleClasses });
+          const base = getModuleBaseStats(snapshot, m);
+          const { current, projected } = computeRetoProjection(base.classes, base.absences, addedAbsences, coeficiente);
+          modules.push({ code: m, label: moduleLabel, current, projected, classes: base.classes });
         }
 
         retoAnalysis = {

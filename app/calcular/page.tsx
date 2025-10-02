@@ -12,7 +12,7 @@ import { getCalculations, type CalculateResponse } from "@/lib/services/apiClien
 type Mode = "horas" | "dias";
 
 
-function sumRecordValuesExcludingJ(record: Record<string, number> | undefined): number {
+function sumarFaltas(record: Record<string, number> | undefined): number {
 	if (!record) return 0;
 	return Object.entries(record).reduce((acc, [code, n]) => {
 		if (code === "J") return acc; // Justificadas no cuentan

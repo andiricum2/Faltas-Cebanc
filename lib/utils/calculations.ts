@@ -2,13 +2,17 @@
  * Utilidades de cálculo compartidas entre frontend y backend
  */
 
-export function sumRecordValuesExcludingJ(record: Record<string, number> | undefined): number {
+export function sumarFaltas(record: Record<string, number> | undefined): number {
   if (!record) return 0;
   return Object.entries(record).reduce((acc, [code, n]) => {
     if (code === "J") return acc; // Justificadas no cuentan
-    return acc + (Number.isFinite(n) ? (n as number) : 0);
+    const count = Number.isFinite(n) ? (n as number) : 0;
+    // Aplicar peso: R (retraso) cuenta como 1/3 de falta
+    const weight = code === "R" ? 1/3 : 1;
+    return acc + count * weight;
   }, 0);
 }
+
 
 export function calcPercent(abs: number, total: number): number {
   if (!total || total <= 0) return 0;
@@ -38,7 +42,7 @@ export function extractAbsenceCode(cssClass: string | null): string | null {
  * Distribuye faltas de retos a módulos objetivo basado en horas semanales configuradas
  * Esta es la función centralizada para toda la lógica de distribución de retos
  */
-export function distributeRetoFaltas(
+export function getModuleCalculations(
   snapshot: {
     aggregated: {
       modules: Record<string, { classesGiven: number; absenceCounts: Record<string, number> }>;
@@ -58,10 +62,10 @@ export function distributeRetoFaltas(
   moduleCalculations?: Record<string, {
     faltasDirectas: number;
     faltasDerivadas: number;
-    asistenciasDirectas: number;
-    asistenciasDerivadas: number;
+    sesionesDirectas: number;
+    sesionesDerivadas: number;
     totalFaltas: number;
-    totalAsistencias: number;
+    totalSesiones: number;
   }>;
 } {
   const { cleanRetoFaltas = false, addModuleCalculations = false } = options;
@@ -91,7 +95,7 @@ export function distributeRetoFaltas(
   // Procesar cada reto
   for (const retoId of retos) {
     const retoData = snapshot.aggregated.modules[retoId];
-    const retoFaltas = sumRecordValuesExcludingJ(retoData?.absenceCounts);
+    const retoFaltas = sumarFaltas(retoData?.absenceCounts);
     const retoAsistencias = retoData?.classesGiven || 0;
 
     if (retoFaltas > 0 || retoAsistencias > 0) {
@@ -110,30 +114,13 @@ export function distributeRetoFaltas(
         let coeficientesReto: Record<string, number>;
         if (sumHours > 0) {
           coeficientesReto = Object.fromEntries(
-            targets.map((m, i) => [m, Number((hours[i] / sumHours).toFixed(2))])
+            targets.map((m, i) => [m, Number((hours[i] / sumHours))])
           );
         } else {
-          const equal = Number((1 / targets.length).toFixed(2));
+          const equal = Number((1 / targets.length));
           coeficientesReto = Object.fromEntries(
             targets.map(m => [m, equal])
           );
-        }
-
-        // Distribuir faltas del reto solo si hay faltas
-        if (retoFaltas > 0) {
-          for (const targetCode of targets) {
-            const coeficiente = coeficientesReto[targetCode] || 0;
-            const distributedFaltas = Math.round(retoFaltas * coeficiente);
-            
-            if (distributedFaltas > 0) {
-              if (!distributedSnapshot.aggregated.modules[targetCode]) {
-                distributedSnapshot.aggregated.modules[targetCode] = { classesGiven: 0, absenceCounts: {} };
-              }
-              
-              distributedSnapshot.aggregated.modules[targetCode].absenceCounts["F"] = 
-                (distributedSnapshot.aggregated.modules[targetCode].absenceCounts["F"] || 0) + distributedFaltas;
-            }
-          }
         }
 
         // Limpiar faltas del reto si se especifica
@@ -159,7 +146,7 @@ export function distributeRetoFaltas(
         if (coeficiente > 0) {
           // Usar datos originales del reto, no los distribuidos
           const retoData = snapshot.aggregated.modules[retoId];
-          const retoFaltas = sumRecordValuesExcludingJ(retoData?.absenceCounts);
+          const retoFaltas = sumarFaltas(retoData?.absenceCounts);
           const retoAsistencias = retoData?.classesGiven || 0;
           faltasDerivadas += Number((retoFaltas * coeficiente).toFixed(2));
           asistenciasDerivadas += Number((retoAsistencias * coeficiente).toFixed(2));
@@ -168,18 +155,20 @@ export function distributeRetoFaltas(
 
       // Calcular faltas directas (excluyendo las distribuidas de retos)
       // Las faltas directas son las que NO vienen de retos
-      const faltasDirectas = sumRecordValuesExcludingJ(moduleData?.absenceCounts) - faltasDerivadas;
-      const asistenciasDirectas = Number((moduleData?.classesGiven || 0).toFixed(2));
-      const totalFaltas = Number((faltasDirectas + faltasDerivadas).toFixed(2));
-      const totalAsistencias = Number((asistenciasDirectas + asistenciasDerivadas).toFixed(2));
+      const faltasDirectas = sumarFaltas(moduleData?.absenceCounts);
+      const asistenciasDirectas = Number((moduleData?.classesGiven || 0));
+      const totalFaltas = Number((faltasDirectas + faltasDerivadas));
+      const totalSesiones = Number((asistenciasDirectas + asistenciasDerivadas));
+      const sesionesDirectas = Number(asistenciasDirectas);
+      const sesionesDerivadas = Number(asistenciasDerivadas);
 
       moduleCalculations[moduleCode] = {
         faltasDirectas: Math.max(0, faltasDirectas),
-        faltasDerivadas: Number(faltasDerivadas.toFixed(2)),
-        asistenciasDirectas: Number(asistenciasDirectas.toFixed(2)),
-        asistenciasDerivadas: Number(asistenciasDerivadas.toFixed(2)),
-        totalFaltas: Number(totalFaltas.toFixed(2)),
-        totalAsistencias: Number(totalAsistencias.toFixed(2))
+        faltasDerivadas: Number(faltasDerivadas),
+        sesionesDirectas,
+        sesionesDerivadas,
+        totalFaltas: Number(totalFaltas),
+        totalSesiones: Number(totalSesiones)
       };
     }
   }

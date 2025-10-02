@@ -39,7 +39,7 @@ export function isoToDDMMYYYY(iso: string): string {
 
 // Re-exportar funciones de cálculos
 export { 
-  sumRecordValuesExcludingJ, 
+  sumarFaltas, 
   calcPercent, 
   isRetoModule, 
   extractGroupToken,

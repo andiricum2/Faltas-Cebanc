@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { buildSnapshot } from "@/lib/http/scraper";
-import { distributeRetoFaltas } from "@/lib/utils/calculations";
+import { getModuleCalculations } from "@/lib/utils/calculations";
 import type { StudentSnapshot, WeekSessions, UserIdentity, LegendModules, LegendAbsenceTypes, GlobalPercentages } from "@/lib/types/faltas";
 
 export async function loadProcessedSnapshot(dni: string): Promise<StudentSnapshot> {
@@ -42,7 +42,7 @@ export async function loadProcessedSnapshot(dni: string): Promise<StudentSnapsho
   // Construir snapshot base y aplicar distribución de retos
   const baseSnapshot = buildSnapshot(weeks, identity, legend, percentages);
   
-  const { distributedSnapshot, coeficientes, moduleCalculations } = distributeRetoFaltas(
+  const { distributedSnapshot, coeficientes, moduleCalculations } = getModuleCalculations(
     baseSnapshot,
     retoTargets,
     hoursPerModule,

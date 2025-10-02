@@ -1,5 +1,5 @@
 import type { StudentSnapshot as Snapshot, WeekSessions, AggregatedStats } from "@/lib/types/faltas";
-import { extractAbsenceCode, sumRecordValuesExcludingJ, isRetoModule } from "@/lib/utils/calculations";
+import { extractAbsenceCode, sumarFaltas, isRetoModule } from "@/lib/utils/calculations";
 
 export type ModuleRow = { key: string; classes: number; absences: string };
 
@@ -18,7 +18,7 @@ export function buildModulesTable(snapshot: Snapshot): {
   const allModules = Object.keys(snapshot.aggregated.modules).map(key => {
     const module = snapshot.aggregated.modules[key];
     const classes = module?.classesGiven || 0;
-    const absences = sumRecordValuesExcludingJ(module?.absenceCounts);
+    const absences = sumarFaltas(module?.absenceCounts);
     return { key, classes, absences: absences.toString() };
   });
 

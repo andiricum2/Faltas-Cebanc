@@ -88,10 +88,9 @@ export type StudentSnapshot = {
   moduleCalculations?: Record<string, {
     faltasDirectas: number;
     faltasDerivadas: number;
-    asistenciasDirectas: number;
-    asistenciasDerivadas: number;
+    sesionesDirectas: number;
+    sesionesDerivadas: number;
     totalFaltas: number;
-    totalAsistencias: number;
   }>; // Cálculos detallados por módulo (incluyendo distribución de retos)
 };
 

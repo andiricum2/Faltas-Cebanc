@@ -3,11 +3,11 @@
 import React from "react";
 import { Notice, fetchNotices } from "@/lib/services/notices";
 import { Button } from "@/components/ui/button";
-import { AlertCircle, Info, CheckCircle, XCircle, ExternalLink } from "lucide-react";
+import { AlertCircle, Info, CheckCircle, XCircle, ExternalLink, X } from "lucide-react";
 import { openExternalUrl } from "@/lib/utils/externalLinks";
 
 function IconFor({ icon, severity }: { icon?: string; severity?: string }) {
-  const className = "h-4 w-4";
+  const className = "h-4.5 w-4.5";
   if (icon === "info") return <Info className={className} />;
   if (icon === "success") return <CheckCircle className={className} />;
   if (icon === "error") return <XCircle className={className} />;
@@ -19,17 +19,17 @@ function IconFor({ icon, severity }: { icon?: string; severity?: string }) {
   return <AlertCircle className={className} />;
 }
 
-function classesFor(severity?: string): string {
+function palette(severity?: string): { bg: string; text: string; border: string; accent: string } {
   switch (severity) {
     case "info":
-      return "border bg-blue-50 text-blue-900";
+      return { bg: "bg-blue-50", text: "text-blue-900", border: "border-blue-200", accent: "bg-blue-400" };
     case "success":
-      return "border bg-emerald-50 text-emerald-900";
+      return { bg: "bg-emerald-50", text: "text-emerald-900", border: "border-emerald-200", accent: "bg-emerald-400" };
     case "error":
-      return "border bg-red-50 text-red-900";
+      return { bg: "bg-red-50", text: "text-red-900", border: "border-red-200", accent: "bg-red-400" };
     case "warning":
     default:
-      return "border bg-amber-50 text-amber-900";
+      return { bg: "bg-amber-50", text: "text-amber-900", border: "border-amber-200", accent: "bg-amber-400" };
   }
 }
 
@@ -64,29 +64,40 @@ export default function NoticeBanner() {
   if (visible.length === 0) return null;
 
   return (
-    <div className="space-y-2 mb-4">
-      {visible.map((n) => (
-        <div key={n.id} className={`rounded-md px-3 py-2 text-sm ${classesFor(n.severity)}`}>
-          <div className="flex items-start gap-2">
-            <div className="mt-0.5"><IconFor icon={n.icon} severity={n.severity} /></div>
-            <div className="flex-1">
-              <div className="font-medium">{n.title}</div>
-              <div className="text-sm opacity-90">{n.description}</div>
-              {n.action?.url && n.action?.label ? (
-                <div className="mt-2">
-                  <Button size="sm" onClick={() => openExternalUrl(n.action!.url)}>
+    <div className="space-y-3 mb-3" aria-live="polite" role="status">
+      {visible.map((n) => {
+        const p = palette(n.severity);
+        return (
+          <div
+            key={n.id}
+            className={`rounded-lg ${p.bg} ${p.text} border ${p.border} px-3 py-2.5 text-sm shadow-sm transition-colors`}
+          >
+            <div className="flex items-center gap-3">
+              <div className={`h-7 w-1.5 rounded-full ${p.accent}`} />
+              <div><IconFor icon={n.icon} severity={n.severity}/></div>
+              <div className="flex-1">
+                <div className="text-base font-semibold leading-6">{n.title}</div>
+                <div className="text-sm leading-6 opacity-90">{n.description}</div>
+              </div>
+              <div className="flex items-center gap-2 ml-2">
+                {n.action?.url && n.action?.label ? (
+                  <Button size="sm" onClick={() => openExternalUrl(n.action!.url)} className="shrink-0 h-8 px-3">
                     {n.action!.label}
                     <ExternalLink className="h-3.5 w-3.5 ml-1" />
                   </Button>
-                </div>
-              ) : null}
+                ) : null}
+                <button
+                  className="p-1 rounded opacity-70 hover:opacity-100 hover:bg-black/5"
+                  onClick={() => onDismiss(n.id)}
+                  aria-label="Cerrar aviso"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
             </div>
-            <button className="opacity-70 hover:opacity-100 text-xs" onClick={() => onDismiss(n.id)} aria-label="Cerrar aviso">
-              Cerrar
-            </button>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

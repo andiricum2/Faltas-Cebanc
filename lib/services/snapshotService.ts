@@ -1,5 +1,5 @@
 import type { StudentSnapshot as Snapshot, WeekSessions, AggregatedStats } from "@/lib/types/faltas";
-import { extractAbsenceCode } from "@/lib/utils";
+import { extractAbsenceCode, sumRecordValuesExcludingJ, isRetoModule } from "@/lib/utils/calculations";
 
 export type ModuleRow = { key: string; classes: number; absences: string };
 
@@ -11,107 +11,29 @@ export type Kpis = {
   topModules: Array<{ key: string; count: number }>;
 };
 
-// Aplicar distribución de retos basada en horas configuradas
-export function applyRetoDistribution(
-  snapshot: Snapshot,
-  retoTargets: Record<string, Record<string, boolean>>,
-  hoursPerModule: Record<string, number>
-): Snapshot {
-  const isReto = (code: string, label: string | undefined) => 
-    /(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i.test(`${code} ${label || ""}`);
-  
-  const retos = Object.keys(snapshot.aggregated.modules).filter(code => 
-    isReto(code, snapshot.legend.modules[code])
-  );
-  
-  const nonRetoModules = Object.keys(snapshot.aggregated.modules).filter(code => 
-    !isReto(code, snapshot.legend.modules[code])
-  );
-  
-  // Crear una copia del snapshot para modificar
-  const distributedSnapshot = {
-    ...snapshot,
-    aggregated: {
-      ...snapshot.aggregated,
-      modules: { ...snapshot.aggregated.modules },
-      absenceTotals: { ...snapshot.aggregated.absenceTotals }
-    },
-    coeficientes: {} as Record<string, Record<string, number>>
-  };
-  
-  for (const retoId of retos) {
-    const retoFaltas = Object.entries(snapshot.aggregated.modules[retoId]?.absenceCounts || {})
-      .filter(([k]) => k !== "J")
-      .reduce((a, [, v]) => a + (v as number), 0);
-    
-    if (retoFaltas > 0) {
-      // Obtener módulos asignados al reto
-      let targets = nonRetoModules;
-      const selected = retoTargets[retoId];
-      if (selected && Object.values(selected).some(Boolean)) {
-        targets = nonRetoModules.filter(m => !!selected[m]);
-      }
-      
-      if (targets.length > 0) {
-        // Calcular coeficientes basados en horas semanales
-        const hours = targets.map(m => Math.max(0, Number(hoursPerModule[m] || 0)));
-        const sumHours = hours.reduce((a, b) => a + b, 0);
-        
-        let coeficientes: Record<string, number>;
-        if (sumHours > 0) {
-          coeficientes = Object.fromEntries(
-            targets.map((m, i) => [m, hours[i] / sumHours])
-          );
-        } else {
-          const equal = 1 / targets.length;
-          coeficientes = Object.fromEntries(
-            targets.map(m => [m, equal])
-          );
-        }
-        
-        // Distribuir faltas del reto
-        for (const targetCode of targets) {
-          const coeficiente = coeficientes[targetCode] || 0;
-          const distributedFaltas = Math.round(retoFaltas * coeficiente);
-          
-          if (distributedFaltas > 0) {
-            // Añadir faltas al módulo destino
-            if (!distributedSnapshot.aggregated.modules[targetCode]) {
-              distributedSnapshot.aggregated.modules[targetCode] = { classesGiven: 0, absenceCounts: {} };
-            }
-            
-            distributedSnapshot.aggregated.modules[targetCode].absenceCounts["F"] = 
-              (distributedSnapshot.aggregated.modules[targetCode].absenceCounts["F"] || 0) + distributedFaltas;
-          }
-        }
-        
-        // Limpiar faltas del reto original (ya distribuidas)
-        distributedSnapshot.aggregated.modules[retoId].absenceCounts = {};
-        
-        // Guardar coeficientes calculados para este reto
-        distributedSnapshot.coeficientes[retoId] = coeficientes;
-      }
-    }
-  }
-  
-  return distributedSnapshot;
-}
+export function buildModulesTable(snapshot: Snapshot): {
+  normalModules: ModuleRow[];
+  retoModules: ModuleRow[];
+} {
+  const allModules = Object.keys(snapshot.aggregated.modules).map(key => {
+    const module = snapshot.aggregated.modules[key];
+    const classes = module?.classesGiven || 0;
+    const absences = sumRecordValuesExcludingJ(module?.absenceCounts);
+    return { key, classes, absences: absences.toString() };
+  });
 
-export function buildModulesTable(
-  snapshot: Snapshot,
-  moduleFilter: string,
-  absenceFilter: string
-): ModuleRow[] {
-  let entries = Object.entries(snapshot.aggregated.modules);
-  if (moduleFilter !== "all") entries = entries.filter(([mod]) => mod === moduleFilter);
-  return entries.map(([mod, v]) => ({
-    key: mod,
-    classes: v.classesGiven,
-    absences: Object.entries(v.absenceCounts)
-      .filter(([code]) => absenceFilter === "all" || code === absenceFilter)
-      .map(([code, cnt]) => `${code}:${cnt}`)
-      .join("  "),
-  }));
+  const normalModules = allModules.filter(row => 
+    !isRetoModule(row.key, snapshot.legend.modules[row.key])
+  );
+  
+  // Para los módulos de reto, usar los datos específicos de snapshot.retos
+  const retoModules = (snapshot as any).retos?.map((reto: any) => ({
+    key: reto.id,
+    classes: snapshot.aggregated.modules[reto.id]?.classesGiven || 0,
+    absences: reto.faltas.toString()
+  })) || [];
+
+  return { normalModules, retoModules };
 }
 
 export function buildTopLine(snapshot: Snapshot): string {
@@ -169,6 +91,7 @@ export function buildKpis(snapshot: Snapshot): Kpis {
   const iso30 = new Date(now.getTime() - 30 * 24 * 3600 * 1000);
   let total = 0, last30 = 0, prev30 = 0;
   const moduleCounts: Record<string, number> = {};
+  
   snapshot.weeks.forEach((w) => {
     w.sessions.forEach((s) => {
       const code = extractAbsenceCode(s.cssClass);
@@ -180,10 +103,12 @@ export function buildKpis(snapshot: Snapshot): Kpis {
       moduleCounts[mod] = (moduleCounts[mod] || 0) + 1;
     });
   });
+  
   const topModules = Object.entries(moduleCounts)
     .sort((a, b) => b[1] - a[1])
     .slice(0, 3)
     .map(([key, count]) => ({ key, count }));
+  
   const delta = last30 - Math.min(prev30, last30);
   return { totalAbsences: total, last30, prev30, delta, topModules };
 }

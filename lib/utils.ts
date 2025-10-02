@@ -37,17 +37,11 @@ export function isoToDDMMYYYY(iso: string): string {
   return `${d}-${m}-${y}`;
 }
 
-export function extractAbsenceCode(cssClass: string | null): string | null {
-  if (!cssClass) return null;
-  const m = /falta_(\w*)/.exec(cssClass);
-  return m ? m[1] : null;
-}
-
-// Re-exportar funciones de cálculos para compatibilidad
+// Re-exportar funciones de cálculos
 export { 
   sumRecordValuesExcludingJ, 
   calcPercent, 
   isRetoModule, 
   extractGroupToken,
-  extractAbsenceCode as extractAbsenceCodeFromCalculations
+  extractAbsenceCode
 } from "./utils/calculations";

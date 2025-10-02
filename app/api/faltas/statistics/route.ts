@@ -1,7 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { StudentSnapshot } from "@/lib/types/faltas";
 import { loadProcessedSnapshot } from "@/lib/server/snapshot";
-import { sumRecordValuesExcludingJ, isRetoModule, extractAbsenceCode } from "@/lib/utils/calculations";
+import { 
+  buildKpis, 
+  buildWeeklySeries, 
+  buildMonthlySeries, 
+  buildModulesTable, 
+  buildTopLine 
+} from "@/lib/services/snapshotService";
 
 export type StatisticsResponse = {
   kpis: {
@@ -31,10 +37,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "DNI requerido" }, { status: 400 });
     }
 
-    // Cargar snapshot procesado directamente (sin llamada HTTP interna)
+    // Cargar snapshot procesado
     const snapshot: StudentSnapshot = await loadProcessedSnapshot(dni);
 
-    // Calcular estadísticas con filtros
+    // Calcular estadísticas
     const kpis = buildKpis(snapshot);
     const weeklySeries = buildWeeklySeries(snapshot, moduleFilter, absenceFilter);
     const monthlySeries = buildMonthlySeries(snapshot, moduleFilter, absenceFilter);
@@ -56,103 +62,3 @@ export async function GET(request: NextRequest) {
   }
 }
 
-function buildKpis(snapshot: StudentSnapshot) {
-  const now = new Date();
-  const iso30 = new Date(now.getTime() - 30 * 24 * 3600 * 1000);
-  let total = 0, last30 = 0, prev30 = 0;
-  const moduleCounts: Record<string, number> = {};
-  
-  snapshot.weeks.forEach((w) => {
-    w.sessions.forEach((s) => {
-      const code = extractAbsenceCode(s.cssClass);
-      if (!code) return;
-      const d = new Date(s.dateISO + "T00:00:00Z");
-      total += 1;
-      if (d >= iso30) last30 += 1; else prev30 += 1;
-      const mod = s.title || "?";
-      moduleCounts[mod] = (moduleCounts[mod] || 0) + 1;
-    });
-  });
-  
-  const topModules = Object.entries(moduleCounts)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 3)
-    .map(([key, count]) => ({ key, count }));
-  
-  const delta = last30 - Math.min(prev30, last30);
-  return { totalAbsences: total, last30, prev30, delta, topModules };
-}
-
-function buildWeeklySeries(
-  snapshot: StudentSnapshot,
-  moduleFilter: string,
-  absenceFilter: string
-): Array<{ label: string; total: number } & Record<string, number>> {
-  return snapshot.weeks.map((w, idx) => {
-    const counters = w.sessions.reduce((acc, s) => {
-      const code = extractAbsenceCode(s.cssClass);
-      const mod = s.title;
-      if (!code) return acc;
-      if (moduleFilter !== "all" && mod !== moduleFilter) return acc;
-      if (absenceFilter !== "all" && code !== absenceFilter) return acc;
-      acc.total += 1;
-      (acc as any)[code] = ((acc as any)[code] || 0) + 1;
-      return acc;
-    }, { label: `${w.weekStartISO}`, total: 0 } as any);
-    (counters as any).__index = idx;
-    return counters as any;
-  });
-}
-
-function buildMonthlySeries(
-  snapshot: StudentSnapshot,
-  moduleFilter: string,
-  absenceFilter: string
-): Array<{ month: string; total: number }> {
-  const byMonth: Record<string, number> = {};
-  
-  snapshot.weeks.forEach((w) => {
-    w.sessions.forEach((s) => {
-      const code = extractAbsenceCode(s.cssClass);
-      const mod = s.title;
-      if (!code) return;
-      if (moduleFilter !== "all" && mod !== moduleFilter) return;
-      if (absenceFilter !== "all" && code !== absenceFilter) return;
-      const month = s.dateISO.slice(0, 7);
-      byMonth[month] = (byMonth[month] || 0) + 1;
-    });
-  });
-
-  return Object.entries(byMonth)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([month, total]) => ({ month, total }));
-}
-
-function buildModulesTable(snapshot: StudentSnapshot) {
-  const allModules = Object.keys(snapshot.aggregated.modules).map(key => {
-    const module = snapshot.aggregated.modules[key];
-    const classes = module?.classesGiven || 0;
-    const absences = sumRecordValuesExcludingJ(module?.absenceCounts);
-    return { key, classes, absences: absences.toString() };
-  });
-
-  const normalModules = allModules.filter(row => 
-    !isRetoModule(row.key, snapshot.legend.modules[row.key])
-  );
-  
-  // Para los módulos de reto, usar los datos específicos de snapshot.retos
-  const retoModules = (snapshot as any).retos?.map((reto: any) => ({
-    key: reto.id,
-    classes: snapshot.aggregated.modules[reto.id]?.classesGiven || 0,
-    absences: reto.faltas.toString()
-  })) || [];
-
-  return { normalModules, retoModules };
-}
-
-function buildTopLine(snapshot: StudentSnapshot): string {
-  const nWeeks = snapshot.weeks.length;
-  const start = snapshot.weeks[0]?.weekStartISO || "";
-  const end = snapshot.weeks[nWeeks - 1]?.weekEndISO || "";
-  return `${nWeeks} semanas · ${start} → ${end}`;
-}

@@ -85,14 +85,14 @@ export type StudentSnapshot = {
   aggregated: AggregatedStats;
   retos?: RetoInfo[];
   coeficientes?: Record<string, Record<string, number>>; // c[retoId][moduleId]
-  retoCalculations?: Record<string, {
+  moduleCalculations?: Record<string, {
     faltasDirectas: number;
     faltasDerivadas: number;
     asistenciasDirectas: number;
     asistenciasDerivadas: number;
     totalFaltas: number;
     totalAsistencias: number;
-  }>; // Datos calculados para cada módulo
+  }>; // Cálculos detallados por módulo (incluyendo distribución de retos)
 };
 
 

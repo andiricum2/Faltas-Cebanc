@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { AggregatedStats, GlobalPercentages, LegendAbsenceTypes, LegendModules, SessionCell, StudentSnapshot, UserIdentity, WeekSessions, RetoInfo } from "@/lib/types/faltas";
-import { extractAbsenceCode } from "@/lib/utils";
+import { extractAbsenceCode, isRetoModule, extractGroupToken } from "@/lib/utils/calculations";
 
 function parseIdentity($: cheerio.CheerioAPI): UserIdentity {
   const titleTexts = $(".form-title h2").toArray().map((el) => $(el).text().trim()).filter(Boolean);
@@ -189,70 +189,22 @@ export function buildSnapshot(weeks: WeekSessions[], identity: UserIdentity, leg
     }
   });
   
-  // Detect retos and compute default coefficients server-side
-  const isReto = (code: string, label: string | undefined) => /(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i.test(`${code} ${label || ""}`);
-  const extractGroup = (code: string, label: string | undefined) => {
-    const m = (`${code} ${label || ""}`).match(/(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i);
-    return m ? m[0].toUpperCase() : null;
-  };
-  
+  // Detectar retos
   const retos: RetoInfo[] = Object.keys(aggregated.modules)
-    .filter((code) => isReto(code, legend.modules[code]))
+    .filter((code) => isRetoModule(code, legend.modules[code]))
     .map((code) => ({
       id: code,
       label: legend.modules[code] || code,
       faltas: Object.entries(aggregated.modules[code]?.absenceCounts || {})
         .filter(([k]) => k !== "J")
         .reduce((a, [, v]) => a + (v as number), 0),
-      group: extractGroup(code, legend.modules[code]),
+      group: extractGroupToken(code, legend.modules[code]),
     }));
 
-  const nonReto = Object.keys(aggregated.modules).filter((code) => !isReto(code, legend.modules[code]));
-  
-  // Distribuir faltas de retos proporcionalmente según horas semanales configuradas
-  const retoDistributed = { ...aggregated };
-  
-  for (const r of retos) {
-    const retoFaltas = Object.entries(aggregated.modules[r.id]?.absenceCounts || {})
-      .filter(([k]) => k !== "J")
-      .reduce((a, [, v]) => a + (v as number), 0);
-    
-    if (retoFaltas > 0) {
-      // Obtener horas semanales configuradas (simuladas para el servidor)
-      // En el cliente se usarán las horas reales desde localStorage
-      const hoursPerModule: Record<string, number> = {};
-      const retoTargets: Record<string, Record<string, boolean>> = {};
-      
-      // Por ahora, distribuir a todos los módulos no-reto con coeficientes iguales
-      // En el cliente se reemplazará con la lógica real de horas configuradas
-      const targets = nonReto;
-      if (targets.length > 0) {
-        const equal = 1 / targets.length;
-        
-        // Sumar faltas del reto a los módulos destino (sin eliminar las del reto)
-        for (const targetCode of targets) {
-          if (!retoDistributed.modules[targetCode]) {
-            retoDistributed.modules[targetCode] = { classesGiven: 0, absenceCounts: {} };
-          }
-          
-          // Sumar faltas del reto proporcionalmente
-          const distributedFaltas = Math.round(retoFaltas * equal);
-          retoDistributed.modules[targetCode].absenceCounts["F"] = 
-            (retoDistributed.modules[targetCode].absenceCounts["F"] || 0) + distributedFaltas;
-          
-          // Actualizar totales de faltas
-          retoDistributed.absenceTotals["F"] = 
-            (retoDistributed.absenceTotals["F"] || 0) + distributedFaltas;
-        }
-        
-        // NO limpiar las faltas del reto original - mantenerlas para cálculos posteriores
-      }
-    }
-  }
-
+  // No hacer distribución de retos aquí
   const coeficientes: Record<string, Record<string, number>> = {};
 
-  return { identity, legend, percentages, weeks, aggregated: retoDistributed, retos, coeficientes };
+  return { identity, legend, percentages, weeks, aggregated, retos, coeficientes };
 }
 
 

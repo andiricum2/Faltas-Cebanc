@@ -140,9 +140,12 @@ function buildModulesTable(snapshot: StudentSnapshot) {
     !isRetoModule(row.key, snapshot.legend.modules[row.key])
   );
   
-  const retoModules = allModules.filter(row => 
-    isRetoModule(row.key, snapshot.legend.modules[row.key])
-  );
+  // Para los módulos de reto, usar los datos específicos de snapshot.retos
+  const retoModules = (snapshot as any).retos?.map((reto: any) => ({
+    key: reto.id,
+    classes: snapshot.aggregated.modules[reto.id]?.classesGiven || 0,
+    absences: reto.faltas.toString()
+  })) || [];
 
   return { normalModules, retoModules };
 }

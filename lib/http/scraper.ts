@@ -229,13 +229,13 @@ export function buildSnapshot(weeks: WeekSessions[], identity: UserIdentity, leg
       if (targets.length > 0) {
         const equal = 1 / targets.length;
         
-        // Distribuir faltas del reto a los módulos destino
+        // Sumar faltas del reto a los módulos destino (sin eliminar las del reto)
         for (const targetCode of targets) {
           if (!retoDistributed.modules[targetCode]) {
             retoDistributed.modules[targetCode] = { classesGiven: 0, absenceCounts: {} };
           }
           
-          // Añadir faltas del reto proporcionalmente
+          // Sumar faltas del reto proporcionalmente
           const distributedFaltas = Math.round(retoFaltas * equal);
           retoDistributed.modules[targetCode].absenceCounts["F"] = 
             (retoDistributed.modules[targetCode].absenceCounts["F"] || 0) + distributedFaltas;
@@ -245,10 +245,7 @@ export function buildSnapshot(weeks: WeekSessions[], identity: UserIdentity, leg
             (retoDistributed.absenceTotals["F"] || 0) + distributedFaltas;
         }
         
-        // Restar las faltas del reto original (ya distribuidas)
-        retoDistributed.modules[r.id].absenceCounts = {};
-        retoDistributed.absenceTotals["F"] = 
-          (retoDistributed.absenceTotals["F"] || 0) - retoFaltas;
+        // NO limpiar las faltas del reto original - mantenerlas para cálculos posteriores
       }
     }
   }

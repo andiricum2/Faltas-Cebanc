@@ -19,7 +19,7 @@ export default function DashboardPage() {
   const absenceLegend = snapshot?.legend.absenceTypes || {};
   
   // Los datos ya vienen calculados del servidor
-  const retoCalculations = (snapshot as any)?.retoCalculations || {};
+  const moduleCalculations = (snapshot as any)?.moduleCalculations || {};
 
   // Cargar estadísticas cuando cambie el snapshot
   useEffect(() => {
@@ -125,7 +125,7 @@ export default function DashboardPage() {
                             <div className="text-center">Total faltas</div>
                           </div>
                           {modulesTable.normalModules?.map((row) => {
-                            const calculations = retoCalculations[row.key] || {
+                            const calculations = moduleCalculations[row.key] || {
                               faltasDirectas: 0,
                               faltasDerivadas: 0,
                               asistenciasDirectas: 0,

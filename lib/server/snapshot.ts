@@ -80,7 +80,7 @@ export function buildSnapshotWithRetoDistribution(
       absenceTotals: { ...baseSnapshot.aggregated.absenceTotals }
     },
     coeficientes: {} as Record<string, Record<string, number>>,
-    retoCalculations: {} as Record<string, {
+    moduleCalculations: {} as Record<string, {
       faltasDirectas: number;
       faltasDerivadas: number;
       asistenciasDirectas: number;
@@ -129,7 +129,6 @@ export function buildSnapshotWithRetoDistribution(
               (distributedSnapshot.aggregated.modules[targetCode].absenceCounts!["F"] || 0) + distributedFaltas;
           }
         }
-        distributedSnapshot.aggregated.modules[retoId].absenceCounts = {} as any;
       }
 
       distributedSnapshot.coeficientes[retoId] = coeficientes;
@@ -145,7 +144,8 @@ export function buildSnapshotWithRetoDistribution(
       Object.entries(distributedSnapshot.coeficientes).forEach(([retoId, coeficientes]) => {
         const coeficiente = coeficientes[moduleCode] || 0;
         if (coeficiente > 0) {
-          const retoData = baseSnapshot.aggregated.modules[retoId];
+          // Usar datos del reto directamente (ya no se limpian)
+          const retoData = distributedSnapshot.aggregated.modules[retoId];
           const retoFaltas = Object.entries(retoData?.absenceCounts || {})
             .filter(([k]) => k !== "J")
             .reduce((a, [, v]) => a + (v as number), 0);
@@ -156,15 +156,15 @@ export function buildSnapshotWithRetoDistribution(
       });
     }
 
-    const faltasTotales = Object.entries(moduleData?.absenceCounts || {})
+    // Las faltas directas son las faltas que NO vienen de retos (todas excepto "J" y "F")
+    const faltasDirectas = Object.entries(moduleData?.absenceCounts || {})
       .filter(([k]) => k !== "J")
       .reduce((a, [, v]) => a + (v as number), 0);
-    const faltasDirectas = Number((faltasTotales - faltasDerivadas).toFixed(2));
     const asistenciasDirectas = Number((moduleData?.classesGiven || 0).toFixed(2));
     const totalFaltas = Number((faltasDirectas + faltasDerivadas).toFixed(2));
     const totalAsistencias = Number((asistenciasDirectas + asistenciasDerivadas).toFixed(2));
 
-    distributedSnapshot.retoCalculations[moduleCode] = {
+    distributedSnapshot.moduleCalculations[moduleCode] = {
       faltasDirectas: Math.max(0, faltasDirectas),
       faltasDerivadas: Number(faltasDerivadas.toFixed(2)),
       asistenciasDirectas: Number(asistenciasDirectas.toFixed(2)),

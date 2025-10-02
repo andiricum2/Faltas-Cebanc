@@ -1,23 +1,10 @@
 [
   {
-    "id": "calc-warning-oct-2025",
-    "title": "Aviso de estimaciones",
-    "description": "Se han solucionado los problemas de estimaciones.",
-    "icon": "success",
-    "severity": "success",
-    "startDate": "2025-10-01T00:00:00.000Z",
-    "endDate": "2026-01-03T00:00:00.000Z",
-    "action": {
-      "label": "Más información",
-      "url": "https://github.com/andiricum2/Faltas-Cebanc"
-    }
-  }, 
-  {
-    "id": "calc-warning-oct-2025-2",
-    "title": "Aviso de estimaciones",
-    "description": "Se han solucionado los problemas de estimaciones.",
-    "icon": "warning",
-    "severity": "warning",
+    "id": "example",
+    "title": "Ejemplo de aviso",
+    "description": "Este es un ejemplo de aviso.",
+    "icon": "info",
+    "severity": "info",
     "startDate": "2025-10-01T00:00:00.000Z",
     "endDate": "2026-01-03T00:00:00.000Z",
     "action": {

@@ -3,6 +3,7 @@
 import React from "react";
 import { toast } from "sonner";
 import pkg from "@/package.json";
+import { openExternalUrl } from "@/lib/utils/externalLinks";
 
 type ReleaseInfo = {
   version: string;
@@ -64,7 +65,7 @@ export default function AutoUpdate() {
             action: {
               label: "Descargar",
               onClick: () => {
-                window.open(latest.url, "_blank", "noopener,noreferrer");
+                openExternalUrl(latest.url);
               },
             },
           }

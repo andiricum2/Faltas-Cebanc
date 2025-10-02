@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
 import pkg from "@/package.json";
 import { Download } from "lucide-react";
+import { openExternalUrl } from "@/lib/utils/externalLinks";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -106,7 +107,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                 <Button
                   variant="default"
                   size="sm"
-                  onClick={() => window.open(updateInfo.url, "_blank", "noopener,noreferrer")}
+                  onClick={() => openExternalUrl(updateInfo.url)}
                   className="w-full justify-center"
                 >
                 <div className="text-xs justify-center text-white">

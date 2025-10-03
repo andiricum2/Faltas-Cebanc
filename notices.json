@@ -22,7 +22,7 @@
     "endDate": "2026-10-01T00:00:00.000Z",
     "action": {
       "label": "Ir a configuración",
-      "url": "/configuracion"
+      "url": "http://localhost:3000/configuracion"
     }
   }
 ]

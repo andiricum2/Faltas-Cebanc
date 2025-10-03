@@ -145,7 +145,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </Button>
           </div>
-          <div className="text-xs text-muted-foreground">v {pkg.version}</div>
+          <div className="text-xs text-muted-foreground">v{pkg.version}</div>
         </div>
       </aside>
       <main className="min-h-screen">

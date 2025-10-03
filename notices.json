@@ -11,6 +11,19 @@
       "label": "Más información",
       "url": "https://github.com/andiricum2/Faltas-Cebanc"
     }
+  },
+  {
+    "id": "recordatorio-retos-horas-1",
+    "title": "Recordatorio: Retos y horas",
+    "description": "Es necesario configurar los retos y las horas de los módulos para el correcto funcionamiento de la aplicación. Puedes hacerlo en la sección de configuración.",
+    "icon": "warning",
+    "severity": "warning",
+    "startDate": "2025-10-01T00:00:00.000Z",
+    "endDate": "2026-10-01T00:00:00.000Z",
+    "action": {
+      "label": "Ir a configuración",
+      "url": "/configuracion"
+    }
   }
 ]
 

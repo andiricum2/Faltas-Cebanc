@@ -15,7 +15,7 @@
   {
     "id": "recordatorio-retos-horas-1",
     "title": "Recordatorio: Retos y horas",
-    "description": "Es necesario configurar los retos y las horas de los módulos para el correcto funcionamiento de la aplicación. Puedes hacerlo en la sección de configuración.",
+    "description": "Es necesario configurar los retos y las horas de los módulos para el correcto funcionamiento de la aplicación. Puedes hacerlo en la sección de configuración. Despues de configurar, debes sincronizar tus datos para que los cálculos sean correctos.",
     "icon": "warning",
     "severity": "warning",
     "startDate": "2025-10-01T00:00:00.000Z",

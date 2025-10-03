@@ -156,19 +156,19 @@ export function getModuleCalculations(
       // Calcular faltas directas (excluyendo las distribuidas de retos)
       // Las faltas directas son las que NO vienen de retos
       const faltasDirectas = sumarFaltas(moduleData?.absenceCounts);
-      const asistenciasDirectas = Number((moduleData?.classesGiven || 0));
-      const totalFaltas = Number((faltasDirectas + faltasDerivadas));
-      const totalSesiones = Number((asistenciasDirectas + asistenciasDerivadas));
-      const sesionesDirectas = Number(asistenciasDirectas);
-      const sesionesDerivadas = Number(asistenciasDerivadas);
+      const asistenciasDirectas = Number((moduleData?.classesGiven || 0).toFixed(2));
+      const totalFaltas = Number((faltasDirectas + faltasDerivadas).toFixed(2));
+      const totalSesiones = Number((asistenciasDirectas + asistenciasDerivadas).toFixed(2));
+      const sesionesDirectas = Number(asistenciasDirectas.toFixed(2));
+      const sesionesDerivadas = Number(asistenciasDerivadas.toFixed(2));
 
       moduleCalculations[moduleCode] = {
         faltasDirectas: Math.max(0, faltasDirectas),
-        faltasDerivadas: Number(faltasDerivadas),
+        faltasDerivadas: Number(faltasDerivadas.toFixed(2)),
         sesionesDirectas,
         sesionesDerivadas,
-        totalFaltas: Number(totalFaltas),
-        totalSesiones: Number(totalSesiones)
+        totalFaltas: Number(totalFaltas.toFixed(2)),
+        totalSesiones: Number(totalSesiones.toFixed(2))
       };
     }
   }

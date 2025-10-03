@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
-import { RefreshCcw, LogOut, LayoutDashboard, LineChart, CalendarDays, Calculator } from "lucide-react";
+import { RefreshCcw, LogOut, LayoutDashboard, LineChart, CalendarDays, Calculator, Layers } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
@@ -26,6 +26,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isDashboard = pathname === "/" || pathname?.startsWith("/dashboard");
   const isTendencias = pathname?.startsWith("/tendencias");
   const isSemanal = pathname?.startsWith("/semanal");
+  const isModulos = pathname?.startsWith("/modulos");
   const isCalcular = pathname?.startsWith("/calcular");
   const onSync = React.useCallback(async () => { await syncNow(); }, [syncNow]);
   const onLogout = async () => {
@@ -92,6 +93,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <NavItem href="/dashboard" active={isDashboard} label="Vista general" icon={LayoutDashboard} />
           <NavItem href="/tendencias" active={isTendencias} label="Tendencias" icon={LineChart} />
           <NavItem href="/semanal" active={isSemanal} label="Semanal" icon={CalendarDays} />
+          <NavItem href="/modulos" active={isModulos} label="Módulos" icon={Layers} />
           <NavItem href="/calcular" active={isCalcular} label="Calcular" icon={Calculator} />
           <NavItem href="/configuracion" label="Configuración" icon={SlidersHorizontal} />
         </nav>

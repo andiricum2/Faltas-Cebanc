@@ -47,7 +47,6 @@ export default function ConfigRetosPage() {
           <div key={r.id} className="border rounded p-3 space-y-3">
             <div className="flex items-center justify-between gap-3">
               <div className="font-medium">{r.label} ({r.id})</div>
-              <div className="text-sm text-muted-foreground">Grupo: {r.group || "(no detectado)"} · Faltas/horas detectadas: {r.faltas}</div>
             </div>
             <div className="space-y-2">
               <div className="text-sm font-medium">Asignar a módulos</div>

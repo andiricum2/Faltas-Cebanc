@@ -1,121 +1,373 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useCallback, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from "recharts";
+import { MetricCard } from "@/components/ui/metric-card";
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
+import { TrendingUp, Activity, BarChart3, PieChart as PieChartIcon, AlertCircle } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
 
+const CHART_COLORS = [
+  '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+  '#06b6d4', '#f97316', '#84cc16', '#ec4899', '#6366f1'
+];
+
+// Memoized loading skeleton component
+const LoadingSkeleton = memo(() => (
+  <div className="h-32 p-6">
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="h-4 bg-muted rounded w-20 animate-pulse" />
+        <div className="h-8 bg-muted rounded w-12 animate-pulse" />
+      </div>
+      <div className="p-3 bg-muted rounded-full animate-pulse">
+        <div className="w-6 h-6" />
+      </div>
+    </div>
+    <div className="mt-4">
+      <div className="w-full bg-muted rounded-full h-2 animate-pulse" />
+    </div>
+  </div>
+));
+
+LoadingSkeleton.displayName = 'LoadingSkeleton';
+
+// Memoized custom tooltip component
+const CustomTooltip = memo(({ active, payload, label }: any) => {
+  if (!active || !payload || !payload.length) return null;
+  
+  return (
+    <div className="bg-background border rounded-lg shadow-lg p-3">
+      <p className="font-medium text-sm">{label}</p>
+      {payload.map((entry: any, index: number) => (
+        <p key={index} className="text-sm" style={{ color: entry.color }}>
+          {entry.name}: {entry.value}
+        </p>
+      ))}
+    </div>
+  );
+});
+
+CustomTooltip.displayName = 'CustomTooltip';
+
+// Memoized absence type badge component
+const AbsenceTypeBadge = memo(({ type, index, showValue = true }: { type: any; index: number; showValue?: boolean }) => (
+  <div>
+    <span
+      className="inline-flex items-center rounded-md px-2 py-0.5 text-xs font-medium border"
+      style={{ borderColor: type.color, color: type.color }}
+    >
+      {showValue ? `${type.name}: ${type.value}` : type.name}
+    </span>
+  </div>
+));
+
+AbsenceTypeBadge.displayName = 'AbsenceTypeBadge';
+
+// Memoized chart container to prevent unnecessary re-renders
+const ChartContainer = memo(({ children, height = "h-80" }: { children: React.ReactNode; height?: string }) => (
+  <div className={height}>
+    {children}
+  </div>
+));
+
+ChartContainer.displayName = 'ChartContainer';
+
 export default function TendenciasPage() {
   const { snapshot } = useSnapshot();
-  const [moduleFilter, setModuleFilter] = useState<string>("all");
-  const [absenceFilter, setAbsenceFilter] = useState<string>("all");
   const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
   const [statisticsLoading, setStatisticsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const absenceLegend = snapshot?.legend.absenceTypes || {};
-
-  // Cargar estadísticas cuando cambien los filtros
-  useEffect(() => {
+  // Memoized callback for loading statistics
+  const loadStatistics = useCallback(async () => {
     if (!snapshot?.identity?.dni) return;
     
-    const loadStatistics = async () => {
-      setStatisticsLoading(true);
-      try {
-        const result = await getStatistics(
-          snapshot.identity.dni,
-          moduleFilter,
-          absenceFilter
-        );
-        setStatistics(result);
-      } catch (error) {
-        console.error("Error loading statistics:", error);
-      } finally {
-        setStatisticsLoading(false);
-      }
-    };
+    setStatisticsLoading(true);
+    setError(null);
+    try {
+      const result = await getStatistics(snapshot.identity.dni);
+      setStatistics(result);
+    } catch (error) {
+      console.error("Error loading statistics:", error);
+      setError("Error al cargar las estadísticas. Inténtalo de nuevo.");
+    } finally {
+      setStatisticsLoading(false);
+    }
+  }, [snapshot?.identity?.dni]);
 
+  // Cargar estadísticas
+  useEffect(() => {
     loadStatistics();
-  }, [snapshot?.identity?.dni, moduleFilter, absenceFilter]);
+  }, [loadStatistics]);
 
-  // Usar datos del endpoint
-  const weeklySeries = useMemo(() => statistics?.weeklySeries || [], [statistics]);
-  const monthlySeries = useMemo(() => statistics?.monthlySeries || [], [statistics]);
-  const modulesTable = useMemo(() => {
-    const allModules = [
-      ...(statistics?.modulesTable.normalModules || []),
-      ...(statistics?.modulesTable.retoModules || [])
-    ];
-    return allModules;
-  }, [statistics]);
+  // Sin estados de hover para métricas
 
-  if (!snapshot) return <div className="text-muted-foreground">Cargando...</div>;
+  // Datos procesados con mejor memoización
+  const weeklySeries = useMemo(() => statistics?.weeklySeries || [], [statistics?.weeklySeries]);
+
+  // Métricas calculadas con optimización
+  const metrics = useMemo(() => {
+    if (!weeklySeries.length) return null;
+
+    const totalFaltas = weeklySeries.reduce((sum, week) => sum + (week.total || 0), 0);
+    const avgFaltasSemana = totalFaltas / weeklySeries.length;
+    
+    // Calcular tendencia de forma más eficiente
+    const trend = weeklySeries.length > 1 
+      ? (weeklySeries[weeklySeries.length - 1].total || 0) - (weeklySeries[weeklySeries.length - 2].total || 0) 
+      : 0;
+
+    // Encontrar la semana con más faltas usando reduce una sola vez
+    const maxWeekData = weeklySeries.reduce((max, week) => 
+      (week.total || 0) > (max.total || 0) ? week : max
+    );
+
+    return {
+      totalFaltas: Math.round(totalFaltas),
+      avgFaltasSemana: avgFaltasSemana.toFixed(2),
+      trend,
+      maxWeek: maxWeekData?.total || 0,
+      maxWeekLabel: maxWeekData?.label || '',
+      weeksCount: weeklySeries.length
+    };
+  }, [weeklySeries]);
+
+  // Datos para gráfico de pastel optimizado
+  const absenceTypeData = useMemo(() => {
+    if (!snapshot?.aggregated?.absenceTotals) return [];
+    
+    return Object.entries(snapshot.aggregated.absenceTotals)
+      .map(([type, count], index) => ({
+        name: type,
+        value: count,
+        color: CHART_COLORS[index % CHART_COLORS.length]
+      }))
+      .sort((a, b) => b.value - a.value)
+      .slice(0, 8);
+  }, [snapshot?.aggregated?.absenceTotals]);
+
+  // Early returns for different states
+  if (!snapshot) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <div className="w-16 h-16 mx-auto">
+            <div className="w-full h-full rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+          </div>
+          <p className="text-muted-foreground">Cargando datos...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Card className="max-w-md">
+          <CardContent className="p-6 text-center space-y-4">
+            <AlertCircle className="w-12 h-12 mx-auto text-red-500" />
+            <div>
+              <h3 className="text-lg font-semibold">Error al cargar datos</h3>
+              <p className="text-muted-foreground">{error}</p>
+            </div>
+            <button
+              onClick={loadStatistics}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              Reintentar
+            </button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full space-y-6">
-      <CardHeader className="p-0">
-        <div className="flex items-center justify-between">
-          <CardTitle>Tendencias</CardTitle>
-          {statisticsLoading && (
-            <div className="text-sm text-muted-foreground">Cargando datos...</div>
-          )}
+    <div className="w-full space-y-8">
+      {/* Métricas clave */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {statisticsLoading && !metrics ? (
+          // Estado de carga optimizado para métricas
+          Array.from({ length: 4 }).map((_, index) => (
+            <div key={index}>
+              <Card className="h-32">
+                <LoadingSkeleton />
+              </Card>
+            </div>
+          ))
+        ) : metrics ? (
+          <>
+            <MetricCard
+              title="Porcentaje de faltas"
+              value={`${snapshot.percentages.totalPercent}%`}
+              icon={Activity}
+              color="blue"
+              progressBar={snapshot.percentages.totalPercent}
+              progressMax={20}
+            />
+
+            <MetricCard
+              title="Faltas totales"
+              value={metrics.totalFaltas}
+              icon={Activity}
+              color="green"
+            >
+              <div className="mt-1.5">
+                <div className="flex flex-wrap gap-1">
+                  {absenceTypeData.slice(0, 4).map((type, index) => (
+                    <AbsenceTypeBadge key={type.name} type={type} index={index} />
+                  ))}
+                </div>
+              </div>
+            </MetricCard>
+
+            <MetricCard
+              title="Máximo semanal"
+              value={metrics.maxWeek}
+              icon={BarChart3}
+              color="amber"
+            >
+              <div className="mt-4">
+                <div className="text-xs text-muted-foreground">
+                  {metrics.maxWeekLabel && (
+                    <span>Semana: {metrics.maxWeekLabel}</span>
+                  )}
+                </div>
+              </div>
+            </MetricCard>
+
+            <MetricCard
+              title="Tipos de falta"
+              value={absenceTypeData.length}
+              icon={PieChartIcon}
+              color="purple"
+            >
+              <div className="mt-1.5">
+                <div className="flex flex-wrap gap-1">
+                  {absenceTypeData.slice(0, 3).map((type, index) => (
+                    <AbsenceTypeBadge key={type.name} type={type} index={index} showValue={false} />
+                  ))}
+                </div>
+              </div>
+            </MetricCard>
+          </>
+        ) : (
+          // Estado vacío cuando no hay métricas disponibles
+          <div className="col-span-full flex items-center justify-center py-8">
+            <div className="text-center space-y-2">
+              <Activity className="w-8 h-8 mx-auto text-muted-foreground" />
+              <p className="text-muted-foreground">No hay métricas disponibles</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Contenido principal */}
+      <div className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Gráfico de evolución semanal */}
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-5 h-5 text-blue-600" />
+                Evolución semanal
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <ChartContainer>
+                <ResponsiveContainer width="100%" height="100%">
+                  {weeklySeries.length > 0 ? (
+                    <AreaChart data={weeklySeries}>
+                      <defs>
+                        <linearGradient id="colorAbsences" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                      <XAxis 
+                        dataKey="label" 
+                        className="text-xs"
+                        tick={{ fontSize: 12 }}
+                        interval="preserveStartEnd"
+                      />
+                      <YAxis 
+                        allowDecimals={false} 
+                        className="text-xs"
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip content={<CustomTooltip />} />
+                      <Area
+                        type="monotone"
+                        dataKey="total"
+                        stroke="#3b82f6"
+                        fillOpacity={1}
+                        fill="url(#colorAbsences)"
+                        strokeWidth={3}
+                        name="Faltas"
+                      />
+                    </AreaChart>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center space-y-2">
+                        <TrendingUp className="w-8 h-8 mx-auto text-muted-foreground" />
+                        <p className="text-muted-foreground">No hay datos de evolución semanal</p>
+                      </div>
+                    </div>
+                  )}
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+
+          {/* Gráfico de tipos de faltas */}
+          <Card className="overflow-hidden">
+            <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50">
+              <CardTitle className="flex items-center gap-2">
+                <PieChartIcon className="w-5 h-5 text-purple-600" />
+                Distribución por tipo
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-6">
+              <ChartContainer>
+                <ResponsiveContainer width="100%" height="100%">
+                  {absenceTypeData.length > 0 ? (
+                    <PieChart>
+                      <Pie
+                        data={absenceTypeData}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={100}
+                        dataKey="value"
+                        label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(1)}%`}
+                        labelLine={false}
+                        nameKey="name"
+                      >
+                        {absenceTypeData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip 
+                        content={<CustomTooltip />}
+                        formatter={(value: any, name: any) => [value, name]}
+                      />
+                    </PieChart>
+                  ) : (
+                    <div className="flex items-center justify-center h-full">
+                      <div className="text-center space-y-2">
+                        <PieChartIcon className="w-8 h-8 mx-auto text-muted-foreground" />
+                        <p className="text-muted-foreground">No hay datos de tipos de faltas</p>
+                      </div>
+                    </div>
+                  )}
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
         </div>
-      </CardHeader>
-      <CardContent className="p-0">
-        <Tabs defaultValue="evolucion" className="w-full">
-          <TabsList className="mb-4">
-            <TabsTrigger value="evolucion">Evolución</TabsTrigger>
-            <TabsTrigger value="modulos">Módulos</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="evolucion">
-            <div className="flex items-center gap-2 mb-3">
-              <select className="border rounded px-2 py-1 text-sm" value={moduleFilter} onChange={(e)=>setModuleFilter(e.target.value)}>
-                <option value="all">Todos los módulos</option>
-                {Object.keys(snapshot.aggregated.modules).map((k)=> (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
-              <select className="border rounded px-2 py-1 text-sm" value={absenceFilter} onChange={(e)=>setAbsenceFilter(e.target.value)}>
-                <option value="all">Todas las faltas</option>
-                {Object.keys(absenceLegend).map((k)=> (
-                  <option key={k} value={k}>{k}</option>
-                ))}
-              </select>
-            </div>
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <LineChart data={weeklySeries}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="label" />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Line type="monotone" dataKey="total" stroke="#10b981" name="Faltas/semana" />
-                </LineChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-
-          <TabsContent value="modulos">
-            <div className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={modulesTable.map((m) => ({ module: m.key, sessions: m.classes }))}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="module" hide={false} />
-                  <YAxis allowDecimals={false} />
-                  <Tooltip />
-                  <Bar dataKey="sessions" fill="#a855f7" name="Sesiones impartidas" />
-                </BarChart>
-              </ResponsiveContainer>
-            </div>
-          </TabsContent>
-
-          
-        </Tabs>
-      </CardContent>
+      </div>
     </div>
   );
 }
-
-

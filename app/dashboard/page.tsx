@@ -294,7 +294,7 @@ export default function DashboardPage() {
                                       percentage < 14 ? 'text-amber-600' :
                                       'text-red-600'
                                     }`}>
-                                      {percentage.toFixed(1)}%
+                                      {percentage.toFixed(2)}%
                                     </span>
                                 </div>
 

@@ -5,6 +5,7 @@ import { Notice, fetchNotices } from "@/lib/services/notices";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Info, CheckCircle, XCircle, ExternalLink, X } from "lucide-react";
 import { openExternalUrl } from "@/lib/utils/externalLinks";
+import { useRouter } from "next/navigation";
 
 function IconFor({ icon, severity }: { icon?: string; severity?: string }) {
   const className = "h-4.5 w-4.5";
@@ -34,6 +35,7 @@ function palette(severity?: string): { bg: string; text: string; border: string;
 }
 
 export default function NoticeBanner() {
+  const router = useRouter();
   const [notices, setNotices] = React.useState<Notice[]>([]);
   const [dismissed, setDismissed] = React.useState<Record<string, boolean>>({});
 
@@ -81,7 +83,7 @@ export default function NoticeBanner() {
               </div>
               <div className="flex items-center gap-2 ml-2">
                 {n.action?.url && n.action?.label ? (
-                  <Button size="sm" onClick={() => openExternalUrl(n.action!.url)} className="shrink-0 h-8 px-3">
+                  <Button size="sm" onClick={() => openExternalUrl(n.action!.url, router.push)} className="shrink-0 h-8 px-3">
                     {n.action!.label}
                     <ExternalLink className="h-3.5 w-3.5 ml-1" />
                   </Button>

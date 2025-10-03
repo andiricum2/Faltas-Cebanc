@@ -29,13 +29,25 @@ function isTauriEnvironment(): boolean {
  * @param url The URL to open
  * @returns Promise that resolves when the URL is opened
  */
-export async function openExternalUrl(url: string): Promise<void> {
+export async function openExternalUrl(url: string, navigate?: (route: string) => void): Promise<void> {
   // Validate URL format
   if (!isValidUrl(url)) {
     throw new Error(`Invalid URL: ${url}`);
   }
 
   try {
+    // If URL points to localhost, navigate within app route instead of opening externally
+    if (isLocalhostUrl(url)) {
+      const parsed = new URL(url);
+      const route = `${parsed.pathname}${parsed.search}${parsed.hash}`;
+      if (typeof navigate === 'function') {
+        navigate(route);
+      } else {
+        window.location.assign(route);
+      }
+      return;
+    }
+
     if (isTauriEnvironment()) {
       await openInTauri(url);
     } else {
@@ -99,14 +111,33 @@ export function isExternalUrl(url: string): boolean {
 }
 
 /**
+ * Checks if the URL is pointing to a localhost address
+ */
+function isLocalhostUrl(url: string): boolean {
+  if (!isValidUrl(url)) return false;
+  try {
+    const u = new URL(url);
+    return (
+      u.hostname === 'localhost' ||
+      u.hostname === '127.0.0.1' ||
+      u.hostname.startsWith('192.168.') ||
+      u.hostname.startsWith('10.') ||
+      u.hostname.startsWith('172.')
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Handles a click on a link, opening external URLs in browser
  * @param event The click event
  * @param url The URL to open
  */
-export function handleLinkClick(event: React.MouseEvent, url: string): void {
+export function handleLinkClick(event: React.MouseEvent, url: string, navigate?: (route: string) => void): void {
   if (isExternalUrl(url)) {
     event.preventDefault();
-    openExternalUrl(url);
+    openExternalUrl(url, navigate);
   }
 }
 
@@ -115,11 +146,11 @@ export function handleLinkClick(event: React.MouseEvent, url: string): void {
  * @param url The URL to open
  * @returns Click handler function
  */
-export function createExternalLinkHandler(url: string) {
+export function createExternalLinkHandler(url: string, navigate?: (route: string) => void) {
   return (event: React.MouseEvent) => {
     if (isExternalUrl(url)) {
       event.preventDefault();
-      openExternalUrl(url);
+      openExternalUrl(url, navigate);
     }
   };
 }

@@ -64,6 +64,28 @@ export type SelectedWeekResponse = {
   moduleLegend: Record<string, string>;
 };
 
+export type CalculationPlanEntry = {
+  kind: "abs" | "att";
+  scope: "module" | "reto" | "general";
+  code?: string;
+  hours: number;
+};
+
+export type CalculatePlanResponse = {
+  general: {
+    base: { totalSessions: number; totalAbsences: number; percent: number };
+    projected: { totalSessions: number; totalAbsences: number; percent: number };
+    delta: { sessions: number; absences: number; percent: number };
+  };
+  byModule: Array<{
+    code: string;
+    label: string;
+    base: { sessions: number; absences: number; percent: number };
+    projected: { sessions: number; absences: number; percent: number };
+    delta: { sessions: number; absences: number; percent: number };
+  }>;
+};
+
 export async function getStatistics(
   dni: string, 
   moduleFilter: string = "all", 
@@ -116,6 +138,21 @@ export async function getCalculations(
   const response = await fetch(`/api/faltas/calculate?${params}`);
   if (!response.ok) {
     throw new Error(`Error fetching calculations: ${response.statusText}`);
+  }
+  return response.json();
+}
+
+export async function postCalculationPlan(
+  dni: string,
+  entries: CalculationPlanEntry[]
+): Promise<CalculatePlanResponse> {
+  const response = await fetch(`/api/faltas/calculate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ dni, entries })
+  });
+  if (!response.ok) {
+    throw new Error(`Error posting calculation plan: ${response.statusText}`);
   }
   return response.json();
 }

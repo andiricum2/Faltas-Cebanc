@@ -2,103 +2,108 @@
 
 import React from "react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
-import { loadRetoTargets, loadHoursPerModule, saveRetoTargets } from "@/lib/services/configService";
-import { getCalculations, type CalculateResponse } from "@/lib/services/apiClient";
-
-type Mode = "horas" | "dias";
-
-
-function sumarFaltas(record: Record<string, number> | undefined): number {
-	if (!record) return 0;
-	return Object.entries(record).reduce((acc, [code, n]) => {
-		if (code === "J") return acc; // Justificadas no cuentan
-		return acc + (Number.isFinite(n) ? (n as number) : 0);
-	}, 0);
-}
+import { Trash2 } from "lucide-react";
+import { getCalculations, type CalculateResponse, postCalculationPlan, type CalculationPlanEntry as ApiCalculationPlanEntry, type CalculatePlanResponse } from "@/lib/services/apiClient";
 
 export default function CalcularPage() {
 	const { snapshot, loading } = useSnapshot();
-	const [mode, setMode] = React.useState<Mode>("horas");
-	const [amount, setAmount] = React.useState<number>(0);
-	const [selectedModule, setSelectedModule] = React.useState<string>("__general__");
 	const [calculations, setCalculations] = React.useState<CalculateResponse | null>(null);
-	const [calculationsLoading, setCalculationsLoading] = React.useState(false);
-
-	// ---- CONFIGURACIÓN ----
-	type ModuleId = string;
-	type RetoId = string;
-
-	const [retoTargets, setRetoTargets] = React.useState<Record<RetoId, Record<ModuleId, boolean>>>({});
-	const [hoursPerModule, setHoursPerModule] = React.useState<Record<ModuleId, number>>({});
-
-	// Cargar/salvar selección de módulos por reto
-	React.useEffect(() => {
-		const loadConfig = async () => {
-			const [targets, hours] = await Promise.all([
-				loadRetoTargets(),
-				loadHoursPerModule()
-			]);
-			setRetoTargets(targets);
-			setHoursPerModule(hours);
-		};
-		loadConfig();
-	}, []);
-
-	const saveRetoTargetsCallback = React.useCallback(async (next: Record<RetoId, Record<ModuleId, boolean>>) => {
-		setRetoTargets(next);
-		await saveRetoTargets(next);
-	}, []);
-
-	const HOURS_PER_DAY = 6;
-
-	const addedAbsences = React.useMemo(() => {
-		const units = Number.isFinite(amount) && amount > 0 ? amount : 0;
-		return mode === "horas" ? units : units * HOURS_PER_DAY;
-	}, [mode, amount]);
+  const [planLoading, setPlanLoading] = React.useState(false);
+  const [planResult, setPlanResult] = React.useState<CalculatePlanResponse | null>(null);
 
 	// Cargar cálculos cuando cambien los parámetros
 	React.useEffect(() => {
 		if (!snapshot?.identity?.dni) return;
 		
-		const loadCalculations = async () => {
-			setCalculationsLoading(true);
+		const loadCalculations = async () => {  
 			try {
 				const result = await getCalculations(
-					snapshot.identity.dni,
-					selectedModule,
-					addedAbsences
+					snapshot.identity.dni
 				);
 				setCalculations(result);
 			} catch (error) {
 				console.error("Error loading calculations:", error);
-			} finally {
-				setCalculationsLoading(false);
 			}
 		};
 
 		loadCalculations();
-	}, [snapshot?.identity?.dni, selectedModule, addedAbsences]);
+	}, [snapshot?.identity?.dni]);
 
-	// Obtener módulos disponibles
-	const moduleKeys = React.useMemo(() => {
-		return calculations?.moduleMeta?.map(m => m.code) || [];
-	}, [calculations]);
 
-	// Obtener retos disponibles
-	const retosAuto = React.useMemo(() => {
-		return calculations?.moduleMeta?.filter(m => m.isReto) || [];
-	}, [calculations]);
+  // ---- FUTURO: PLANIFICADOR MULTI-ENTRADAS ----
+  type PlannerEntry = {
+    id: string;
+    kind: "abs" | "att"; // falta o asistencia
+    code?: string; // código de módulo o reto
+    amount: number;
+  };
 
-	// Verificar si el módulo seleccionado es un reto
-	const selectedIsReto = React.useMemo(() => {
-		if (!calculations || selectedModule === "__general__") return false;
-		const module = calculations.moduleMeta.find(m => m.code === selectedModule);
-		return module?.isReto || false;
-	}, [calculations, selectedModule]);
+  const [entries, setEntries] = React.useState<PlannerEntry[]>([]);
+
+  const addEntry = React.useCallback(() => {
+    setEntries((prev) => [
+      ...prev,
+      {
+        id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+        kind: "abs",
+        code: calculations?.moduleMeta?.find(m => !m.isReto)?.code || calculations?.moduleMeta?.[0]?.code,
+        amount: 1
+      }
+    ]);
+  }, [calculations]);
+
+  const removeEntry = React.useCallback((id: string) => {
+    setEntries((prev) => prev.filter(e => e.id !== id));
+  }, []);
+
+  const updateEntry = React.useCallback((id: string, next: Partial<PlannerEntry>) => {
+    setEntries((prev) => prev.map(e => e.id === id ? { ...e, ...next } : e));
+  }, []);
+
+  const moduleOptions = React.useMemo(() => calculations?.moduleMeta?.filter(m => !m.isReto) || [], [calculations]);
+  const retoOptions = React.useMemo(() => calculations?.moduleMeta?.filter(m => m.isReto) || [], [calculations]);
+
+  const sortedModuleOptions = React.useMemo(() => {
+    return [...moduleOptions].sort((a, b) => (a.label || "").localeCompare(b.label || ""));
+  }, [moduleOptions]);
+  const sortedRetoOptions = React.useMemo(() => {
+    return [...retoOptions].sort((a, b) => (a.label || "").localeCompare(b.label || ""));
+  }, [retoOptions]);
+
+  const entriesApiPayload: ApiCalculationPlanEntry[] = React.useMemo(() => {
+    return entries.map(e => {
+      const code = e.code || moduleOptions[0]?.code || retoOptions[0]?.code;
+      const isReto = !!retoOptions.find(r => r.code === code);
+      return {
+        kind: e.kind,
+        scope: isReto ? "reto" : "module",
+        code,
+        hours: Math.max(0, Number(e.amount) || 0)
+      };
+    });
+  }, [entries, moduleOptions, retoOptions]);
+
+  React.useEffect(() => {
+    let cancelled = false;
+    const timeout = setTimeout(async () => {
+      if (!snapshot?.identity?.dni) return;
+      if (entriesApiPayload.length === 0) { setPlanResult(null); return; }
+      setPlanLoading(true);
+      try {
+        const res = await postCalculationPlan(snapshot.identity.dni, entriesApiPayload);
+        if (!cancelled) setPlanResult(res);
+      } catch (err) {
+        console.error("Error posting calculation plan:", err);
+        if (!cancelled) setPlanResult(null);
+      } finally {
+        if (!cancelled) setPlanLoading(false);
+      }
+    }, 300);
+    return () => { cancelled = true; clearTimeout(timeout); };
+  }, [snapshot?.identity?.dni, entriesApiPayload]);
 
 	return (
 		<div className="space-y-6">
@@ -112,130 +117,153 @@ export default function CalcularPage() {
 					<div className="rounded-md border bg-amber-50 text-amber-900 px-3 py-2 text-sm">
 						Aviso: esta herramienta ofrece estimaciones que pueden no corresponder con la realidad. No nos hacemos responsables del uso de estos cálculos.
 					</div>
-					<Card>
-						<CardHeader>
-							<CardTitle>General</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-								<div className="space-y-1">
-									<Label htmlFor="mode-general">Unidad</Label>
-									<Select id="mode-general" value={mode} onChange={(e) => setMode((e.target.value as Mode) || "horas")}>
-										<option value="horas">Horas</option>
-										<option value="dias">Días</option>
-									</Select>
-								</div>
-								<div className="space-y-1">
-									<Label htmlFor="amount-general">Cantidad</Label>
-									<Input id="amount-general" type="number" min={0} step={1} value={Number.isFinite(amount) ? amount : 0} onChange={(e) => setAmount(Number(e.target.value))} />
-								</div>
-								<div className="space-y-1">
-									<Label>Total sesiones</Label>
-									<div className="h-10 flex items-center">
-										{calculationsLoading ? "..." : calculations?.general.totalSessions || 0}
-										{mode === "dias" ? <span className="ml-2 text-muted-foreground">(1 día = {HOURS_PER_DAY} h)</span> : null}
-									</div>
-								</div>
-							</div>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-								<div className="rounded bg-muted px-3 py-2">
-									<span className="text-muted-foreground">Actual</span>
-									<div className="text-xl font-semibold">
-										{calculationsLoading ? "..." : calculations?.general.currentPercent || 0}%
-									</div>
-								</div>
-								<div className="rounded bg-muted px-3 py-2">
-									<span className="text-muted-foreground">Con estas faltas</span>
-									<div className="text-xl font-semibold">
-										{calculationsLoading ? "..." : calculations?.general.projectedPercent || 0}%
-									</div>
-								</div>
-							</div>
-						</CardContent>
-					</Card>
+					{/* Se ha simplificado la página: solo se muestra la simulación de futuro */}
 
-					<Card>
-						<CardHeader>
-							<CardTitle>Por módulo</CardTitle>
-						</CardHeader>
-						<CardContent className="space-y-3">
-							<div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-								<div className="space-y-1">
-									<Label htmlFor="module-select">Módulo</Label>
-									<Select id="module-select" value={selectedModule} onChange={(e) => setSelectedModule(e.target.value)}>
-										<option value="__general__" disabled>Selecciona módulo</option>
-										{moduleKeys.map((m) => (
-											<option key={m} value={m}>
-												{calculations?.moduleMeta.find(meta => meta.code === m)?.label || m}
-											</option>
-										))}
-									</Select>
-								</div>
-								<div className="space-y-1">
-									<Label htmlFor="mode-module">Unidad</Label>
-									<Select id="mode-module" value={mode} onChange={(e) => setMode((e.target.value as Mode) || "horas")}>
-										<option value="horas">Horas</option>
-										<option value="dias">Días</option>
-									</Select>
-								</div>
-								<div className="space-y-1">
-									<Label htmlFor="amount-module">Cantidad</Label>
-									<Input id="amount-module" type="number" min={0} step={1} value={Number.isFinite(amount) ? amount : 0} onChange={(e) => setAmount(Number(e.target.value))} />
-								</div>
-							</div>
-							<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-								<div className="rounded bg-muted px-3 py-2">
-									<span className="text-muted-foreground">Actual</span>
-									<div className="text-xl font-semibold">
-										{calculationsLoading ? "..." : calculations?.module.currentPercent || 0}%
-									</div>
-								</div>
-								<div className="rounded bg-muted px-3 py-2">
-									<span className="text-muted-foreground">Con estas faltas</span>
-									<div className="text-xl font-semibold">
-										{calculationsLoading ? "..." : calculations?.module.projectedPercent || 0}%
-									</div>
-								</div>
-							</div>
+          <Card>
+            <CardHeader>
+            <div className="flex flex-wrap items-center gap-2">
+                <button className="inline-flex items-center px-3 py-2 rounded border bg-background hover:bg-muted" onClick={addEntry}>
+                  Añadir
+                </button>
 
-							{/* Si el seleccionado es un reto: mostrar % del reto y de sus módulos */}
-							{selectedIsReto && calculations?.retoAnalysis ? (
-								<div className="border rounded p-3 space-y-3">
-									<div className="font-medium">Detalle del reto y sus módulos</div>
-									<div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-										<div className="rounded bg-muted px-3 py-2">
-											<span className="text-muted-foreground">Reto · Actual</span>
-											<div className="text-xl font-semibold">{calculations.retoAnalysis.reto.current}%</div>
-										</div>
-										<div className="rounded bg-muted px-3 py-2">
-											<span className="text-muted-foreground">Reto · Con estas faltas</span>
-											<div className="text-xl font-semibold">{calculations.retoAnalysis.reto.projected}%</div>
-										</div>
-									</div>
-									<div className="overflow-auto">
-										<table className="w-full text-sm">
-											<thead>
-												<tr>
-													<th className="text-left p-1">Módulo</th>
-													<th className="text-left p-1">Actual</th>
-													<th className="text-left p-1">Con estas faltas</th>
-												</tr>
-											</thead>
-											<tbody>
-												{calculations.retoAnalysis.modules.map((row) => (
-													<tr key={`reto-row-${row.code}`} className="border-t">
-														<td className="p-1 whitespace-nowrap">{row.label}</td>
-														<td className="p-1">{row.current.toFixed(2)}%</td>
-														<td className="p-1">{row.projected.toFixed(2)}%</td>
-													</tr>
-												))}
-											</tbody>
-										</table>
-									</div>
-								</div>
-							) : null}
-						</CardContent>
-					</Card>		
+                <button
+                  className="inline-flex items-center px-3 py-2 rounded border bg-background hover:bg-muted ml-auto"
+                  onClick={() => setEntries([])}
+                  disabled={entries.length === 0}
+                  title="Vaciar"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
+                  Vaciar
+                </button>
+
+                <button
+                  className="inline-flex items-center px-3 py-2 rounded border bg-background hover:bg-muted"
+                  onClick={() => { /* removed preset */ }}
+                  style={{ display: 'none' }}
+                >  
+                </button>
+                
+              </div>            
+            </CardHeader>
+            <CardContent className="space-y-4">
+
+
+              {entries.length === 0 ? (
+                <div className="text-sm text-muted-foreground">Añade entradas para simular asistencias y faltas futuras.</div>
+              ) : (
+                <div className="overflow-auto">
+                  <table className="w-full text-sm min-w-[680px]">
+                    <thead>
+                      <tr>
+                        <th className="text-left p-2">Tipo</th>
+                        <th className="text-left p-2">Reto/Módulo</th>
+                        <th className="text-left p-2">Cantidad</th>
+                        <th className="text-left p-2"></th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {entries.map((e) => {
+                        return (
+                          <tr key={e.id} className="border-t">
+                            <td className="p-2">
+                              <Select value={e.kind} onChange={(ev) => updateEntry(e.id, { kind: (ev.target.value as "abs"|"att") })}>
+                                <option value="abs">Falta</option>
+                                <option value="att">Asistencia</option>
+                              </Select>
+                            </td>
+                            <td className="p-2">
+                              <Select value={e.code || ""} onChange={(ev) => updateEntry(e.id, { code: ev.target.value })}>
+                                {sortedRetoOptions.length > 0 ? (
+                                  <optgroup label="Retos">
+                                    {sortedRetoOptions.map(m => (
+                                      <option key={`${e.id}-reto-${m.code}`} value={m.code}>{m.label}</option>
+                                    ))}
+                                  </optgroup>
+                                ) : null}
+                                {sortedModuleOptions.length > 0 ? (
+                                  <optgroup label="Módulos">
+                                    {sortedModuleOptions.map(m => (
+                                      <option key={`${e.id}-mod-${m.code}`} value={m.code}>{m.label}</option>
+                                    ))}
+                                  </optgroup>
+                                ) : null}
+                              </Select>
+                            </td>
+                            <td className="p-2">
+                              <Input type="number" min={0} step={1} value={e.amount} onChange={(ev) => updateEntry(e.id, { amount: Number(ev.target.value) })} />
+                            </td>
+                            <td className="p-2">
+                              <div className="flex items-center gap-3">
+                                <button className="text-sky-700 hover:underline" onClick={() => setEntries((prev) => {
+                                  const idx = prev.findIndex(x => x.id === e.id);
+                                  if (idx < 0) return prev;
+                                  const clone = { ...prev[idx], id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}` };
+                                  const next = [...prev];
+                                  next.splice(idx + 1, 0, clone);
+                                  return next;
+                                })}>Duplicar</button>
+                                <button className="text-red-600 hover:underline" onClick={() => removeEntry(e.id)}>Quitar</button>
+                              </div>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+
+              {/* Resultados */}
+              {planLoading ? (
+                <div className="text-sm text-muted-foreground">Calculando...</div>
+              ) : planResult ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div className="rounded bg-muted px-3 py-2">
+                      <div className="text-muted-foreground">General · Actual</div>
+                      <div className="text-xl font-semibold">{planResult.general.base.percent}%</div>
+                      <div className="text-xs text-muted-foreground">Ses: {planResult.general.base.totalSessions} · Fal: {planResult.general.base.totalAbsences}</div>
+                    </div>
+                    <div className="rounded bg-muted px-3 py-2">
+                      <div className="text-muted-foreground">General · Proyectado</div>
+                      <div className="text-xl font-semibold">{planResult.general.projected.percent}%</div>
+                      <div className="text-xs text-muted-foreground">Ses: {planResult.general.projected.totalSessions} · Fal: {planResult.general.projected.totalAbsences}</div>
+                    </div>
+                    <div className="rounded bg-muted px-3 py-2">
+                      <div className="text-muted-foreground">Variación</div>
+                      <div className={`text-xl font-semibold ${planResult.general.delta.percent > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                        {planResult.general.delta.percent >= 0 ? "+" : ""}{planResult.general.delta.percent.toFixed(2)}%
+                      </div>
+                      <div className="text-xs text-muted-foreground">Diferencia Ses: {planResult.general.delta.sessions} · Diferencia Fal: {planResult.general.delta.absences}</div>
+                    </div>
+                  </div>
+
+                  <div className="overflow-auto">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr>
+                          <th className="text-left p-1">Módulo</th>
+                          <th className="text-left p-1">Actual %</th>
+                          <th className="text-left p-1">Proyectado %</th>
+                          <th className="text-left p-1">Diferencia %</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {planResult.byModule.map(row => (
+                          <tr key={`plan-row-${row.code}`} className="border-t">
+                            <td className="p-1 whitespace-nowrap">{row.label}</td>
+                            <td className="p-1">{row.base.percent}%</td>
+                            <td className="p-1">{row.projected.percent}%</td>
+                            <td className={`p-1 ${row.delta.percent > 0 ? "text-red-600" : "text-emerald-600"}`}>{row.delta.percent.toFixed(2)}%</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ) : null}
+            </CardContent>
+          </Card>
 				</>
 			)}
 		</div>

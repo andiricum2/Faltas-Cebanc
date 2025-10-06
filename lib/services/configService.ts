@@ -1,3 +1,5 @@
+"use client";
+
 // Servicio para manejar configuración en el servidor
 export async function loadRetoTargets(): Promise<Record<string, Record<string, boolean>>> {
   try {

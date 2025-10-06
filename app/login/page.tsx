@@ -6,6 +6,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useEffect } from "react";
+import { loadRememberedCredentials, saveRememberedCredentials } from "@/lib/services/credentials";
 
 type Role = "A" | "P" | "D" | "E";
 
@@ -29,6 +31,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [remember, setRemember] = useState(true);
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -37,6 +40,11 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await loginApi({ role, username, password });
+      if (remember) {
+        await saveRememberedCredentials({ role, username, password });
+      } else {
+        await saveRememberedCredentials(null);
+      }
       setSuccess(true);
       window.location.href = "/dashboard";
     } catch (err: any) {
@@ -45,6 +53,30 @@ export default function LoginPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const creds = await loadRememberedCredentials();
+      if (cancelled || !creds) return;
+      setRole(creds.role);
+      setUsername(creds.username);
+      setPassword(creds.password);
+      try {
+        setLoading(true);
+        await loginApi({ role: creds.role, username: creds.username, password: creds.password });
+        window.location.href = "/dashboard";
+      } catch (err: any) {
+        // If auto-login fails, just let the user log in manually
+        console.warn("Auto-login failed:", err?.message || err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const roles: Array<{ key: Role; label: string }> = [
     { key: "E", label: "Estudiante" },
@@ -81,6 +113,11 @@ export default function LoginPage() {
               <Label>Contraseña</Label>
               <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
             </div>
+
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+            Recordar usuario y contraseña
+          </label>
 
             {error && <div className="text-red-600 text-sm">{error}</div>}
             {success && <div className="text-green-600 text-sm">Login correcto</div>}

@@ -194,14 +194,6 @@ export default function CalcularPage() {
                             </td>
                             <td className="p-2">
                               <div className="flex items-center gap-3">
-                                <button className="text-sky-700 hover:underline" onClick={() => setEntries((prev) => {
-                                  const idx = prev.findIndex(x => x.id === e.id);
-                                  if (idx < 0) return prev;
-                                  const clone = { ...prev[idx], id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}` };
-                                  const next = [...prev];
-                                  next.splice(idx + 1, 0, clone);
-                                  return next;
-                                })}>Duplicar</button>
                                 <button className="text-red-600 hover:underline" onClick={() => removeEntry(e.id)}>Quitar</button>
                               </div>
                             </td>

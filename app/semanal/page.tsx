@@ -123,7 +123,7 @@ export default function SemanalPage() {
             onChange={(e)=>setSelectedWeekIdx(Number(e.target.value))}
           >
             {snapshot.weeks.map((w, idx)=> (
-              <option key={w.weekStartISO} value={idx}>{w.weekStartISO} → {w.weekEndISO}</option>
+              <option key={w.weekStartISO} value={idx}>{`${w.weekStartISO} → ${w.weekEndISO}`}</option>
             ))}
           </Select>
           <Button

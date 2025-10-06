@@ -3,6 +3,7 @@
 import React from "react";
 import { useConfig } from "@/lib/services/configContext";
 import type { StudentSnapshot as Snapshot } from "@/lib/types/faltas";
+import { saveRememberedCredentials } from "@/lib/services/credentials";
 
 type SnapshotContextType = {
   snapshot: Snapshot | null;
@@ -82,6 +83,7 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
     } catch (e: any) {
       if (e?.code === "UNAUTHENTICATED") {
         try { await fetch("/api/faltas/logout", { method: "POST" }); } catch {}
+        try { await saveRememberedCredentials(null); } catch {}
         window.location.href = "/login";
         return;
       }

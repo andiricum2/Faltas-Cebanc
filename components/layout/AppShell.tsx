@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { usePathname, useRouter } from "next/navigation";
 import { RefreshCcw, LogOut, LayoutDashboard, LineChart, CalendarDays, Calculator, Layers } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
+import { saveRememberedCredentials } from "@/lib/services/credentials";
 import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
 import pkg from "@/package.json";
@@ -33,6 +34,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     try {
       setLoggingOut(true);
       await fetch("/api/faltas/logout", { method: "POST" });
+      try { await saveRememberedCredentials(null); } catch {}
       // Hard redirect to root to clear client state
       window.location.href = "/";
     } finally {

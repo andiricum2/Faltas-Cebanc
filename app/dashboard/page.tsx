@@ -3,92 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { SimpleMetricCard } from "@/components/ui/metric-card";
 import { useSnapshot } from "@/lib/services/snapshotContext";
-import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
-
 
 export default function DashboardPage() {
   const { snapshot, loading, error } = useSnapshot();
-  const [selectedWeekIdx, setSelectedWeekIdx] = useState<number | null>(null);
-  const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
-  const [statisticsLoading, setStatisticsLoading] = useState(false);
   const [animateBars, setAnimateBars] = useState(false);
-  
-  const absenceLegend = snapshot?.legend.absenceTypes || {};
-  
-  // Los datos ya vienen calculados del servidor
-  const moduleCalculations = (snapshot as any)?.moduleCalculations || {};
 
-  // Cargar estadísticas cuando cambie el snapshot
-  useEffect(() => {
-    if (!snapshot?.identity?.dni) return;
-    
-    const loadStatistics = async () => {
-      setStatisticsLoading(true);
-      try {
-        const result = await getStatistics(snapshot.identity.dni, "all", "all");
-        setStatistics(result);
-      } catch (error) {
-        console.error("Error loading statistics:", error);
-      } finally {
-        setStatisticsLoading(false);
-      }
-    };
-
-    loadStatistics();
-  }, [snapshot?.identity?.dni]);
-
-  // Usar datos del endpoint de estadísticas
-  const modulesTable = useMemo(() => {
-    return statistics?.modulesTable || { normalModules: [], retoModules: [] };
-  }, [statistics]);
-  
-  const topLine = useMemo(() => statistics?.topLine || "", [statistics]);
-  const kpis = useMemo(() => statistics?.kpis || null, [statistics]);
   const totalPercent = snapshot?.percentages.totalPercent ?? 0;
   const userName = snapshot?.identity.fullName ?? "";
-  const userInitial = useMemo(() => (userName?.trim()?.[0] || "U").toUpperCase(), [userName]);
+  const userInitial = (userName?.trim()?.[0] || "U").toUpperCase();
   const dni = snapshot?.identity.dni ?? "";
   const studies = snapshot?.identity.group ?? "";
-
-  // Semana actual (contiene la fecha de hoy) o última con ausencias; fallback al final
-  const currentWeekIndex = useMemo(() => {
-    if (!snapshot?.weeks?.length) return null;
-    const today = new Date();
-    const toDate = (iso: string) => new Date(iso + "T00:00:00");
-    // 1) Buscar la semana que contiene hoy
-    const idxToday = snapshot.weeks.findIndex((w) => {
-      try {
-        const start = toDate(w.weekStartISO);
-        const end = toDate(w.weekEndISO);
-        return today >= start && today <= end;
-      } catch { return false; }
-    });
-    if (idxToday >= 0) return idxToday;
-    // 2) Buscar la última semana con alguna falta
-    for (let i = snapshot.weeks.length - 1; i >= 0; i -= 1) {
-      const w = snapshot.weeks[i];
-      const hasAbs = w.sessions?.some((c) => (c.cssClass || "").toLowerCase().includes("falta"));
-      if (hasAbs) return i;
-    }
-    // 3) Fallback: la última
-    return snapshot.weeks.length - 1;
-  }, [snapshot?.weeks]);
-  useEffect(() => {
-    if (selectedWeekIdx === null && currentWeekIndex !== null) setSelectedWeekIdx(currentWeekIndex);
-  }, [selectedWeekIdx, currentWeekIndex]);
-
-  // Activar animación de barras tras primer paint
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setAnimateBars(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-  const selectedWeek = useMemo(() => {
-    if (!snapshot || selectedWeekIdx === null) return null;
-    const week = snapshot.weeks[selectedWeekIdx];
-    return week ? { ...week, sessions: week.sessions } : null;
-  }, [snapshot, selectedWeekIdx]);
 
   // Fecha de hoy en ISO local (yyyy-mm-dd) para resaltar el día actual
   const todayISO = useMemo(() => {
@@ -98,26 +23,47 @@ export default function DashboardPage() {
     return local.toISOString().slice(0, 10);
   }, []);
 
+  // Semana actual (contiene la fecha de hoy)
+  const currentWeekIndex = useMemo(() => {
+    if (!snapshot?.weeks?.length) return null;
+    const idx = snapshot.weeks.findIndex(
+      (w) => w.weekStartISO <= todayISO && todayISO <= w.weekEndISO
+    );
+    return idx >= 0 ? idx : null;
+  }, [snapshot?.weeks, todayISO]);
+
+  // Activar animación de barras tras primer paint
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setAnimateBars(true));
+    return () => cancelAnimationFrame(id);
+  }, []);
+  
+  const selectedWeek = snapshot && currentWeekIndex != null ? (snapshot.weeks[currentWeekIndex] ?? null) : null;
+
   // Cálculo de faltas por día en la semana seleccionada
+  const faltaRe = /\bfalta[_\s-]([a-z])\b/;
   const weeklyAbsences = useMemo(() => {
     if (!selectedWeek) return [] as Array<{ date: string; total: number; types: Record<string, number> }>;
-    const byDate: Record<string, { total: number; types: Record<string, number> }> = {};
-    for (const d of selectedWeek.daysISO) byDate[d] = { total: 0, types: {} };
+  
+    const byDate: Record<string, { total: number; types: Record<string, number> }> =
+      Object.fromEntries(selectedWeek.daysISO.map(d => [d, { total: 0, types: {} }]));
+  
+  
     for (const cell of selectedWeek.sessions) {
-      if (!cell.dateISO) continue;
-      const cls = (cell.cssClass || "").toLowerCase();
-      // Solo contar si hay falta_<letra>
-      const match = cls.match(/\bfalta[_\s-]([a-z])\b/i);
+      const date = cell.dateISO;
+      if (!date || !(date in byDate)) continue; // evita días fuera de la semana
+      const match = (cell.cssClass || "").toLowerCase().match(faltaRe);
       if (!match) continue;
-      const type = (match[1] || "?").toUpperCase();
-      const bucket = byDate[cell.dateISO] || (byDate[cell.dateISO] = { total: 0, types: {} });
+      const type = match[1].toUpperCase();
+      const bucket = byDate[date];
       bucket.total += 1;
       bucket.types[type] = (bucket.types[type] || 0) + 1;
     }
+  
     return Object.entries(byDate).map(([date, v]) => ({ date, ...v }));
   }, [selectedWeek]);
 
-  if (!snapshot) return (
+  if (loading) return (
     <div
       className="flex items-center justify-center min-h-[400px]"
     >

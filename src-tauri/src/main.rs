@@ -53,16 +53,14 @@ fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::process::C
     };
 
     let host = "127.0.0.1";
-    // Pick an available random port
-    let port: u16 = {
-        match std::net::TcpListener::bind((host, 0)) {
-            Ok(listener) => {
-                let chosen = listener.local_addr().ok().map(|a| a.port()).unwrap_or(3000);
-                drop(listener);
-                if chosen == 0 { 3000 } else { chosen }
-            }
-            Err(_) => 3000,
+    let preferred_port: u16 = 34425;
+    let port: u16 = match std::net::TcpListener::bind((host, preferred_port)) {
+        Ok(listener) => {
+            let _ = listener.local_addr();
+            drop(listener);
+            preferred_port
         }
+        Err(_) => 3000,
     };
 
     let mut cmd = Command::new(node_path);

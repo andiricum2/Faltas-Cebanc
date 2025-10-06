@@ -13,17 +13,35 @@ export default function SemanalPage() {
   const [selectedWeekData, setSelectedWeekData] = useState<SelectedWeekResponse | null>(null);
   const [selectedWeekLoading, setSelectedWeekLoading] = useState(false);
 
+  // Fecha local de hoy (yyyy-mm-dd)
+  const todayISO = useMemo(() => {
+    const now = new Date();
+    const tzOffsetMs = now.getTimezoneOffset() * 60 * 1000;
+    const local = new Date(now.getTime() - tzOffsetMs);
+    return local.toISOString().slice(0, 10);
+  }, []);
+
+  // Índice de la semana actual por defecto (contiene la fecha de hoy)
+  const defaultWeekIdx = useMemo(() => {
+    if (!snapshot?.weeks?.length) return null;
+    const idx = snapshot.weeks.findIndex(w => w.weekStartISO <= todayISO && todayISO <= w.weekEndISO);
+    return idx >= 0 ? idx : (snapshot.weeks.length - 1);
+  }, [snapshot?.weeks, todayISO]);
+
+  // Índice de semana (usuario o por defecto)
+  const weekIdx = selectedWeekIdx ?? defaultWeekIdx;
+
   // Cargar datos de semana seleccionada
   useEffect(() => {
     if (!snapshot?.identity?.dni) return;
-    if (selectedWeekIdx === null) return;
-    
+    if (weekIdx == null) return;
+
     const loadSelectedWeek = async () => {
       setSelectedWeekLoading(true);
       try {
         const result = await getSelectedWeek(
           snapshot.identity.dni,
-          selectedWeekIdx,
+          weekIdx,
           "all",
           "all"
         );
@@ -36,47 +54,31 @@ export default function SemanalPage() {
     };
 
     loadSelectedWeek();
-  }, [snapshot?.identity?.dni, selectedWeekIdx]);
+  }, [snapshot?.identity?.dni, weekIdx]);
 
   const selectedWeek = selectedWeekData?.week || null;
   const absenceLegend = selectedWeekData?.absenceLegend || snapshot?.legend.absenceTypes || {};
   const moduleLegend = selectedWeekData?.moduleLegend || snapshot?.legend.modules || {};
 
-  // Ensure the current (latest) week is selected by default when snapshot arrives
+  // Seleccionar por defecto la semana actual al llegar snapshot (sin sobreescribir elección del usuario)
   useEffect(() => {
     if (!snapshot) return;
-    if (selectedWeekIdx !== null) return; // do not override user's choice
-    // Try to select the current week by today's date; fallback to latest if not found
-    const today = new Date();
-    const todayUTC = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()));
-    const findIdx = snapshot.weeks.findIndex((w) => {
-      const start = new Date(w.weekStartISO + "T00:00:00Z");
-      const end = new Date(w.weekEndISO + "T00:00:00Z");
-      return todayUTC >= start && todayUTC <= end;
-    });
-    const fallback = snapshot.weeks.length ? snapshot.weeks.length - 1 : null;
-    setSelectedWeekIdx(findIdx >= 0 ? findIdx : fallback);
-  }, [snapshot, selectedWeekIdx]);
+    if (selectedWeekIdx !== null) return;
+    setSelectedWeekIdx(defaultWeekIdx);
+  }, [snapshot, selectedWeekIdx, defaultWeekIdx]);
 
   if (!snapshot) return <div className="text-muted-foreground">Cargando...</div>;
 
   const absenceColorClass = (code: string | null): string => {
-    switch (code) {
-      case "F": // Falta no justificada
-        return "bg-red-100 text-red-900 border-red-300";
-      case "J": // Justificada
-        return "bg-emerald-100 text-emerald-900 border-emerald-300";
-      case "C": // Justificada computable
-        return "bg-teal-100 text-teal-900 border-teal-300";
-      case "E": // Expulsión
-        return "bg-purple-100 text-purple-900 border-purple-300";
-      case "R": // Retraso
-        return "bg-amber-100 text-amber-900 border-amber-300";
-      case "H": // Huelga
-        return "bg-slate-200 text-slate-900 border-slate-300";
-      default:
-        return "";
-    }
+    const map: Record<string, string> = {
+      F: "bg-red-100 text-red-900 border-red-300",
+      J: "bg-emerald-100 text-emerald-900 border-emerald-300",
+      C: "bg-teal-100 text-teal-900 border-teal-300",
+      E: "bg-purple-100 text-purple-900 border-purple-300",
+      R: "bg-amber-100 text-amber-900 border-amber-300",
+      H: "bg-slate-200 text-slate-900 border-slate-300",
+    };
+    return code && map[code] ? map[code] : "";
   };
 
   const moduleColorClass = (mod: string | null): string => {
@@ -109,17 +111,17 @@ export default function SemanalPage() {
             size="icon"
             aria-label="Semana anterior"
             onClick={() => {
-              const current = (selectedWeekIdx ?? (snapshot.weeks.length - 1));
+              const current = weekIdx ?? 0;
               if (current > 0) setSelectedWeekIdx(current - 1);
             }}
-            disabled={(selectedWeekIdx ?? (snapshot.weeks.length - 1)) <= 0}
+            disabled={(weekIdx ?? 0) <= 0}
             title="Semana anterior"
           >
             ←
           </Button>
           <Select
             className="w-[220px]"
-            value={(selectedWeekIdx ?? (snapshot.weeks.length - 1)).toString()}
+            value={(weekIdx ?? 0).toString()}
             onChange={(e)=>setSelectedWeekIdx(Number(e.target.value))}
           >
             {snapshot.weeks.map((w, idx)=> (
@@ -131,10 +133,10 @@ export default function SemanalPage() {
             size="icon"
             aria-label="Semana siguiente"
             onClick={() => {
-              const current = (selectedWeekIdx ?? (snapshot.weeks.length - 1));
+              const current = weekIdx ?? 0;
               if (current < snapshot.weeks.length - 1) setSelectedWeekIdx(current + 1);
             }}
-            disabled={(selectedWeekIdx ?? (snapshot.weeks.length - 1)) >= snapshot.weeks.length - 1}
+            disabled={(weekIdx ?? 0) >= snapshot.weeks.length - 1}
             title="Semana siguiente"
           >
             →
@@ -224,5 +226,3 @@ export default function SemanalPage() {
     </div>
   );
 }
-
-

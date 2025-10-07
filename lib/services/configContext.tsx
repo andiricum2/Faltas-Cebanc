@@ -6,15 +6,18 @@ export type AutoSyncMinutes = 0 | 5 | 15 | 30;
 
 export type AppConfig = {
   autoSyncMinutes: AutoSyncMinutes;
+  selectedGroup?: string | null; // null or "personalizado" means custom
 };
 
 type ConfigContextType = {
   config: AppConfig;
   setAutoSyncMinutes: (minutes: AutoSyncMinutes) => void;
+  setSelectedGroup: (group: string | null) => void;
 };
 
 const DEFAULT_CONFIG: AppConfig = {
   autoSyncMinutes: 0,
+  selectedGroup: null,
 };
 
 const STORAGE_KEY = "faltas.appConfig";
@@ -28,6 +31,7 @@ function readStoredConfig(): AppConfig {
     const valid: AutoSyncMinutes[] = [0, 5, 15, 30];
     return {
       autoSyncMinutes: (valid.includes(minutes as any) ? (minutes as AutoSyncMinutes) : 0),
+      selectedGroup: typeof parsed?.selectedGroup === "string" ? parsed.selectedGroup : (parsed?.selectedGroup === null ? null : null),
     };
   } catch {
     return DEFAULT_CONFIG;
@@ -47,18 +51,54 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
   const [config, setConfig] = React.useState<AppConfig>(DEFAULT_CONFIG);
 
   React.useEffect(() => {
-    setConfig(readStoredConfig());
+    const localCfg = readStoredConfig();
+    setConfig(localCfg);
+    // Try to hydrate from server (best-effort)
+    (async () => {
+      try {
+        const res = await fetch("/api/faltas/config/app");
+        if (res.ok) {
+          const data = await res.json();
+          const serverCfg: Partial<AppConfig> = data?.config || {};
+          setConfig((prev) => {
+            const next = { ...prev, ...serverCfg };
+            writeStoredConfig(next);
+            return next;
+          });
+        }
+      } catch {}
+    })();
   }, []);
 
   const setAutoSyncMinutes = React.useCallback((minutes: AutoSyncMinutes) => {
     setConfig((prev) => {
       const next = { ...prev, autoSyncMinutes: minutes };
       writeStoredConfig(next);
+      // fire and forget server save
+      fetch("/api/faltas/config/app", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ config: next })
+      }).catch(() => {});
       return next;
     });
   }, []);
 
-  const value = React.useMemo(() => ({ config, setAutoSyncMinutes }), [config, setAutoSyncMinutes]);
+  const setSelectedGroup = React.useCallback((group: string | null) => {
+    setConfig((prev) => {
+      const next = { ...prev, selectedGroup: group };
+      writeStoredConfig(next);
+      // fire and forget server save
+      fetch("/api/faltas/config/app", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ config: next })
+      }).catch(() => {});
+      return next;
+    });
+  }, []);
+
+  const value = React.useMemo(() => ({ config, setAutoSyncMinutes, setSelectedGroup }), [config, setAutoSyncMinutes, setSelectedGroup]);
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
 }

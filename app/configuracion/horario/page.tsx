@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { loadHoursPerModule, saveHoursPerModule } from "@/lib/services/configService";
 
 export default function ConfigHorarioPage() {
-  const { snapshot, loading } = useSnapshot();
+  const { snapshot, loading, syncNow } = useSnapshot();
 
   type ModuleId = string;
   const [hoursPerModule, setHoursPerModule] = React.useState<Record<ModuleId, number>>({});
@@ -27,6 +27,7 @@ export default function ConfigHorarioPage() {
   const saveHours = React.useCallback(async (next: Record<ModuleId, number>) => {
     setHoursPerModule(next);
     await saveHoursPerModule(next);
+    try { await syncNow(); } catch {}
   }, []);
 
   if (!snapshot) {

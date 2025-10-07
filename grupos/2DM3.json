@@ -1,0 +1,39 @@
+{
+  "hoursPerModule": {
+    "AaD": 4,
+    "DI": 5,
+    "Emple II": 2,
+    "PdDAM": 1,
+    "PMyDM": 3,
+    "PSyP": 3,
+    "PtCdC": 4,
+    "SGE": 3,
+    "SisI": 5
+  },
+  "retoTargets": {
+    "2DM3_IKASE": {
+      "SisI": false,
+      "PMyDM": false,
+      "PSyP": false,
+      "DI": false,
+      "AaD": false,
+      "PtCdC": false,
+      "SGE": false,
+      "Emple II": true,
+      "PdDAM": true
+    },
+    "2DM3 - R1": {
+      "Emple II": false,
+      "PdDAM": false,
+      "DI": true,
+      "SGE": true,
+      "PSyP": true,
+      "PtCdC": true,
+      "PMyDM": true,
+      "AaD": true,
+      "SisI": true
+    }
+  }
+}
+
+

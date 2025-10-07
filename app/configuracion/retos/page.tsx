@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { loadRetoTargets, saveRetoTargets } from "@/lib/services/configService";
 
 export default function ConfigRetosPage() {
-  const { snapshot, loading } = useSnapshot();
+  const { snapshot, loading, syncNow } = useSnapshot();
 
   const moduleKeys = React.useMemo(() => Object.keys(snapshot?.aggregated?.modules || {}), [snapshot]);
   const isRetoModule = React.useCallback((code: string) => {
@@ -29,6 +29,7 @@ export default function ConfigRetosPage() {
   const persistTargets = React.useCallback(async (next: Record<string, Record<string, boolean>>) => {
     setRetoTargets(next);
     await saveRetoTargets(next);
+    try { await syncNow(); } catch {}
   }, []);
 
   if (!snapshot) {

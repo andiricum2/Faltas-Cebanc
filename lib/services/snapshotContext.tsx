@@ -2,6 +2,7 @@
 
 import React from "react";
 import { useConfig } from "@/lib/services/configContext";
+import { getSnapshot as apiGetSnapshot, postSync as apiPostSync, logout as apiLogout } from "@/lib/services/apiClient";
 import type { StudentSnapshot as Snapshot } from "@/lib/types/faltas";
 import { saveRememberedCredentials } from "@/lib/services/credentials";
 
@@ -15,40 +16,9 @@ type SnapshotContextType = {
 
 const SnapshotContext = React.createContext<SnapshotContextType | undefined>(undefined);
 
-async function getSnapshot(): Promise<Snapshot | null> {
-  const res = await fetch("/api/faltas/snapshot", { cache: "no-store" });
-  if (!res.ok) return null;
-  const data = await res.json();
-  return data;
-}
+async function getSnapshot(): Promise<Snapshot | null> { return apiGetSnapshot(); }
 
-async function saveRetoTargets(retoTargets: Record<string, Record<string, boolean>>): Promise<void> {
-  const res = await fetch("/api/faltas/config/retoTargets", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ retoTargets })
-  });
-  if (!res.ok) throw new Error("Failed to save reto targets");
-}
-
-async function saveHoursPerModule(hoursPerModule: Record<string, number>): Promise<void> {
-  const res = await fetch("/api/faltas/config/hoursPerModule", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ hoursPerModule })
-  });
-  if (!res.ok) throw new Error("Failed to save hours per module");
-}
-
-async function postSync(): Promise<void> {
-  const res = await fetch("/api/faltas/sync", { method: "POST" });
-  if (res.status === 401 || res.status === 403) {
-    const err: any = new Error("No autenticado");
-    err.code = "UNAUTHENTICATED";
-    throw err;
-  }
-  if (!res.ok) throw new Error("Sync error");
-}
+async function postSync(): Promise<void> { await apiPostSync(); }
 
 export function SnapshotProvider({ children }: { children: React.ReactNode }) {
   const [snapshot, setSnapshot] = React.useState<Snapshot | null>(null);
@@ -82,7 +52,7 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
       setSnapshot(s);
     } catch (e: any) {
       if (e?.code === "UNAUTHENTICATED") {
-        try { await fetch("/api/faltas/logout", { method: "POST" }); } catch {}
+        try { await apiLogout(); } catch {}
         try { await saveRememberedCredentials(null); } catch {}
         window.location.href = "/login";
         return;

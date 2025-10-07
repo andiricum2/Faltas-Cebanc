@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { getAppConfig, saveAppConfig } from "@/lib/services/apiClient";
 
 export type AutoSyncMinutes = 0 | 5 | 15 | 30;
 
@@ -56,16 +57,13 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     // Try to hydrate from server (best-effort)
     (async () => {
       try {
-        const res = await fetch("/api/faltas/config/app");
-        if (res.ok) {
-          const data = await res.json();
-          const serverCfg: Partial<AppConfig> = data?.config || {};
+        const data = await getAppConfig();
+        const serverCfg: Partial<AppConfig> = data?.config || {};
           setConfig((prev) => {
             const next = { ...prev, ...serverCfg };
             writeStoredConfig(next);
             return next;
           });
-        }
       } catch {}
     })();
   }, []);
@@ -75,11 +73,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
       const next = { ...prev, autoSyncMinutes: minutes };
       writeStoredConfig(next);
       // fire and forget server save
-      fetch("/api/faltas/config/app", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: next })
-      }).catch(() => {});
+      saveAppConfig({ config: next }).catch(() => {});
       return next;
     });
   }, []);
@@ -89,11 +83,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
       const next = { ...prev, selectedGroup: group };
       writeStoredConfig(next);
       // fire and forget server save
-      fetch("/api/faltas/config/app", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ config: next })
-      }).catch(() => {});
+      saveAppConfig({ config: next }).catch(() => {});
       return next;
     });
   }, []);

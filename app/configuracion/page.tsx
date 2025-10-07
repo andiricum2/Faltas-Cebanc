@@ -3,6 +3,7 @@
 import React from "react";
 import { useConfig } from "@/lib/services/configContext";
 import { useSnapshot } from "@/lib/services/snapshotContext";
+import { getGroups } from "@/lib/services/apiClient";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
 
@@ -16,11 +17,8 @@ export default function ConfiguracionPage() {
   React.useEffect(() => {
     (async () => {
       try {
-        const res = await fetch("/api/faltas/config/groups");
-        if (res.ok) {
-          const data = await res.json();
-          setGroups(data?.groups || []);
-        }
+        const data = await getGroups();
+        setGroups(data?.groups || []);
       } catch {}
     })();
   }, []);

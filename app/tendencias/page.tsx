@@ -8,6 +8,31 @@ import { TrendingUp, Activity, BarChart3, PieChart as PieChartIcon, AlertCircle 
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
 
+// Hook reutilizable para estadísticas
+function useStatistics(dni: string | undefined) {
+  const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const reload = useCallback(async () => {
+    if (!dni) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await getStatistics(dni);
+      setStatistics(result);
+    } catch (e: any) {
+      setError("Error al cargar las estadísticas. Inténtalo de nuevo.");
+    } finally {
+      setLoading(false);
+    }
+  }, [dni]);
+
+  useEffect(() => { reload(); }, [reload]);
+
+  return { statistics, loading, error, reload };
+}
+
 const CHART_COLORS = [
   '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
   '#06b6d4', '#f97316', '#84cc16', '#ec4899', '#6366f1'
@@ -76,31 +101,7 @@ ChartContainer.displayName = 'ChartContainer';
 
 export default function TendenciasPage() {
   const { snapshot } = useSnapshot();
-  const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
-  const [statisticsLoading, setStatisticsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  // Memoized callback for loading statistics
-  const loadStatistics = useCallback(async () => {
-    if (!snapshot?.identity?.dni) return;
-    
-    setStatisticsLoading(true);
-    setError(null);
-    try {
-      const result = await getStatistics(snapshot.identity.dni);
-      setStatistics(result);
-    } catch (error) {
-      console.error("Error loading statistics:", error);
-      setError("Error al cargar las estadísticas. Inténtalo de nuevo.");
-    } finally {
-      setStatisticsLoading(false);
-    }
-  }, [snapshot?.identity?.dni]);
-
-  // Cargar estadísticas
-  useEffect(() => {
-    loadStatistics();
-  }, [loadStatistics]);
+  const { statistics, loading: statisticsLoading, error, reload: loadStatistics } = useStatistics(snapshot?.identity?.dni);
 
   // Sin estados de hover para métricas
 

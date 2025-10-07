@@ -1,8 +1,29 @@
 /**
- * Servicio cliente para consumir endpoints de estadísticas y cálculos
+ * Servicio cliente centralizado para consumir endpoints del backend
+ * y encapsular manejo de errores/autenticación.
  */
 
 import type { WeekSessions } from "@/lib/types/faltas";
+
+// --- Request wrapper común ---
+async function request<T>(input: string, init?: RequestInit): Promise<T> {
+  const res = await fetch(input, init);
+  if (res.status === 401 || res.status === 403) {
+    const err: any = new Error("No autenticado");
+    err.code = "UNAUTHENTICATED";
+    throw err;
+  }
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    throw new Error(text || `HTTP ${res.status}`);
+  }
+  // Intentar parsear JSON; si no hay contenido, devolver null como any
+  try {
+    return (await res.json()) as T;
+  } catch {
+    return null as unknown as T;
+  }
+}
 
 export type StatisticsResponse = {
   kpis: {
@@ -86,6 +107,63 @@ export type CalculatePlanResponse = {
   }>;
 };
 
+// --- Config/app ---
+export type AppConfigDto = {
+  config: {
+    autoSyncMinutes: 0 | 5 | 15 | 30;
+    selectedGroup?: string | null;
+  };
+};
+
+export async function getAppConfig(): Promise<AppConfigDto> {
+  return request<AppConfigDto>("/api/faltas/config/app");
+}
+
+export async function saveAppConfig(dto: AppConfigDto): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/api/faltas/config/app", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(dto)
+  });
+}
+
+export async function getGroups(): Promise<{ groups: string[] }> {
+  return request<{ groups: string[] }>("/api/faltas/config/groups");
+}
+
+export async function getGroupByName(name: string): Promise<any> {
+  return request<any>(`/api/faltas/config/groups/${encodeURIComponent(name)}`);
+}
+
+export async function saveRetoTargets(retoTargets: Record<string, Record<string, boolean>>): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/api/faltas/config/retoTargets", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ retoTargets })
+  });
+}
+
+export async function saveHoursPerModule(hoursPerModule: Record<string, number>): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/api/faltas/config/hoursPerModule", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ hoursPerModule })
+  });
+}
+
+// --- Snapshot/Auth/Sync ---
+export async function getSnapshot(): Promise<any> {
+  return request<any>("/api/faltas/snapshot", { cache: "no-store" as any });
+}
+
+export async function postSync(): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/api/faltas/sync", { method: "POST" });
+}
+
+export async function logout(): Promise<{ ok: true }> {
+  return request<{ ok: true }>("/api/faltas/logout", { method: "POST" });
+}
+
 export async function getStatistics(
   dni: string, 
   moduleFilter: string = "all", 
@@ -96,12 +174,7 @@ export async function getStatistics(
     moduleFilter,
     absenceFilter
   });
-  
-  const response = await fetch(`/api/faltas/statistics?${params}`);
-  if (!response.ok) {
-    throw new Error(`Error fetching statistics: ${response.statusText}`);
-  }
-  return response.json();
+  return request<StatisticsResponse>(`/api/faltas/statistics?${params}`);
 }
 
 export async function getSelectedWeek(
@@ -116,12 +189,7 @@ export async function getSelectedWeek(
     moduleFilter,
     absenceFilter
   });
-  
-  const response = await fetch(`/api/faltas/selectedWeek?${params}`);
-  if (!response.ok) {
-    throw new Error(`Error fetching selected week: ${response.statusText}`);
-  }
-  return response.json();
+  return request<SelectedWeekResponse>(`/api/faltas/selectedWeek?${params}`);
 }
 
 export async function getCalculations(
@@ -134,25 +202,37 @@ export async function getCalculations(
     module: selectedModule,
     addedAbsences: addedAbsences.toString()
   });
-  
-  const response = await fetch(`/api/faltas/calculate?${params}`);
-  if (!response.ok) {
-    throw new Error(`Error fetching calculations: ${response.statusText}`);
-  }
-  return response.json();
+  return request<CalculateResponse>(`/api/faltas/calculate?${params}`);
 }
 
 export async function postCalculationPlan(
   dni: string,
   entries: CalculationPlanEntry[]
 ): Promise<CalculatePlanResponse> {
-  const response = await fetch(`/api/faltas/calculate`, {
+  return request<CalculatePlanResponse>(`/api/faltas/calculate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ dni, entries })
   });
-  if (!response.ok) {
-    throw new Error(`Error posting calculation plan: ${response.statusText}`);
-  }
-  return response.json();
+}
+
+// --- Notices/Updates (por si se usan en UI) ---
+export type Notice = {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+  severity?: string;
+  startDate?: string;
+  endDate?: string;
+  action?: { label: string; href: string } | undefined;
+};
+
+export async function getNotices(): Promise<{ notices: Notice[] }> {
+  return request<{ notices: Notice[] }>("/api/notices");
+}
+
+// --- Hooks helpers (no React deps) ---
+export async function fetchStatistics(dni: string, moduleFilter: string = "all", absenceFilter: string = "all") {
+  return getStatistics(dni, moduleFilter, absenceFilter);
 }

@@ -9,6 +9,10 @@ const nextConfig = {
   outputFileTracingExcludes: {
     "*": [".data/**"],
   },
+  // Ensure the local grupos directory is bundled with the standalone server
+  outputFileTracingIncludes: {
+    "*": ["grupos/**"],
+  },
 };
 
 export default nextConfig;

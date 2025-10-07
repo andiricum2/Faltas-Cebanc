@@ -37,7 +37,7 @@ export default function ModulosPage() {
 
   const retoRows = useMemo(() => {
     if (!snapshot || !(snapshot as any).retos) return [] as Array<any>;
-    const retos = (snapshot as any).retos as Array<{ id: string; label: string; faltas: number }>;
+    const retos = (snapshot as any).retos as Array<{ id: string; label: string; }>;
     return retos
       .map((r) => {
         const classes = (snapshot as any)?.aggregated?.modules?.[r.id]?.classesGiven || 0;

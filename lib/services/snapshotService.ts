@@ -1,4 +1,4 @@
-import type { StudentSnapshot as Snapshot, WeekSessions, AggregatedStats } from "@/lib/types/faltas";
+import type { StudentSnapshot as Snapshot, WeekSessions, AggregatedStats, RetoInfo } from "@/lib/types/faltas";
 import { extractAbsenceCode, sumarFaltas, isRetoModule } from "@/lib/utils/calculations";
 
 export type ModuleRow = { key: string; classes: number; absences: string };
@@ -27,10 +27,10 @@ export function buildModulesTable(snapshot: Snapshot): {
   );
   
   // Para los módulos de reto, usar los datos específicos de snapshot.retos
-  const retoModules = (snapshot as any).retos?.map((reto: any) => ({
+  const retoModules = snapshot.retos?.map((reto: RetoInfo) => ({
     key: reto.id,
     classes: snapshot.aggregated.modules[reto.id]?.classesGiven || 0,
-    absences: reto.faltas.toString()
+    absences: sumarFaltas(snapshot.aggregated.modules[reto.id]?.absenceCounts).toString()
   })) || [];
 
   return { normalModules, retoModules };

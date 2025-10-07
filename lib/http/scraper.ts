@@ -195,9 +195,6 @@ export function buildSnapshot(weeks: WeekSessions[], identity: UserIdentity, leg
     .map((code) => ({
       id: code,
       label: legend.modules[code] || code,
-      faltas: Object.entries(aggregated.modules[code]?.absenceCounts || {})
-        .filter(([k]) => k !== "J")
-        .reduce((a, [, v]) => a + (v as number), 0),
       group: extractGroupToken(code, legend.modules[code]),
     }));
 

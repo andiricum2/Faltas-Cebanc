@@ -70,7 +70,6 @@ export type AggregatedStats = {
 export type RetoInfo = {
   id: string;
   label: string;
-  faltas: number;
   group: string | null;
 };
 

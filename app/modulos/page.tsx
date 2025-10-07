@@ -1,12 +1,16 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState, Fragment } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { calcPercent, sumarFaltas } from "@/lib/utils/calculations";
+import { Badge } from "@/components/ui/badge";
 
 export default function ModulosPage() {
   const { snapshot } = useSnapshot();
+
+  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
+  const [expandedRetos, setExpandedRetos] = useState<Record<string, boolean>>({});
 
   const rows = useMemo(() => {
     const moduleCalcs = (snapshot as any)?.moduleCalculations as Record<string, any> | undefined;
@@ -72,6 +76,7 @@ export default function ModulosPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left border-b">
+                  <th className="py-2 pr-3 w-8"></th>
                   <th className="py-2 pr-3">Asignatura</th>
                   <th className="py-2 pr-3 text-center">Faltas directas</th>
                   <th className="py-2 pr-3 text-center">Faltas derivadas</th>
@@ -87,32 +92,63 @@ export default function ModulosPage() {
                   const ratio = Math.min(100, Math.max(0, (m.percent / 20) * 100));
                   const colorClass = m.percent < 7 ? 'from-emerald-500 to-teal-600' : m.percent < 14 ? 'from-amber-500 to-orange-600' : 'from-red-500 to-pink-600';
                   const textColor = m.percent < 7 ? 'text-emerald-600' : m.percent < 14 ? 'text-amber-600' : 'text-red-600';
+                  const isOpen = !!expandedModules[m.code];
+                  const absenceCounts = (snapshot as any)?.aggregated?.modules?.[m.code]?.absenceCounts || {};
+                  const breakdown = Object.entries(absenceCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
                   return (
-                    <tr key={m.code} className="border-b hover:bg-muted/40">
-                      <td className="py-2 pr-3 font-medium">{m.name}</td>
-                      <td className="py-2 pr-3 text-center">{m.faltasDirectas}</td>
-                      <td className="py-2 pr-3 text-center">{m.faltasDerivadas}</td>
-                      <td className="py-2 pr-3 text-center">{m.sesionesDirectas}</td>
-                      <td className="py-2 pr-3 text-center">{m.sesionesDerivadas}</td>
-                      <td className="py-2 pr-3 font-medium text-center">{m.totalFaltas}</td>
-                      <td className="py-2 pr-3 text-center">{m.totalSesiones}</td>
-                      <td className="py-2">
-                        <div className="flex items-center gap-2 min-w-[160px]">
-                          <span className={`text-xs font-bold ${textColor}`}>{m.percent.toFixed(2)}%</span>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className={`h-1.5 rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700 ease-out`}
-                              style={{ width: `${ratio}%` }}
-                            />
+                    <Fragment key={m.code}>
+                      <tr
+                        className="border-b hover:bg-muted/40 cursor-pointer select-none"
+                        onClick={() => setExpandedModules((s) => ({ ...s, [m.code]: !s[m.code] }))}
+                        aria-expanded={isOpen}
+                      >
+                        <td className="py-2 pr-2 text-center align-middle">
+                          <span className="text-sm">{isOpen ? '▾' : '▸'}</span>
+                        </td>
+                        <td className="py-2 pr-3 font-medium">{m.name}</td>
+                        <td className="py-2 pr-3 text-center">{m.faltasDirectas}</td>
+                        <td className="py-2 pr-3 text-center">{m.faltasDerivadas}</td>
+                        <td className="py-2 pr-3 text-center">{m.sesionesDirectas}</td>
+                        <td className="py-2 pr-3 text-center">{m.sesionesDerivadas}</td>
+                        <td className="py-2 pr-3 font-medium text-center">{m.totalFaltas}</td>
+                        <td className="py-2 pr-3 text-center">{m.totalSesiones}</td>
+                        <td className="py-2">
+                          <div className="flex items-center gap-2 min-w-[160px]">
+                            <span className={`text-xs font-bold ${textColor}`}>{m.percent.toFixed(2)}%</span>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={`h-1.5 rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700 ease-out`}
+                                style={{ width: `${ratio}%` }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
+                      {isOpen ? (
+                        <tr className="border-b bg-muted/30">
+                          <td colSpan={9} className="py-3 pl-4">
+                            <div className="flex flex-wrap gap-2">
+                              {breakdown.length === 0 ? (
+                                <span className="text-muted-foreground text-xs">Sin faltas desglosadas</span>
+                              ) : (
+                                breakdown.map(([code, count]) => (
+                                  <Badge key={`${m.code}-${code}`} className="gap-1">
+                                    <span className="font-mono text-xs">{code}</span>
+                                    <span className="text-xs">×{count as number}</span>
+                                    <span className="text-[10px] opacity-70">{(snapshot as any)?.legend?.absenceTypes?.[code] || ''}</span>
+                                  </Badge>
+                                ))
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
                   );
                 })}
                 {rows.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="py-6 text-center text-muted-foreground">No hay datos de módulos</td>
+                    <td colSpan={10} className="py-6 text-center text-muted-foreground">No hay datos de módulos</td>
                   </tr>
                 ) : null}
               </tbody>
@@ -130,6 +166,7 @@ export default function ModulosPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="text-left border-b">
+                  <th className="py-2 pr-3 w-8"></th>
                   <th className="py-2 pr-3">Reto</th>
                   <th className="py-2 pr-3 text-center">Total faltas</th>
                   <th className="py-2 pr-3 text-center">Total sesiones</th>
@@ -141,23 +178,54 @@ export default function ModulosPage() {
                   const ratio = Math.min(100, Math.max(0, (r.percent / 20) * 100));
                   const colorClass = r.percent < 7 ? 'from-emerald-500 to-teal-600' : r.percent < 14 ? 'from-amber-500 to-orange-600' : 'from-red-500 to-pink-600';
                   const textColor = r.percent < 7 ? 'text-emerald-600' : r.percent < 14 ? 'text-amber-600' : 'text-red-600';
+                  const isOpen = !!expandedRetos[r.id];
+                  const absenceCounts = (snapshot as any)?.aggregated?.modules?.[r.id]?.absenceCounts || {};
+                  const breakdown = Object.entries(absenceCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
                   return (
-                    <tr key={r.id} className="border-b hover:bg-muted/40">
-                      <td className="py-2 pr-3 font-medium">{r.name}</td>
-                      <td className="py-2 pr-3 text-center">{r.totalFaltas}</td>
-                      <td className="py-2 pr-3 text-center">{r.totalSesiones}</td>
-                      <td className="py-2">
-                        <div className="flex items-center gap-2 min-w-[160px]">
-                          <span className={`text-xs font-bold ${textColor}`}>{r.percent.toFixed(2)}%</span>
-                          <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                            <div
-                              className={`h-1.5 rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700 ease-out`}
-                              style={{ width: `${ratio}%` }}
-                            />
+                    <Fragment key={r.id}>
+                      <tr
+                        className="border-b hover:bg-muted/40 cursor-pointer select-none"
+                        onClick={() => setExpandedRetos((s) => ({ ...s, [r.id]: !s[r.id] }))}
+                        aria-expanded={isOpen}
+                      >
+                        <td className="py-2 pr-2 text-center align-middle">
+                          <span className="text-sm">{isOpen ? '▾' : '▸'}</span>
+                        </td>
+                        <td className="py-2 pr-3 font-medium">{r.name}</td>
+                        <td className="py-2 pr-3 text-center">{r.totalFaltas}</td>
+                        <td className="py-2 pr-3 text-center">{r.totalSesiones}</td>
+                        <td className="py-2">
+                          <div className="flex items-center gap-2 min-w-[160px]">
+                            <span className={`text-xs font-bold ${textColor}`}>{r.percent.toFixed(2)}%</span>
+                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                              <div
+                                className={`h-1.5 rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700 ease-out`}
+                                style={{ width: `${ratio}%` }}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                    </tr>
+                        </td>
+                      </tr>
+                      {isOpen ? (
+                        <tr className="border-b bg-muted/30">
+                          <td colSpan={5} className="py-3 pl-4">
+                            <div className="flex flex-wrap gap-2">
+                              {breakdown.length === 0 ? (
+                                <span className="text-muted-foreground text-xs">Sin faltas desglosadas</span>
+                              ) : (
+                                breakdown.map(([code, count]) => (
+                                  <Badge key={`${r.id}-${code}`} className="gap-1">
+                                    <span className="font-mono text-xs">{code}</span>
+                                    <span className="text-xs">×{count as number}</span>
+                                    <span className="text-[10px] opacity-70">{(snapshot as any)?.legend?.absenceTypes?.[code] || ''}</span>
+                                  </Badge>
+                                ))
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ) : null}
+                    </Fragment>
                   );
                 })}
                 {retoRows.length === 0 ? (

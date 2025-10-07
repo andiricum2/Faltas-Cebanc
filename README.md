@@ -163,8 +163,6 @@ Sugerencias de contribución:
 ![PRs](https://img.shields.io/github/issues-pr/andiricum2/Faltas-Cebanc)
 ![Last Commit](https://img.shields.io/github/last-commit/andiricum2/Faltas-Cebanc)
 
-Gráficas enriquecidas:
-
 ![Commits Graph](https://repobeats.axiom.co/api/embed/136165b1e8320ae9eb24936b2f7dd194e06e629f.svg "Repobeats analytics image")
 
 ---

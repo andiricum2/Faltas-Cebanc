@@ -11,7 +11,7 @@ import { saveRememberedCredentials } from "@/lib/services/credentials";
 import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
 import pkg from "@/package.json";
-import { Download } from "lucide-react";
+import { Download, Github } from "lucide-react";
 import { openExternalUrl } from "@/lib/utils/externalLinks";
 import NoticeBanner from "@/components/ui/notice-banner";
 
@@ -136,7 +136,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             )}
             {loading ? "Sincronizando..." : "Sincronizar Datos"}
             </Button>
-            <Button onClick={onLogout} disabled={loggingOut} variant="outline" size="icon" className="col-span-1 w-full justify-center" aria-label="Cerrar sesión" title="Cerrar sesión">
+            <Button onClick={onLogout} disabled={loggingOut} variant="outline" size="sm" className="col-span-1 w-full justify-center" aria-label="Cerrar sesión" title="Cerrar sesión">
               {loggingOut ? (
                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -147,7 +147,16 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               )}
             </Button>
           </div>
-          <div className="text-xs text-muted-foreground">v{pkg.version}</div>
+          <div className="flex items-center justify-between text-xs text-muted-foreground">
+            <div className="ml-1">v{pkg.version}</div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => openExternalUrl('https://github.com/andiricum2/Faltas-Cebanc/')}
+            >
+              <Github className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </aside>
       <main className="min-h-screen">

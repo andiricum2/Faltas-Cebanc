@@ -6,34 +6,26 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
-import { getCalculations, type CalculateResponse, postCalculationPlan, type CalculationPlanEntry as ApiCalculationPlanEntry, type CalculatePlanResponse } from "@/lib/services/apiClient";
+import type { CalculationPlanEntry as ApiCalculationPlanEntry } from "@/lib/services/apiClient";
+import { useCalculationPlan } from "@/lib/services/calculationsHooks";
+import { isRetoModule } from "@/lib/utils/calculations";
 
 export default function CalcularPage() {
 	const { snapshot, loading } = useSnapshot();
-	const [calculations, setCalculations] = React.useState<CalculateResponse | null>(null);
-  const [planLoading, setPlanLoading] = React.useState(false);
-  const [planResult, setPlanResult] = React.useState<CalculatePlanResponse | null>(null);
-
-	// Cargar cálculos cuando cambien los parámetros
-	React.useEffect(() => {
-		if (!snapshot?.identity?.dni) return;
-		
-		const loadCalculations = async () => {  
-			try {
-				const result = await getCalculations(
-					snapshot.identity.dni
-				);
-				setCalculations(result);
-			} catch (error) {
-				console.error("Error loading calculations:", error);
-			}
-		};
-
-		loadCalculations();
-	}, [snapshot?.identity?.dni]);
+  // GET de cálculos eliminado; solo planificación vía POST
+  const calculations = React.useMemo(() => {
+    const modules = (snapshot as any)?.aggregated?.modules || {};
+    const legend = (snapshot as any)?.legend?.modules || {};
+    const moduleMeta = Object.keys(modules).map((code) => {
+      const label = legend[code] || code;
+      const isReto = isRetoModule(code, label);
+      return { code, label, isReto };
+    });
+    return { moduleMeta } as any;
+  }, [snapshot]);
+  const { planLoading, planResult, submitPlan, setPlanResult } = useCalculationPlan(snapshot?.identity?.dni);
 
 
-  // ---- FUTURO: PLANIFICADOR MULTI-ENTRADAS ----
   type PlannerEntry = {
     id: string;
     kind: "abs" | "att"; // falta o asistencia
@@ -49,7 +41,7 @@ export default function CalcularPage() {
       {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         kind: "abs",
-        code: calculations?.moduleMeta?.find(m => !m.isReto)?.code || calculations?.moduleMeta?.[0]?.code,
+        code: calculations?.moduleMeta?.find((m: any) => !m.isReto)?.code || calculations?.moduleMeta?.[0]?.code,
         amount: 1
       }
     ]);
@@ -63,8 +55,8 @@ export default function CalcularPage() {
     setEntries((prev) => prev.map(e => e.id === id ? { ...e, ...next } : e));
   }, []);
 
-  const moduleOptions = React.useMemo(() => calculations?.moduleMeta?.filter(m => !m.isReto) || [], [calculations]);
-  const retoOptions = React.useMemo(() => calculations?.moduleMeta?.filter(m => m.isReto) || [], [calculations]);
+  const moduleOptions = React.useMemo(() => calculations?.moduleMeta?.filter((m: any) => !m.isReto) || [], [calculations]);
+  const retoOptions = React.useMemo(() => calculations?.moduleMeta?.filter((m: any) => m.isReto) || [], [calculations]);
 
   const sortedModuleOptions = React.useMemo(() => {
     return [...moduleOptions].sort((a, b) => (a.label || "").localeCompare(b.label || ""));
@@ -76,7 +68,7 @@ export default function CalcularPage() {
   const entriesApiPayload: ApiCalculationPlanEntry[] = React.useMemo(() => {
     return entries.map(e => {
       const code = e.code || moduleOptions[0]?.code || retoOptions[0]?.code;
-      const isReto = !!retoOptions.find(r => r.code === code);
+      const isReto = !!retoOptions.find((r: any) => r.code === code);
       return {
         kind: e.kind,
         scope: isReto ? "reto" : "module",
@@ -91,15 +83,14 @@ export default function CalcularPage() {
     const timeout = setTimeout(async () => {
       if (!snapshot?.identity?.dni) return;
       if (entriesApiPayload.length === 0) { setPlanResult(null); return; }
-      setPlanLoading(true);
       try {
-        const res = await postCalculationPlan(snapshot.identity.dni, entriesApiPayload);
+        const res = await submitPlan(entriesApiPayload);
         if (!cancelled) setPlanResult(res);
       } catch (err) {
         console.error("Error posting calculation plan:", err);
         if (!cancelled) setPlanResult(null);
       } finally {
-        if (!cancelled) setPlanLoading(false);
+        // loading handled inside useCalculationPlan
       }
     }, 300);
     return () => { cancelled = true; clearTimeout(timeout); };
@@ -174,15 +165,15 @@ export default function CalcularPage() {
                             <td className="p-2">
                               <Select value={e.code || ""} onChange={(ev) => updateEntry(e.id, { code: ev.target.value })}>
                                 {sortedRetoOptions.length > 0 ? (
-                                  <optgroup label="Retos">
-                                    {sortedRetoOptions.map(m => (
+                  <optgroup label="Retos">
+                    {sortedRetoOptions.map((m: any) => (
                                       <option key={`${e.id}-reto-${m.code}`} value={m.code}>{m.label}</option>
                                     ))}
                                   </optgroup>
                                 ) : null}
                                 {sortedModuleOptions.length > 0 ? (
                                   <optgroup label="Módulos">
-                                    {sortedModuleOptions.map(m => (
+                    {sortedModuleOptions.map((m: any) => (
                                       <option key={`${e.id}-mod-${m.code}`} value={m.code}>{m.label}</option>
                                     ))}
                                   </optgroup>
@@ -241,7 +232,7 @@ export default function CalcularPage() {
                         </tr>
                       </thead>
                       <tbody>
-                        {planResult.byModule.map(row => (
+                        {planResult.byModule.map((row: any) => (
                           <tr key={`plan-row-${row.code}`} className="border-t">
                             <td className="p-1 whitespace-nowrap">{row.label}</td>
                             <td className="p-1">{row.base.percent}%</td>

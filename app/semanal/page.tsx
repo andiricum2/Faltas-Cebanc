@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getSelectedWeek, type SelectedWeekResponse } from "@/lib/services/apiClient";
+import { getTodayLocalISO } from "@/lib/utils/dates";
+import { getDefaultWeekIndex } from "@/lib/utils/weeks";
+import { absenceColorClass, moduleColorClass } from "@/lib/utils/ui";
 import { extractAbsenceCode } from "@/lib/utils";
 
 export default function SemanalPage() {
@@ -14,19 +17,10 @@ export default function SemanalPage() {
   const [selectedWeekLoading, setSelectedWeekLoading] = useState(false);
 
   // Fecha local de hoy (yyyy-mm-dd)
-  const todayISO = useMemo(() => {
-    const now = new Date();
-    const tzOffsetMs = now.getTimezoneOffset() * 60 * 1000;
-    const local = new Date(now.getTime() - tzOffsetMs);
-    return local.toISOString().slice(0, 10);
-  }, []);
+  const todayISO = useMemo(() => getTodayLocalISO(), []);
 
   // Índice de la semana actual por defecto (contiene la fecha de hoy)
-  const defaultWeekIdx = useMemo(() => {
-    if (!snapshot?.weeks?.length) return null;
-    const idx = snapshot.weeks.findIndex(w => w.weekStartISO <= todayISO && todayISO <= w.weekEndISO);
-    return idx >= 0 ? idx : (snapshot.weeks.length - 1);
-  }, [snapshot?.weeks, todayISO]);
+  const defaultWeekIdx = useMemo(() => getDefaultWeekIndex(snapshot, todayISO), [snapshot, todayISO]);
 
   // Índice de semana (usuario o por defecto)
   const weekIdx = selectedWeekIdx ?? defaultWeekIdx;
@@ -69,37 +63,7 @@ export default function SemanalPage() {
 
   if (!snapshot) return <div className="text-muted-foreground">Cargando...</div>;
 
-  const absenceColorClass = (code: string | null): string => {
-    const map: Record<string, string> = {
-      F: "bg-red-100 text-red-900 border-red-300",
-      J: "bg-emerald-100 text-emerald-900 border-emerald-300",
-      C: "bg-teal-100 text-teal-900 border-teal-300",
-      E: "bg-purple-100 text-purple-900 border-purple-300",
-      R: "bg-amber-100 text-amber-900 border-amber-300",
-      H: "bg-slate-200 text-slate-900 border-slate-300",
-    };
-    return code && map[code] ? map[code] : "";
-  };
-
-  const moduleColorClass = (mod: string | null): string => {
-    if (!mod) return "bg-white";
-    const palette = [
-      "bg-blue-200",
-      "bg-green-200",
-      "bg-yellow-200",
-      "bg-pink-200",
-      "bg-cyan-200",
-      "bg-lime-200",
-      "bg-indigo-200",
-      "bg-orange-200",
-      "bg-fuchsia-200",
-      "bg-sky-200",
-    ];
-    let hash = 0;
-    for (let i = 0; i < mod.length; i++) hash = (hash * 31 + mod.charCodeAt(i)) >>> 0;
-    const idx = hash % palette.length;
-    return palette[idx];
-  };
+  // colors moved to utils/ui
 
   return (
     <div className="w-full space-y-6">

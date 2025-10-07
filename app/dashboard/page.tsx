@@ -4,6 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSnapshot } from "@/lib/services/snapshotContext";
+import { getTodayLocalISO } from "@/lib/utils/dates";
+import { findCurrentWeekIndex } from "@/lib/utils/weeks";
+import { aggregateWeeklyAbsences } from "@/lib/utils/absences";
 
 export default function DashboardPage() {
   const { snapshot, loading, error } = useSnapshot();
@@ -16,21 +19,10 @@ export default function DashboardPage() {
   const studies = snapshot?.identity.group ?? "";
 
   // Fecha de hoy en ISO local (yyyy-mm-dd) para resaltar el día actual
-  const todayISO = useMemo(() => {
-    const now = new Date();
-    const tzOffsetMs = now.getTimezoneOffset() * 60 * 1000;
-    const local = new Date(now.getTime() - tzOffsetMs);
-    return local.toISOString().slice(0, 10);
-  }, []);
+  const todayISO = useMemo(() => getTodayLocalISO(), []);
 
   // Semana actual (contiene la fecha de hoy)
-  const currentWeekIndex = useMemo(() => {
-    if (!snapshot?.weeks?.length) return null;
-    const idx = snapshot.weeks.findIndex(
-      (w) => w.weekStartISO <= todayISO && todayISO <= w.weekEndISO
-    );
-    return idx >= 0 ? idx : null;
-  }, [snapshot?.weeks, todayISO]);
+  const currentWeekIndex = useMemo(() => findCurrentWeekIndex(snapshot, todayISO), [snapshot, todayISO]);
 
   // Activar animación de barras tras primer paint
   useEffect(() => {
@@ -41,27 +33,7 @@ export default function DashboardPage() {
   const selectedWeek = snapshot && currentWeekIndex != null ? (snapshot.weeks[currentWeekIndex] ?? null) : null;
 
   // Cálculo de faltas por día en la semana seleccionada
-  const faltaRe = /\bfalta[_\s-]([a-z])\b/;
-  const weeklyAbsences = useMemo(() => {
-    if (!selectedWeek) return [] as Array<{ date: string; total: number; types: Record<string, number> }>;
-  
-    const byDate: Record<string, { total: number; types: Record<string, number> }> =
-      Object.fromEntries(selectedWeek.daysISO.map(d => [d, { total: 0, types: {} }]));
-  
-  
-    for (const cell of selectedWeek.sessions) {
-      const date = cell.dateISO;
-      if (!date || !(date in byDate)) continue; // evita días fuera de la semana
-      const match = (cell.cssClass || "").toLowerCase().match(faltaRe);
-      if (!match) continue;
-      const type = match[1].toUpperCase();
-      const bucket = byDate[date];
-      bucket.total += 1;
-      bucket.types[type] = (bucket.types[type] || 0) + 1;
-    }
-  
-    return Object.entries(byDate).map(([date, v]) => ({ date, ...v }));
-  }, [selectedWeek]);
+  const weeklyAbsences = useMemo(() => aggregateWeeklyAbsences(selectedWeek), [selectedWeek]);
 
   if (loading) return (
     <div

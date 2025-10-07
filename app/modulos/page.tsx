@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { calcPercent, sumarFaltas } from "@/lib/utils/calculations";
 import { Badge } from "@/components/ui/badge";
+import { percentColorClasses } from "@/lib/utils/ui";
 
 export default function ModulosPage() {
   const { snapshot } = useSnapshot();
@@ -90,8 +91,7 @@ export default function ModulosPage() {
               <tbody>
                 {rows.map((m) => {
                   const ratio = Math.min(100, Math.max(0, (m.percent / 20) * 100));
-                  const colorClass = m.percent < 7 ? 'from-emerald-500 to-teal-600' : m.percent < 14 ? 'from-amber-500 to-orange-600' : 'from-red-500 to-pink-600';
-                  const textColor = m.percent < 7 ? 'text-emerald-600' : m.percent < 14 ? 'text-amber-600' : 'text-red-600';
+                  const { gradient: colorClass, text: textColor } = percentColorClasses(m.percent);
                   const isOpen = !!expandedModules[m.code];
                   const absenceCounts = (snapshot as any)?.aggregated?.modules?.[m.code]?.absenceCounts || {};
                   const breakdown = Object.entries(absenceCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
@@ -176,8 +176,7 @@ export default function ModulosPage() {
               <tbody>
                 {retoRows.map((r) => {
                   const ratio = Math.min(100, Math.max(0, (r.percent / 20) * 100));
-                  const colorClass = r.percent < 7 ? 'from-emerald-500 to-teal-600' : r.percent < 14 ? 'from-amber-500 to-orange-600' : 'from-red-500 to-pink-600';
-                  const textColor = r.percent < 7 ? 'text-emerald-600' : r.percent < 14 ? 'text-amber-600' : 'text-red-600';
+                  const { gradient: colorClass, text: textColor } = percentColorClasses(r.percent);
                   const isOpen = !!expandedRetos[r.id];
                   const absenceCounts = (snapshot as any)?.aggregated?.modules?.[r.id]?.absenceCounts || {};
                   const breakdown = Object.entries(absenceCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
@@ -241,5 +240,3 @@ export default function ModulosPage() {
     </div>
   );
 }
-
-

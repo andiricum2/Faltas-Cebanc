@@ -112,5 +112,3 @@ export function useSnapshot() {
   if (!ctx) throw new Error("useSnapshot must be used within SnapshotProvider");
   return ctx;
 }
-
-

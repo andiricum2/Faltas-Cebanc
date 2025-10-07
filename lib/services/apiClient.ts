@@ -42,42 +42,7 @@ export type StatisticsResponse = {
   topLine: string;
 };
 
-export type CalculateResponse = {
-  general: {
-    totalSessions: number;
-    totalAbsences: number;
-    currentPercent: number;
-    projectedPercent: number;
-  };
-  module: {
-    totalSessions: number;
-    totalAbsences: number;
-    currentPercent: number;
-    projectedPercent: number;
-  };
-  retoAnalysis?: {
-    reto: {
-      current: number;
-      projected: number;
-      classes: number;
-    };
-    modules: Array<{
-      code: string;
-      label: string;
-      current: number;
-      projected: number;
-      classes: number;
-    }>;
-  };
-  moduleMeta: Array<{
-    code: string;
-    label: string;
-    classes: number;
-    absDirectas: number;
-    isReto: boolean;
-    group: string | null;
-  }>;
-};
+// Note: GET calculations removed. Only POST plan remains.
 
 export type SelectedWeekResponse = {
   week: (WeekSessions & { sessions: WeekSessions["sessions"] }) | null;
@@ -192,18 +157,7 @@ export async function getSelectedWeek(
   return request<SelectedWeekResponse>(`/api/faltas/selectedWeek?${params}`);
 }
 
-export async function getCalculations(
-  dni: string, 
-  selectedModule: string = "__general__", 
-  addedAbsences: number = 0
-): Promise<CalculateResponse> {
-  const params = new URLSearchParams({
-    dni,
-    module: selectedModule,
-    addedAbsences: addedAbsences.toString()
-  });
-  return request<CalculateResponse>(`/api/faltas/calculate?${params}`);
-}
+// Removed getCalculations (GET)
 
 export async function postCalculationPlan(
   dni: string,
@@ -235,4 +189,8 @@ export async function getNotices(): Promise<{ notices: Notice[] }> {
 // --- Hooks helpers (no React deps) ---
 export async function fetchStatistics(dni: string, moduleFilter: string = "all", absenceFilter: string = "all") {
   return getStatistics(dni, moduleFilter, absenceFilter);
+}
+
+export async function postPlan(dni: string, entries: CalculationPlanEntry[]) {
+  return postCalculationPlan(dni, entries);
 }

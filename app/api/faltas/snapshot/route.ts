@@ -4,7 +4,8 @@ import { getCookieDni } from "@/lib/server/storage";
 
 export async function GET(req: NextRequest) {
   const dni = await getCookieDni();
-  if (!dni) return new Response(JSON.stringify({ ok: false, errorMessage: "DNI not set" }), { status: 400 });
+  // First-time load: if DNI is not yet set, respond with no content so the client can proceed
+  if (!dni) return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
   
   try {
     const finalSnapshot = await loadProcessedSnapshot(dni);

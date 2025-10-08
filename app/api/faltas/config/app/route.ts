@@ -8,7 +8,8 @@ type AppConfig = {
 
 export async function GET(req: NextRequest) {
   const dni = await getCookieDni();
-  if (!dni) return new Response(JSON.stringify({ ok: false, errorMessage: "DNI not set" }), { status: 400 });
+  // On first login, DNI cookie may not be set yet; return empty config instead of error
+  if (!dni) return new Response(JSON.stringify({ ok: true, config: {} }), { status: 200, headers: { "Content-Type": "application/json" } });
 
   const baseDir = getUserDataDir(dni);
   const filePath = `${baseDir}/appConfig.json`;

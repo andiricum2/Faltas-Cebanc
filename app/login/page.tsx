@@ -9,8 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLogin } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
 import { logUserAction } from "@/lib/logging/appLogger";
-
-type Role = "A" | "P" | "D" | "E";
+import type { Role } from "@/lib/types/faltas";
+import { roles } from "@/lib/utils/constants";
 
 export default function LoginPage() {
   const [role, setRole] = useState<Role>("E");
@@ -38,13 +38,6 @@ export default function LoginPage() {
   useEffect(() => {
     autoLogin();
   }, [autoLogin]);
-
-  const roles: Array<{ key: Role; label: string }> = [
-    { key: "E", label: "Estudiante" },
-    { key: "P", label: "Profesorado" },
-    { key: "D", label: "Dirección" },
-    { key: "A", label: "Administrador" },
-  ];
 
   return (
     <LoadingState loading={loading} error={error}>

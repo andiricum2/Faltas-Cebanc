@@ -1,12 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState, useCallback, memo } from "react";
+import { useMemo, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCard } from "@/components/ui/metric-card";
 import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, Area, PieChart, Pie, Cell } from "recharts";
-import { TrendingUp, Activity, BarChart3, PieChart as PieChartIcon, AlertCircle } from "lucide-react";
+import { TrendingUp, Activity, BarChart3, PieChart as PieChartIcon } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
-import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
 import { useStatistics, useStatisticsMetrics } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
 

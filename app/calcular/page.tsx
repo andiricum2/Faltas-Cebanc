@@ -30,7 +30,6 @@ export default function CalcularPage() {
   const { planLoading, planResult, submitPlan, setPlanResult } = useCalculationPlan(snapshot?.identity?.dni);
 
 
-
   const [entries, setEntries] = useState<PlannerEntry[]>([]);
 
   const addEntry = useCallback(() => {

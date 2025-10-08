@@ -1,13 +1,12 @@
 "use client";
 
-import { useMemo, useState, Fragment } from "react";
+import { useState, Fragment } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { Badge } from "@/components/ui/badge";
 import { percentColorClasses } from "@/lib/utils/ui";
 import { LoadingState } from "@/components/ui/loading-state";
 import { useModuleCalculations, useRetoCalculations } from "@/lib/hooks";
-import type { SnapshotData } from "@/lib/types/snapshot";
 
 export default function ModulosPage() {
   const { snapshot, loading, error } = useSnapshot();

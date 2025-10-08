@@ -1,7 +1,6 @@
 import { loadRememberedCredentials, saveRememberedCredentials } from "@/lib/services/credentials";
 import { useState, useCallback } from "react";
-
-type Role = "A" | "P" | "D" | "E";
+import type { Role } from "@/lib/types/faltas";
 
 interface LoginCredentials {
   role: Role;

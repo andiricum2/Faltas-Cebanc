@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Select } from "@/components/ui/select";
 import { useSnapshot } from "@/lib/services/snapshotContext";
-import { getSelectedWeek, type SelectedWeekResponse } from "@/lib/services/apiClient";
+import { getSelectedWeek } from "@/lib/services/apiClient";
 import { getTodayLocalISO } from "@/lib/utils/dates";
 import { getDefaultWeekIndex } from "@/lib/utils/weeks";
 import { absenceColorClass, moduleColorClass } from "@/lib/utils/ui";

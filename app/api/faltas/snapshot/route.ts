@@ -13,6 +13,10 @@ export async function GET(req: NextRequest) {
       headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } 
     });
   } catch (e: any) {
-    return new Response(JSON.stringify({ ok: false, errorMessage: "Snapshot not found" }), { status: 404 });
+    const code = e?.code || e?.cause?.code;
+    if (code === "ENOENT") {
+      return new Response(null, { status: 204, headers: { "Cache-Control": "no-store" } });
+    }
+    return new Response(JSON.stringify({ ok: false, errorMessage: "Snapshot not found" }), { status: 404, headers: { "Content-Type": "application/json", "Cache-Control": "no-store" } });
   }
 }

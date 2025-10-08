@@ -28,14 +28,20 @@ export async function loadProcessedSnapshot(dni: string): Promise<StudentSnapsho
     const retoTargetsData = await fs.readFile(path.join(baseDir, "retoTargets.json"), "utf-8");
     retoTargets = JSON.parse(retoTargetsData);
   } catch (error) {
-    console.warn(`No se pudo cargar retoTargets.json para ${dni}:`, error);
+    // Missing is fine on first run; only warn for non-ENOENT errors
+    if ((error as any)?.code !== "ENOENT") {
+      console.warn(`No se pudo cargar retoTargets.json para ${dni}:`, error);
+    }
   }
   
   try {
     const hoursPerModuleData = await fs.readFile(path.join(baseDir, "hoursPerModule.json"), "utf-8");
     hoursPerModule = JSON.parse(hoursPerModuleData);
   } catch (error) {
-    console.warn(`No se pudo cargar hoursPerModule.json para ${dni}:`, error);
+    // Missing is fine on first run; only warn for non-ENOENT errors
+    if ((error as any)?.code !== "ENOENT") {
+      console.warn(`No se pudo cargar hoursPerModule.json para ${dni}:`, error);
+    }
   }
 
   // Cargar appConfig para ver si hay grupo seleccionado

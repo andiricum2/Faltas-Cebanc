@@ -5,7 +5,7 @@ import { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { RefreshCcw, LogOut, LayoutDashboard, LineChart, CalendarDays, Calculator, Layers } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { saveRememberedCredentials } from "@/lib/services/credentials";
@@ -19,10 +19,7 @@ import { SnapshotRequired } from "@/components/ui/loading-state";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const router = useRouter();
   const { syncNow, loading, error, snapshot } = useSnapshot();
-  const [showConfigModal, setShowConfigModal] = useState(false);
-  const [configReasons, setConfigReasons] = useState<string[]>([]);
   const [loggingOut, setLoggingOut] = useState<boolean>(false);
   const [updateInfo, setUpdateInfo] = useState<{ version: string; url: string } | null>(null);
   const isLogin = pathname === "/login";
@@ -66,24 +63,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Check configuration status on mount (except login page)
-  useEffect(() => {
-    if (isLogin) return;
-    let cancelled = false;
-    (async () => {
-      try {
-        const res = await fetch("/api/faltas/config/status", { cache: "no-store" });
-        if (!res.ok) return;
-        const data = await res.json();
-        if (cancelled) return;
-        if (data?.needsConfig) {
-          setConfigReasons(data.reasons || []);
-          setShowConfigModal(true);
-        }
-      } catch {}
-    })();
-    return () => { cancelled = true; };
-  }, [isLogin]);
   if (isLogin) {
     return (
       <main className="min-h-screen">
@@ -179,24 +158,6 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             children
           )}
         </div>
-        {showConfigModal && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center">
-            <div className="absolute inset-0 bg-black/40" onClick={() => setShowConfigModal(false)} />
-            <div className="relative bg-background border rounded-md shadow-lg w-[92%] max-w-md p-4 space-y-3">
-              <h3 className="text-base font-semibold">Configuración requerida</h3>
-              <p className="text-sm text-muted-foreground">Para que los cálculos sean correctos, completa:</p>
-              <ul className="list-disc pl-5 text-sm">
-                {configReasons.map((r)=> (
-                  <li key={r}>{r}</li>
-                ))}
-              </ul>
-              <div className="flex justify-end gap-2">
-                <Button variant="outline" onClick={() => setShowConfigModal(false)}>Cerrar</Button>
-                <Button onClick={() => { setShowConfigModal(false); router.push("/configuracion"); }}>Ir a Configuración</Button>
-              </div>
-            </div>
-          </div>
-        )}
       </main>
     </div>
   );

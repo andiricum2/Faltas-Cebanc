@@ -1,10 +1,9 @@
-import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { loadProcessedSnapshot } from "@/lib/server/snapshot";
+import { getCookieDni } from "@/lib/server/storage";
 
 export async function GET(req: NextRequest) {
-  const cookieStore = await cookies();
-  const dni = cookieStore.get("DNI")?.value;
+  const dni = await getCookieDni();
   if (!dni) return new Response(JSON.stringify({ ok: false, errorMessage: "DNI not set" }), { status: 400 });
   
   try {

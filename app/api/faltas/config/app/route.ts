@@ -1,7 +1,5 @@
-import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
-import fs from "node:fs/promises";
-import path from "node:path";
+import { getCookieDni, getUserDataDir, readJsonFileOptional, ensureDir, writeJsonFile } from "@/lib/server/storage";
 
 type AppConfig = {
   autoSyncMinutes?: number;
@@ -9,25 +7,17 @@ type AppConfig = {
 };
 
 export async function GET(req: NextRequest) {
-  const cookieStore = await cookies();
-  const dni = cookieStore.get("DNI")?.value;
+  const dni = await getCookieDni();
   if (!dni) return new Response(JSON.stringify({ ok: false, errorMessage: "DNI not set" }), { status: 400 });
 
-  try {
-    const baseBase = process.env.APP_DATA_DIR || process.cwd();
-    const baseDir = path.join(baseBase, ".data", dni);
-    const filePath = path.join(baseDir, "appConfig.json");
-    const raw = await fs.readFile(filePath, "utf-8");
-    const config: AppConfig = JSON.parse(raw);
-    return new Response(JSON.stringify({ ok: true, config }), { status: 200, headers: { "Content-Type": "application/json" } });
-  } catch {
-    return new Response(JSON.stringify({ ok: true, config: {} }), { status: 200, headers: { "Content-Type": "application/json" } });
-  }
+  const baseDir = getUserDataDir(dni);
+  const filePath = `${baseDir}/appConfig.json`;
+  const config = (await readJsonFileOptional<AppConfig>(filePath)) || {};
+  return new Response(JSON.stringify({ ok: true, config }), { status: 200, headers: { "Content-Type": "application/json" } });
 }
 
 export async function POST(req: NextRequest) {
-  const cookieStore = await cookies();
-  const dni = cookieStore.get("DNI")?.value;
+  const dni = await getCookieDni();
   if (!dni) return new Response(JSON.stringify({ ok: false, errorMessage: "DNI not set" }), { status: 400 });
 
   try {
@@ -36,18 +26,14 @@ export async function POST(req: NextRequest) {
 
     const next: AppConfig = {};
     if (typeof config.autoSyncMinutes === "number") next.autoSyncMinutes = config.autoSyncMinutes;
-    // allow string or null for selectedGroup
     if (typeof config.selectedGroup === "string" || config.selectedGroup === null) next.selectedGroup = config.selectedGroup;
 
-    const baseBase = process.env.APP_DATA_DIR || process.cwd();
-    const baseDir = path.join(baseBase, ".data", dni);
-    await fs.mkdir(baseDir, { recursive: true });
-    const filePath = path.join(baseDir, "appConfig.json");
-    await fs.writeFile(filePath, JSON.stringify(next, null, 2), "utf-8");
+    const baseDir = getUserDataDir(dni);
+    await ensureDir(baseDir);
+    const filePath = `${baseDir}/appConfig.json`;
+    await writeJsonFile(filePath, next);
     return new Response(JSON.stringify({ ok: true }), { status: 200, headers: { "Content-Type": "application/json" } });
   } catch (e: any) {
     return new Response(JSON.stringify({ ok: false, errorMessage: e?.message || "Failed to save" }), { status: 500 });
   }
 }
-
-

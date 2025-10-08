@@ -1,36 +1,21 @@
-import { cookies } from "next/headers";
 import type { NextRequest } from "next/server";
-import fs from "node:fs/promises";
-import path from "node:path";
+import { getCookieDni, getUserDataDir, readJsonFileOptional } from "@/lib/server/storage";
 
 export async function GET(req: NextRequest) {
-  const cookieStore = await cookies();
-  const dni = cookieStore.get("DNI")?.value;
+  const dni = await getCookieDni();
   if (!dni) return new Response(JSON.stringify({ error: "DNI not set" }), { status: 400 });
 
   try {
-    const baseBase = process.env.APP_DATA_DIR || process.cwd();
-    const baseDir = path.join(baseBase, ".data", dni);
-
-    // Load legend to detect retos present
-    const legendRaw = await fs.readFile(path.join(baseDir, "legend.json"), "utf-8");
-    const legend = JSON.parse(legendRaw) as { modules: Record<string, string> };
+    const baseDir = getUserDataDir(dni);
+    const legend = (await readJsonFileOptional<{ modules: Record<string, string> }>(`${baseDir}/legend.json`)) || { modules: {} };
     const isReto = (code: string, label: string | undefined) => /(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i.test(`${code} ${label || ""}`);
     const retos = Object.keys(legend.modules || {}).filter((k) => isReto(k, legend.modules[k]));
 
     // Load hoursPerModule
-    let hoursPerModule: Record<string, number> = {};
-    try {
-      const hRaw = await fs.readFile(path.join(baseDir, "hoursPerModule.json"), "utf-8");
-      hoursPerModule = JSON.parse(hRaw);
-    } catch {}
+    const hoursPerModule = (await readJsonFileOptional<Record<string, number>>(`${baseDir}/hoursPerModule.json`)) || {};
 
     // Load retoTargets
-    let retoTargets: Record<string, Record<string, boolean>> = {};
-    try {
-      const rRaw = await fs.readFile(path.join(baseDir, "retoTargets.json"), "utf-8");
-      retoTargets = JSON.parse(rRaw);
-    } catch {}
+    const retoTargets = (await readJsonFileOptional<Record<string, Record<string, boolean>>>(`${baseDir}/retoTargets.json`)) || {};
 
     const reasons: string[] = [];
     // Horario no configurado si vacío o todos 0

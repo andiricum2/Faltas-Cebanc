@@ -13,8 +13,8 @@ use std::{
 };
 #[cfg(not(debug_assertions))]
 use url::Url;
-use tauri::{AppHandle, Manager, WebviewUrl};
-use tauri_plugin_shell::ShellExt;
+use tauri::{AppHandle, Manager};
+use tauri_plugin_opener::OpenerExt;
 
 #[cfg(not(debug_assertions))]
 fn wait_for_server(host: &str, port: u16, total_timeout_ms: u64) -> bool {
@@ -139,7 +139,9 @@ fn ready(_app: AppHandle) {}
 #[tauri::command]
 async fn open_external_url(app: AppHandle, url: String) -> Result<(), String> {
     if let Some(window) = app.get_webview_window("main") {
-        window.shell().open(url, None)
+        window
+            .opener()
+            .open_url(url, None::<String>)
             .map_err(|e| format!("Failed to open external URL: {}", e))
     } else {
         Err("Main window not found".to_string())
@@ -148,7 +150,7 @@ async fn open_external_url(app: AppHandle, url: String) -> Result<(), String> {
 
 fn main() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_opener::init())
         .setup(|_app| {
             // En producción, lanzar servidor y navegar cuando esté listo
             #[cfg(not(debug_assertions))]

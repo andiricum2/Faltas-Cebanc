@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (error: any) {
-    logger.error({ msg: "Unhandled error in login", error: String(error?.message || error) });
+    logger.error(`Unhandled error in login`, 'HTTP', { error: String(error?.message || error) });
     return new Response(JSON.stringify({ ok: false, errorMessage: "Internal error" }), { status: 500 });
   }
 }

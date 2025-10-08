@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
           } catch (err: any) {
             attempt += 1;
             if (attempt >= 3) {
-              logger.error({ msg: "Week fetch failed", mondayISO, error: String(err?.message || err) });
+              logger.error(`Week fetch failed`, 'HTTP', { mondayISO, error: String(err?.message || err) });
               throw err;
             }
             const delayMs = 300 * Math.pow(2, attempt - 1) + Math.floor(Math.random() * 100);
@@ -90,7 +90,7 @@ export async function POST(req: NextRequest) {
 
     return new Response(JSON.stringify({ ok: true, dni: snapshot.identity.dni, weeks: weeks.length }), { status: 200 });
   } catch (error: any) {
-    logger.error({ msg: "Unhandled error in sync", error: String(error?.message || error) });
+    logger.error(`Unhandled error in sync`, 'HTTP', { error: String(error?.message || error) });
     return new Response(JSON.stringify({ ok: false, errorMessage: "Internal error" }), { status: 500 });
   }
 }

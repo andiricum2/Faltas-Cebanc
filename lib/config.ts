@@ -1,3 +1,5 @@
+import pkg from "../package.json";
+
 export type HttpConfig = {
   baseUrl: string;
   userAgent: string;
@@ -9,7 +11,7 @@ const DEFAULT_BASE = process.env.NEXT_PUBLIC_FALTAS_BASE_URL || "https://faltas.
 
 export const httpConfig: HttpConfig = {
   baseUrl: DEFAULT_BASE.replace(/\/$/, ""),
-  userAgent: `faltas-client/0.1 (+nextjs)`,
+  userAgent: `FaltasCebanc/` + pkg.version,
   timeoutMs: Number(process.env.FALTAS_TIMEOUT_MS || 15000),
   origin: "https://faltas.cebanc.com",
 };

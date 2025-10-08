@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useMemo, useState, useCallback, useEffect } from "react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -10,20 +10,23 @@ import type { CalculationPlanEntry as ApiCalculationPlanEntry } from "@/lib/serv
 import { useCalculationPlan } from "@/lib/services/calculationsHooks";
 import { isRetoModule } from "@/lib/utils/calculations";
 import { LoadingState } from "@/components/ui/loading-state";
+import type { SnapshotData, CalculationsData, ModuleMeta } from "@/lib/types/snapshot";
 
 export default function CalcularPage() {
 	const { snapshot, loading, error } = useSnapshot();
+  
   // GET de cálculos eliminado; solo planificación vía POST
-  const calculations = React.useMemo(() => {
-    const modules = (snapshot as any)?.aggregated?.modules || {};
-    const legend = (snapshot as any)?.legend?.modules || {};
-    const moduleMeta = Object.keys(modules).map((code) => {
+  const calculations = useMemo((): CalculationsData => {
+    const snapshotData = snapshot as SnapshotData;
+    const modules = snapshotData?.aggregated?.modules || {};
+    const legend = snapshotData?.legend?.modules || {};
+    const moduleMeta: ModuleMeta[] = Object.keys(modules).map((code) => {
       const label = legend[code] || code;
       const isReto = isRetoModule(code, label);
       return { code, label, isReto };
     });
-    return { moduleMeta } as any;
-  }, [snapshot]);
+    return { moduleMeta };
+  }, [snapshot?.aggregated?.modules, snapshot?.legend?.modules]);
   const { planLoading, planResult, submitPlan, setPlanResult } = useCalculationPlan(snapshot?.identity?.dni);
 
 
@@ -34,9 +37,9 @@ export default function CalcularPage() {
     amount: number;
   };
 
-  const [entries, setEntries] = React.useState<PlannerEntry[]>([]);
+  const [entries, setEntries] = useState<PlannerEntry[]>([]);
 
-  const addEntry = React.useCallback(() => {
+  const addEntry = useCallback(() => {
     setEntries((prev) => [
       ...prev,
       {
@@ -48,28 +51,28 @@ export default function CalcularPage() {
     ]);
   }, [calculations]);
 
-  const removeEntry = React.useCallback((id: string) => {
+  const removeEntry = useCallback((id: string) => {
     setEntries((prev) => prev.filter(e => e.id !== id));
   }, []);
 
-  const updateEntry = React.useCallback((id: string, next: Partial<PlannerEntry>) => {
+  const updateEntry = useCallback((id: string, next: Partial<PlannerEntry>) => {
     setEntries((prev) => prev.map(e => e.id === id ? { ...e, ...next } : e));
   }, []);
 
-  const moduleOptions = React.useMemo(() => calculations?.moduleMeta?.filter((m: any) => !m.isReto) || [], [calculations]);
-  const retoOptions = React.useMemo(() => calculations?.moduleMeta?.filter((m: any) => m.isReto) || [], [calculations]);
+  const moduleOptions = useMemo(() => calculations?.moduleMeta?.filter((m: ModuleMeta) => !m.isReto) || [], [calculations]);
+  const retoOptions = useMemo(() => calculations?.moduleMeta?.filter((m: ModuleMeta) => m.isReto) || [], [calculations]);
 
-  const sortedModuleOptions = React.useMemo(() => {
+  const sortedModuleOptions = useMemo(() => {
     return [...moduleOptions].sort((a, b) => (a.label || "").localeCompare(b.label || ""));
   }, [moduleOptions]);
-  const sortedRetoOptions = React.useMemo(() => {
+  const sortedRetoOptions = useMemo(() => {
     return [...retoOptions].sort((a, b) => (a.label || "").localeCompare(b.label || ""));
   }, [retoOptions]);
 
-  const entriesApiPayload: ApiCalculationPlanEntry[] = React.useMemo(() => {
+  const entriesApiPayload: ApiCalculationPlanEntry[] = useMemo(() => {
     return entries.map(e => {
       const code = e.code || moduleOptions[0]?.code || retoOptions[0]?.code;
-      const isReto = !!retoOptions.find((r: any) => r.code === code);
+      const isReto = !!retoOptions.find((r: ModuleMeta) => r.code === code);
       return {
         kind: e.kind,
         scope: isReto ? "reto" : "module",
@@ -79,7 +82,7 @@ export default function CalcularPage() {
     });
   }, [entries, moduleOptions, retoOptions]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
     const timeout = setTimeout(async () => {
       if (!snapshot?.identity?.dni) return;

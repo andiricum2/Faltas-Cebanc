@@ -7,6 +7,7 @@ import { calcPercent, sumarFaltas } from "@/lib/utils/calculations";
 import { Badge } from "@/components/ui/badge";
 import { percentColorClasses } from "@/lib/utils/ui";
 import { LoadingState } from "@/components/ui/loading-state";
+import type { SnapshotData, ModuleCalculation, RetoCalculation } from "@/lib/types/snapshot";
 
 export default function ModulosPage() {
   const { snapshot, loading, error } = useSnapshot();
@@ -14,10 +15,11 @@ export default function ModulosPage() {
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
   const [expandedRetos, setExpandedRetos] = useState<Record<string, boolean>>({});
 
-  const rows = useMemo(() => {
-    const moduleCalcs = (snapshot as any)?.moduleCalculations as Record<string, any> | undefined;
-    if (!snapshot || !moduleCalcs) return [] as Array<any>;
-    const names = snapshot.legend?.modules || {};
+  const rows = useMemo((): ModuleCalculation[] => {
+    const snapshotData = snapshot as SnapshotData;
+    const moduleCalcs = snapshotData?.moduleCalculations;
+    if (!snapshot || !moduleCalcs) return [];
+    const names = snapshotData.legend?.modules || {};
     return Object.entries(moduleCalcs)
       .map(([code, cal]) => {
         const fd = Number(cal?.faltasDirectas || 0);
@@ -39,25 +41,25 @@ export default function ModulosPage() {
         };
       })
       .sort((a, b) => b.percent - a.percent);
-  }, [snapshot]);
+  }, [snapshot?.moduleCalculations, snapshot?.legend?.modules]);
 
-  const retoRows = useMemo(() => {
-    if (!snapshot || !(snapshot as any).retos) return [] as Array<any>;
-    const retos = (snapshot as any).retos as Array<{ id: string; label: string; }>;
-    return retos
+  const retoRows = useMemo((): RetoCalculation[] => {
+    const snapshotData = snapshot as SnapshotData;
+    if (!snapshotData?.retos) return [];
+    return snapshotData.retos
       .map((r) => {
-        const classes = (snapshot as any)?.aggregated?.modules?.[r.id]?.classesGiven || 0;
-        const totalFaltas = sumarFaltas((snapshot as any)?.aggregated?.modules?.[r.id]?.absenceCounts);
+        const classes = snapshotData?.aggregated?.modules?.[r.id]?.classesGiven || 0;
+        const totalFaltas = sumarFaltas(snapshotData?.aggregated?.modules?.[r.id]?.absenceCounts);
         return {
           id: r.id,
-          name: r.label || r.id,
+          label: r.label || r.id,
           totalFaltas,
           totalSesiones: classes,
           percent: calcPercent(totalFaltas, classes),
         };
       })
       .sort((a, b) => b.percent - a.percent);
-  }, [snapshot]);
+  }, [snapshot?.retos, snapshot?.aggregated?.modules]);
 
   if (!snapshot || rows.length === 0) {
     return (
@@ -192,7 +194,7 @@ export default function ModulosPage() {
                         <td className="py-2 pr-2 text-center align-middle">
                           <span className="text-sm">{isOpen ? '▾' : '▸'}</span>
                         </td>
-                        <td className="py-2 pr-3 font-medium">{r.name}</td>
+                        <td className="py-2 pr-3 font-medium">{r.label}</td>
                         <td className="py-2 pr-3 text-center">{r.totalFaltas}</td>
                         <td className="py-2 pr-3 text-center">{r.totalSesiones}</td>
                         <td className="py-2">

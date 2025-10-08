@@ -1,8 +1,7 @@
 "use client";
 
-import React from "react";
-import { useConfig } from "@/lib/services/configContext";
 import { useSnapshot } from "@/lib/services/snapshotContext";
+import { useConfig } from "@/lib/services/configContext";
 import { getGroups } from "@/lib/services/apiClient";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";

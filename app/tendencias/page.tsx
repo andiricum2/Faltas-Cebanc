@@ -7,16 +7,8 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, A
 import { TrendingUp, Activity, BarChart3, PieChart as PieChartIcon, AlertCircle } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
-import { useDataLoader } from "@/lib/hooks";
+import { useStatistics } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
-
-// Hook reutilizable para estadísticas usando useDataLoader
-function useStatistics(dni: string | undefined) {
-  return useDataLoader(
-    () => getStatistics(dni!),
-    [dni]
-  );
-}
 
 const CHART_COLORS = [
   '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',

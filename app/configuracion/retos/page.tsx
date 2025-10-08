@@ -1,21 +1,21 @@
 "use client";
 
-import React from "react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { Input } from "@/components/ui/input";
 import { loadRetoTargets, saveRetoTargets } from "@/lib/services/configService";
 import { useConfigPage } from "@/lib/hooks";
 import { isRetoModule } from "@/lib/utils/calculations";
+import { useMemo } from "react";
 
 export default function ConfigRetosPage() {
   const { snapshot } = useSnapshot();
 
-  const moduleKeys = React.useMemo(() => Object.keys(snapshot?.aggregated?.modules || {}), [snapshot]);
-  const nonRetoModules = React.useMemo(() => 
+  const moduleKeys = useMemo(() => Object.keys(snapshot?.aggregated?.modules || {}), [snapshot]);
+  const nonRetoModules = useMemo(() => 
     moduleKeys.filter((m) => !isRetoModule(m, snapshot?.legend?.modules?.[m])), 
     [moduleKeys, snapshot?.legend?.modules]
   );
-  const retos = React.useMemo(() => snapshot?.retos || [], [snapshot]);
+  const retos = useMemo(() => snapshot?.retos || [], [snapshot]);
 
   const { data: retoTargets, save, updateField } = useConfigPage(
     loadRetoTargets,

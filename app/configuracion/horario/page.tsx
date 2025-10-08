@@ -1,6 +1,5 @@
 "use client";
 
-import React from "react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { Input } from "@/components/ui/input";
 import { loadHoursPerModule, saveHoursPerModule } from "@/lib/services/configService";

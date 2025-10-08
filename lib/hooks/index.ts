@@ -3,3 +3,4 @@ export { useDataLoader, useConfigDataLoader } from "./useDataLoader";
 export { useConfigWithSync } from "./useConfigWithSync";
 export { useConfigPage } from "./useConfigPage";
 export { useLogin } from "./useLogin";
+export { useStatistics } from "./useStatistics";

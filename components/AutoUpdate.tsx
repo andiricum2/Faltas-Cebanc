@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 import pkg from "@/package.json";
 import { openExternalUrl } from "@/lib/utils/externalLinks";
@@ -47,7 +47,7 @@ async function fetchLatestRelease(): Promise<ReleaseInfo | null> {
 }
 
 export default function AutoUpdate() {
-  React.useEffect(() => {
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       const latest = await fetchLatestRelease();
@@ -78,5 +78,3 @@ export default function AutoUpdate() {
   }, []);
   return null;
 }
-
-

@@ -4,6 +4,7 @@ use anyhow::Context;
 use std::{
     path::PathBuf,
     process::{Command, Stdio},
+    sync::Mutex,
 };
 #[cfg(not(debug_assertions))]
 use std::{
@@ -16,6 +17,12 @@ use url::Url;
 use tauri::{AppHandle, Manager};
 use tauri_plugin_opener::OpenerExt;
 
+// Estructura para mantener el estado gestionado, incluyendo el proceso sidecar.
+struct AppState {
+    sidecar_process: Mutex<Option<std::process::Child>>,
+}
+
+/// Espera a que un servidor TCP en el host y puerto especificados esté disponible.
 #[cfg(not(debug_assertions))]
 fn wait_for_server(host: &str, port: u16, total_timeout_ms: u64) -> bool {
     let deadline = std::time::Instant::now() + std::time::Duration::from_millis(total_timeout_ms);
@@ -29,18 +36,19 @@ fn wait_for_server(host: &str, port: u16, total_timeout_ms: u64) -> bool {
     false
 }
 
+/// Inicia el servidor Next.js como un proceso sidecar.
 #[cfg(not(debug_assertions))]
 fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::process::Child, u16)>> {
+    // Busca el ejecutable de Next.js en los recursos de la aplicación.
     let resource_dir = app.path().resource_dir()?;
-    // Use resources/next/standalone (mirrored from project .next/standalone at build time)
     let standalone_dir = resource_dir.join("next").join("standalone");
     let server_js = standalone_dir.join("server.js");
     if !server_js.exists() {
-        // Nothing to spawn; likely running in dev which uses devUrl
+        // Si no existe, probablemente estamos en desarrollo.
         return Ok(None);
     }
 
-    // Resolve bundled node from resources/bin
+    // Resuelve la ruta al ejecutable de Node.js empaquetado.
     let node_path: PathBuf = {
         #[cfg(target_os = "windows")]
         {
@@ -71,7 +79,7 @@ fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::process::C
         .env("HOSTNAME", host)
         .arg("server.js");
 
-    // In dev: inherit stdio so logs appear in terminal. In prod: pipe to log file.
+    // En desarrollo, los logs van a la consola. En producción, a un archivo.
     #[cfg(debug_assertions)]
     {
         cmd.stdout(Stdio::inherit()).stderr(Stdio::inherit());
@@ -81,6 +89,7 @@ fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::process::C
         cmd.stdout(Stdio::piped()).stderr(Stdio::piped());
     }
 
+    // En Windows, evita que se abra una ventana de consola para el proceso de Node.
     #[cfg(target_os = "windows")]
     {
         use std::os::windows::process::CommandExt;
@@ -89,13 +98,12 @@ fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::process::C
 
     let mut child = cmd.spawn().context("failed to spawn next sidecar")?;
 
-    // In production builds, persist Next.js stdout/stderr to a log file
+    // Redirige stdout y stderr del proceso sidecar a un archivo de log en producción.
     #[cfg(not(debug_assertions))]
     {
         if let Ok(log_dir) = app.path().app_data_dir() {
             let _ = std::fs::create_dir_all(&log_dir);
             let log_path = log_dir.join("next-standalone.log");
-            // stdout
             if let Some(mut out) = child.stdout.take() {
                 let log_path_clone = log_path.clone();
                 thread::spawn(move || {
@@ -109,7 +117,6 @@ fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::process::C
                     }
                 });
             }
-            // stderr
             if let Some(mut err) = child.stderr.take() {
                 thread::spawn(move || {
                     let mut buf = [0u8; 8192];
@@ -124,11 +131,8 @@ fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::process::C
         }
     }
 
-    // Wait until server responds before loading
-    let ready = wait_for_server(host, port, 20000);
-    if !ready {
-        // Continue anyway; the window load will retry internally via web stack
-    }
+    // Espera a que el servidor esté listo antes de continuar.
+    wait_for_server(host, port, 20000);
 
     Ok(Some((child, port)))
 }
@@ -149,26 +153,45 @@ async fn open_external_url(app: AppHandle, url: String) -> Result<(), String> {
 }
 
 fn main() {
-    tauri::Builder::default()
+    // Construye la app primero para poder manejar eventos de salida correctamente.
+    let app = tauri::Builder::default()
+        // Registra el estado gestionado para que sea accesible en toda la app.
+        .manage(AppState { sidecar_process: Mutex::new(None) })
         .plugin(tauri_plugin_opener::init())
         .setup(|_app| {
-            // En producción, lanzar servidor y navegar cuando esté listo
+            // La configuración se ejecuta al iniciar la aplicación.
             #[cfg(not(debug_assertions))]
             {
-                let launched = spawn_next_sidecar(&_app.handle()).ok().flatten();
-                let port = launched.as_ref().map(|(_, p)| *p).unwrap_or(3000);
-                let url = Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
-                if let Some(win) = _app.get_webview_window("main") {
-                    let _ = win.navigate(url);
-                } else if let Some(win) = _app.webview_windows().values().next() {
-                    let _ = win.navigate(url);
+                // Solo en producción, inicia el sidecar.
+                if let Ok(Some((child, port))) = spawn_next_sidecar(&_app.handle()) {
+                    // Guarda el handle del proceso en el estado gestionado.
+                    let state = _app.state::<AppState>();
+                    *state.sidecar_process.lock().unwrap() = Some(child);
+
+                    // Navega la ventana principal a la URL del servidor Next.js.
+                    let url = Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
+                    if let Some(win) = _app.get_webview_window("main") {
+                        let _ = win.navigate(url);
+                    }
                 }
             }
             Ok(())
         })
         .invoke_handler(tauri::generate_handler![ready, open_external_url])
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application");
+
+    // Maneja el cierre de la aplicación y limpia el proceso sidecar.
+    use tauri::RunEvent;
+    app.run(|app_handle, event| match event {
+        RunEvent::ExitRequested { .. } | RunEvent::Exit => {
+            let state = app_handle.state::<AppState>();
+            if let Some(mut child) = state.sidecar_process.lock().unwrap().take() {
+                if let Err(e) = child.kill() {
+                    eprintln!("Failed to kill sidecar process: {}", e);
+                }
+            }
+        }
+        _ => {}
+    });
 }
-
-

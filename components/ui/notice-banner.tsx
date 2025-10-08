@@ -3,7 +3,7 @@
 import { Notice, fetchNotices } from "@/lib/services/notices";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Info, CheckCircle, XCircle, ExternalLink, X } from "lucide-react";
-import { openExternalUrl } from "@/lib/utils/externalLinks";
+import { openExternalUrl } from "@/lib/utils";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 

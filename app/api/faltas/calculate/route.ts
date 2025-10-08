@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { StudentSnapshot } from "@/lib/types/faltas";
 import { loadProcessedSnapshot } from "@/lib/server/snapshot";
-import { sumarFaltas, calcPercent } from "@/lib/utils/calculations";
+import { sumarFaltas, calcPercent } from "@/lib/utils";
 import { computePlanProjection, type CalculationPlanEntry, type CalculatePlanResponse } from "@/lib/server/calculateUtils";
 import { logApiError, logApiSuccess } from "@/lib/logging/appLogger";
 

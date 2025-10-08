@@ -1,6 +1,7 @@
 "use client";
+import type { Role } from "@/lib/types/faltas";
 
-export type StoredCreds = { role: "A" | "P" | "D" | "E"; username: string; password: string };
+export type StoredCreds = { role: Role; username: string; password: string };
 
 function obfuscate(text: string): string {
   const key = 0x5a;

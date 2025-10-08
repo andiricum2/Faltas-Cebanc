@@ -2,9 +2,9 @@
 
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { Input } from "@/components/ui/input";
-import { loadRetoTargets, saveRetoTargets } from "@/lib/services/configService";
+import { loadRetoTargets, saveRetoTargets } from "@/lib/services/configRepository";
 import { useConfigPage } from "@/lib/hooks";
-import { isRetoModule } from "@/lib/utils/calculations";
+import { isRetoModule } from "@/lib/utils";
 import { useMemo } from "react";
 import type { RetoTargets } from "@/lib/types/snapshot";
 

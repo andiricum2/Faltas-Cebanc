@@ -1,30 +1,6 @@
-/**
- * Servicio cliente centralizado para consumir endpoints del backend
- * y encapsular manejo de errores/autenticación.
- */
-
 import type { WeekSessions } from "@/lib/types/faltas";
 import { AutoSyncMinutes } from "../types/snapshot";
-
-// --- Request wrapper común ---
-async function request<T>(input: string, init?: RequestInit): Promise<T> {
-  const res = await fetch(input, init);
-  if (res.status === 401 || res.status === 403) {
-    const err: any = new Error("No autenticado");
-    err.code = "UNAUTHENTICATED";
-    throw err;
-  }
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(text || `HTTP ${res.status}`);
-  }
-  // Intentar parsear JSON; si no hay contenido, devolver null como any
-  try {
-    return (await res.json()) as T;
-  } catch {
-    return null as unknown as T;
-  }
-}
+import { request } from "@/lib/http/client";
 
 export type StatisticsResponse = {
   kpis: {

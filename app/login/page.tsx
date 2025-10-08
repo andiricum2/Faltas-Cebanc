@@ -10,7 +10,7 @@ import { useLogin } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
 import { logUserAction } from "@/lib/logging/appLogger";
 import type { Role } from "@/lib/types/faltas";
-import { roles } from "@/lib/utils/constants";
+import { roles } from "@/lib/utils";
 
 export default function LoginPage() {
   const [role, setRole] = useState<Role>("E");

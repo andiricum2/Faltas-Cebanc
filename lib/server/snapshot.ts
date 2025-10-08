@@ -1,7 +1,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { buildSnapshot } from "@/lib/http/scraper";
-import { getModuleCalculations } from "@/lib/utils/calculations";
+import { getModuleCalculations } from "@/lib/utils";
 import type { StudentSnapshot, WeekSessions, UserIdentity, LegendModules, LegendAbsenceTypes, GlobalPercentages } from "@/lib/types/faltas";
 
 export async function loadProcessedSnapshot(dni: string): Promise<StudentSnapshot> {

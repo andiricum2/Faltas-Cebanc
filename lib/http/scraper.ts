@@ -1,6 +1,6 @@
 import * as cheerio from "cheerio";
 import { AggregatedStats, GlobalPercentages, LegendAbsenceTypes, LegendModules, SessionCell, StudentSnapshot, UserIdentity, WeekSessions, RetoInfo } from "@/lib/types/faltas";
-import { extractAbsenceCode, isRetoModule, extractGroupToken } from "@/lib/utils/calculations";
+import { extractAbsenceCode, isRetoModule, extractGroupToken } from "@/lib/utils";
 
 function parseIdentity($: cheerio.CheerioAPI): UserIdentity {
   const titleTexts = $(".form-title h2").toArray().map((el) => $(el).text().trim()).filter(Boolean);

@@ -4,9 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useSnapshot } from "@/lib/services/snapshotContext";
-import { getTodayLocalISO } from "@/lib/utils/dates";
-import { findCurrentWeekIndex } from "@/lib/utils/weeks";
-import { aggregateWeeklyAbsences } from "@/lib/utils/absences";
+import { getTodayLocalISO, findCurrentWeekIndex, aggregateWeeklyAbsences } from "@/lib/utils";
 import { LoadingState } from "@/components/ui/loading-state";
 import { getPercentageColors } from "@/lib/utils/ui";
 

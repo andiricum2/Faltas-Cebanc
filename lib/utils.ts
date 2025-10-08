@@ -37,11 +37,10 @@ export function isoToDDMMYYYY(iso: string): string {
   return `${d}-${m}-${y}`;
 }
 
-// Re-exportar funciones de cálculos
-export { 
-  sumarFaltas, 
-  calcPercent, 
-  isRetoModule, 
-  extractGroupToken,
-  extractAbsenceCode
-} from "./utils/calculations";
+// Re-exports centralizados
+export * from "./utils/dates";
+export * from "./utils/weeks";
+export * from "./utils/calculations";
+export * from "./utils/absences";
+export * from "./utils/externalLinks";
+export * from "./utils/constants";

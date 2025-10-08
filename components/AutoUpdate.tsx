@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import pkg from "@/package.json";
-import { openExternalUrl } from "@/lib/utils/externalLinks";
+import { openExternalUrl } from "@/lib/utils";
 
 type ReleaseInfo = {
   version: string;

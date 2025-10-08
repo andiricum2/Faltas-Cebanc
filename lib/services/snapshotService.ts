@@ -1,5 +1,5 @@
 import type { StudentSnapshot as Snapshot, WeekSessions, AggregatedStats, RetoInfo } from "@/lib/types/faltas";
-import { extractAbsenceCode, sumarFaltas, isRetoModule } from "@/lib/utils/calculations";
+import { extractAbsenceCode, sumarFaltas, isRetoModule } from "@/lib/utils";
 
 export type ModuleRow = { key: string; classes: number; absences: string };
 

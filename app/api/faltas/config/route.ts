@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { logApiError, logApiSuccess } from "@/lib/logging/appLogger";
-import { loadHoursPerModule, saveHoursPerModule, loadRetoTargets, saveRetoTargets } from "@/lib/services/configService";
+import { loadHoursPerModule, saveHoursPerModule, loadRetoTargets, saveRetoTargets } from "@/lib/services/configRepository";
 import { getAppConfig, saveAppConfig } from "@/lib/services/apiClient";
 
 // Endpoint unificado para configuración

@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { NextRequest } from "next/server";
 import { FaltasClient } from "@/lib/http/faltasClient";
-import { logger } from "@/lib/logging/logger";
+import { logger } from "@/lib/logging/appLogger";
 import { isLoginBody, LoginBody, LoginResult } from "@/lib/types/faltas";
 
 export async function POST(req: NextRequest) {

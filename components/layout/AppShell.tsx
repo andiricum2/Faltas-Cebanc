@@ -13,7 +13,7 @@ import { toast } from "sonner";
 import { SlidersHorizontal } from "lucide-react";
 import pkg from "@/package.json";
 import { Download, Github } from "lucide-react";
-import { openExternalUrl } from "@/lib/utils/externalLinks";
+import { openExternalUrl } from "@/lib/utils";
 import NoticeBanner from "@/components/ui/notice-banner";
 import { SnapshotRequired } from "@/components/ui/loading-state";
 

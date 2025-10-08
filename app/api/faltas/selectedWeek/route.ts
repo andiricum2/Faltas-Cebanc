@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import type { StudentSnapshot, WeekSessions } from "@/lib/types/faltas";
 import { loadProcessedSnapshot } from "@/lib/server/snapshot";
 import { logApiError, logApiSuccess } from "@/lib/logging/appLogger";
-import { extractAbsenceCode } from "@/lib/utils/calculations";
+import { extractAbsenceCode } from "@/lib/utils";
 
 export type SelectedWeekResponse = {
   week: (WeekSessions & { sessions: WeekSessions["sessions"] }) | null;

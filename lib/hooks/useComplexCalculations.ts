@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { calcPercent, sumarFaltas } from "@/lib/utils/calculations";
+import { calcPercent, sumarFaltas } from "@/lib/utils";
 import type { SnapshotData, ModuleCalculation, RetoCalculation } from "@/lib/types/snapshot";
 
 export function useModuleCalculations(snapshot: SnapshotData | null) {

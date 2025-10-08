@@ -3,7 +3,7 @@ import { NextRequest } from "next/server";
 import { FaltasClient } from "@/lib/http/faltasClient";
 import { parseMostrarAlumno, buildSnapshot } from "@/lib/http/scraper";
 import { getAcademicYearRange, enumerateMondaysBetween, isoToDDMMYYYY } from "@/lib/utils";
-import { logger } from "@/lib/logging/logger";
+import { logger } from "@/lib/logging/appLogger";
 import fs from "node:fs/promises";
 import path from "node:path";
 

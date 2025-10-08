@@ -2,9 +2,9 @@
 
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { Input } from "@/components/ui/input";
-import { loadHoursPerModule, saveHoursPerModule } from "@/lib/services/configService";
+import { loadHoursPerModule, saveHoursPerModule } from "@/lib/services/configRepository";
 import { useConfigPage } from "@/lib/hooks";
-import { isRetoModule } from "@/lib/utils/calculations";
+import { isRetoModule } from "@/lib/utils";
 import type { HoursPerModule } from "@/lib/types/snapshot";
 
 export default function ConfigHorarioPage() {

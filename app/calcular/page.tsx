@@ -8,7 +8,7 @@ import { Select } from "@/components/ui/select";
 import { Trash2 } from "lucide-react";
 import type { CalculationPlanEntry as ApiCalculationPlanEntry } from "@/lib/services/apiClient";
 import { useCalculationPlan } from "@/lib/services/calculationsHooks";
-import { isRetoModule } from "@/lib/utils/calculations";
+import { isRetoModule } from "@/lib/utils";
 import { LoadingState } from "@/components/ui/loading-state";
 import type { SnapshotData, CalculationsData, ModuleMeta, PlannerEntry } from "@/lib/types/snapshot";
 

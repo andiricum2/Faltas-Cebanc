@@ -1,5 +1,5 @@
 import type { StudentSnapshot } from "@/lib/types/faltas";
-import { sumarFaltas, calcPercent } from "@/lib/utils/calculations";
+import { sumarFaltas, calcPercent } from "@/lib/utils";
 
 export type ModuleBaseStats = { classes: number; absences: number };
 

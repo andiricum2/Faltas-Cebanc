@@ -1,5 +1,5 @@
 import { httpConfig, withBase } from "@/lib/config";
-import { logger } from "@/lib/logging/logger";
+import { logger } from "@/lib/logging/appLogger";
 import { LoginBody, LoginResult } from "@/lib/types/faltas";
 
 function normalizeSetCookie(header: string | string[] | null | undefined): string[] {
@@ -48,7 +48,7 @@ export class FaltasClient {
       const renewedSession = parseSetCookieForPhpsessid(setCookieHeader);
       if (renewedSession) this.sessionId = renewedSession;
 
-      logger.debug({ msg: "login response", status: res.status, location });
+      logger.debug(`login response`, 'HTTP', { status: res.status, location });
 
       if (/aplicacion\.php/.test(location)) {
         return { ok: true, sessionId: this.sessionId };
@@ -68,7 +68,7 @@ export class FaltasClient {
 
       return { ok: false, errorMessage: "Respuesta no reconocida" };
     } catch (error: any) {
-      logger.error({ msg: "login error", error: String(error?.message || error) });
+      logger.error(`login error`, 'HTTP', { error: String(error?.message || error) });
       return { ok: false, errorMessage: "Error de red" };
     } finally {
       clearTimeout(timeout);
@@ -109,7 +109,7 @@ export class FaltasClient {
 
       if (res.status >= 300 && res.status < 400) {
         const location = res.headers.get("location") || "";
-        logger.warn({ msg: "Redirect encountered on mostraralumno", location, status: res.status });
+        logger.warn(`Redirect encountered on mostraralumno`, 'HTTP', { location, status: res.status });
       }
 
       const text = await res.text();
@@ -118,7 +118,7 @@ export class FaltasClient {
       if (renewedSession) this.sessionId = renewedSession;
       return text;
     } catch (error: any) {
-      logger.error({ msg: "fetch mostraralumno error", error: String(error?.message || error) });
+      logger.error(`fetch mostraralumno error`, 'HTTP', { error: String(error?.message || error) });
       throw error;
     } finally {
       clearTimeout(timeout);

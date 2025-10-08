@@ -7,7 +7,7 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, A
 import { TrendingUp, Activity, BarChart3, PieChart as PieChartIcon, AlertCircle } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
-import { useStatistics } from "@/lib/hooks";
+import { useStatistics, useStatisticsMetrics } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
 
 const CHART_COLORS = [
@@ -85,32 +85,8 @@ export default function TendenciasPage() {
   // Datos procesados con mejor memoización
   const weeklySeries = useMemo(() => statistics?.weeklySeries || [], [statistics?.weeklySeries]);
 
-  // Métricas calculadas con optimización
-  const metrics = useMemo(() => {
-    if (!weeklySeries.length) return null;
-
-    const totalFaltas = weeklySeries.reduce((sum, week) => sum + (week.total || 0), 0);
-    const avgFaltasSemana = totalFaltas / weeklySeries.length;
-    
-    // Calcular tendencia de forma más eficiente
-    const trend = weeklySeries.length > 1 
-      ? (weeklySeries[weeklySeries.length - 1].total || 0) - (weeklySeries[weeklySeries.length - 2].total || 0) 
-      : 0;
-
-    // Encontrar la semana con más faltas usando reduce una sola vez
-    const maxWeekData = weeklySeries.reduce((max, week) => 
-      (week.total || 0) > (max.total || 0) ? week : max
-    );
-
-    return {
-      totalFaltas: Math.round(totalFaltas),
-      avgFaltasSemana: avgFaltasSemana.toFixed(2),
-      trend,
-      maxWeek: maxWeekData?.total || 0,
-      maxWeekLabel: maxWeekData?.label || '',
-      weeksCount: weeklySeries.length
-    };
-  }, [weeklySeries]);
+  // Métricas calculadas con optimización usando hook personalizado
+  const metrics = useStatisticsMetrics(statistics);
 
   // Datos para gráfico de pastel optimizado
   const absenceTypeData = useMemo(() => {

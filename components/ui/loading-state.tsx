@@ -1,7 +1,5 @@
 "use client";
 
-import { Info } from "lucide-react";
-import React from "react";
 
 interface LoadingStateProps {
   loading: boolean;

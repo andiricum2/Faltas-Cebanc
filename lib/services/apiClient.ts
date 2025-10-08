@@ -4,6 +4,7 @@
  */
 
 import type { WeekSessions } from "@/lib/types/faltas";
+import { AutoSyncMinutes } from "../types/snapshot";
 
 // --- Request wrapper común ---
 async function request<T>(input: string, init?: RequestInit): Promise<T> {
@@ -75,7 +76,7 @@ export type CalculatePlanResponse = {
 // --- Config/app ---
 export type AppConfigDto = {
   config: {
-    autoSyncMinutes: 0 | 5 | 15 | 30;
+    autoSyncMinutes: AutoSyncMinutes;
     selectedGroup?: string | null;
   };
 };

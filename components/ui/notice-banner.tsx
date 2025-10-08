@@ -1,11 +1,11 @@
 "use client";
 
-import React from "react";
 import { Notice, fetchNotices } from "@/lib/services/notices";
 import { Button } from "@/components/ui/button";
 import { AlertCircle, Info, CheckCircle, XCircle, ExternalLink, X } from "lucide-react";
 import { openExternalUrl } from "@/lib/utils/externalLinks";
 import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 
 function IconFor({ icon, severity }: { icon?: string; severity?: string }) {
   const className = "h-4.5 w-4.5";
@@ -36,18 +36,18 @@ function palette(severity?: string): { bg: string; text: string; border: string;
 
 export default function NoticeBanner() {
   const router = useRouter();
-  const [notices, setNotices] = React.useState<Notice[]>([]);
-  const [dismissed, setDismissed] = React.useState<Record<string, boolean>>({});
+  const [notices, setNotices] = useState<Notice[]>([]);
+  const [dismissed, setDismissed] = useState<Record<string, boolean>>({});
 
   // Load dismissal state from localStorage
-  React.useEffect(() => {
+  useEffect(() => {
     try {
       const raw = localStorage.getItem("faltas:dismissed-notices");
       if (raw) setDismissed(JSON.parse(raw));
     } catch {}
   }, []);
 
-  React.useEffect(() => {
+  useEffect(() => {
     (async () => {
       const data = await fetchNotices();
       setNotices(data);

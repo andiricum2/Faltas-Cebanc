@@ -1,5 +1,5 @@
-import React from "react";
 import { loadRememberedCredentials, saveRememberedCredentials } from "@/lib/services/credentials";
+import { useState, useCallback } from "react";
 
 type Role = "A" | "P" | "D" | "E";
 
@@ -15,11 +15,11 @@ interface UseLoginOptions {
 }
 
 export function useLogin(options: UseLoginOptions = {}) {
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
-  const [success, setSuccess] = React.useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  const loginApi = React.useCallback(async (payload: LoginCredentials) => {
+  const loginApi = useCallback(async (payload: LoginCredentials) => {
     const res = await fetch("/api/faltas/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -32,7 +32,7 @@ export function useLogin(options: UseLoginOptions = {}) {
     return await res.json();
   }, []);
 
-  const login = React.useCallback(async (
+  const login = useCallback(async (
     credentials: LoginCredentials, 
     remember: boolean = true
   ) => {
@@ -60,7 +60,7 @@ export function useLogin(options: UseLoginOptions = {}) {
     }
   }, [loginApi, options]);
 
-  const autoLogin = React.useCallback(async () => {
+  const autoLogin = useCallback(async () => {
     setLoading(true);
     setError(null);
     
@@ -83,7 +83,7 @@ export function useLogin(options: UseLoginOptions = {}) {
     }
   }, [loginApi, options]);
 
-  const clearError = React.useCallback(() => {
+  const clearError = useCallback(() => {
     setError(null);
   }, []);
 

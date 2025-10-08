@@ -10,7 +10,7 @@ import type { CalculationPlanEntry as ApiCalculationPlanEntry } from "@/lib/serv
 import { useCalculationPlan } from "@/lib/services/calculationsHooks";
 import { isRetoModule } from "@/lib/utils/calculations";
 import { LoadingState } from "@/components/ui/loading-state";
-import type { SnapshotData, CalculationsData, ModuleMeta } from "@/lib/types/snapshot";
+import type { SnapshotData, CalculationsData, ModuleMeta, PlannerEntry } from "@/lib/types/snapshot";
 
 export default function CalcularPage() {
 	const { snapshot, loading, error } = useSnapshot();
@@ -30,12 +30,6 @@ export default function CalcularPage() {
   const { planLoading, planResult, submitPlan, setPlanResult } = useCalculationPlan(snapshot?.identity?.dni);
 
 
-  type PlannerEntry = {
-    id: string;
-    kind: "abs" | "att"; // falta o asistencia
-    code?: string; // código de módulo o reto
-    amount: number;
-  };
 
   const [entries, setEntries] = useState<PlannerEntry[]>([]);
 
@@ -45,7 +39,7 @@ export default function CalcularPage() {
       {
         id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
         kind: "abs",
-        code: calculations?.moduleMeta?.find((m: any) => !m.isReto)?.code || calculations?.moduleMeta?.[0]?.code,
+        code: calculations?.moduleMeta?.find((m: ModuleMeta) => !m.isReto)?.code || calculations?.moduleMeta?.[0]?.code,
         amount: 1
       }
     ]);
@@ -64,10 +58,10 @@ export default function CalcularPage() {
 
   const sortedModuleOptions = useMemo(() => {
     return [...moduleOptions].sort((a, b) => (a.label || "").localeCompare(b.label || ""));
-  }, [moduleOptions]);
+  }, [calculations?.moduleMeta]);
   const sortedRetoOptions = useMemo(() => {
     return [...retoOptions].sort((a, b) => (a.label || "").localeCompare(b.label || ""));
-  }, [retoOptions]);
+  }, [calculations?.moduleMeta]);
 
   const entriesApiPayload: ApiCalculationPlanEntry[] = useMemo(() => {
     return entries.map(e => {
@@ -80,7 +74,7 @@ export default function CalcularPage() {
         hours: Math.max(0, Number(e.amount) || 0)
       };
     });
-  }, [entries, moduleOptions, retoOptions]);
+  }, [entries, calculations?.moduleMeta]);
 
   useEffect(() => {
     let cancelled = false;

@@ -5,12 +5,13 @@ import { Input } from "@/components/ui/input";
 import { loadHoursPerModule, saveHoursPerModule } from "@/lib/services/configService";
 import { useConfigPage } from "@/lib/hooks";
 import { isRetoModule } from "@/lib/utils/calculations";
+import type { HoursPerModule } from "@/lib/types/snapshot";
 
 export default function ConfigHorarioPage() {
   const { snapshot } = useSnapshot();
 
   type ModuleId = string;
-  const { data: hoursPerModule, save } = useConfigPage(
+  const { data: hoursPerModule, save } = useConfigPage<HoursPerModule>(
     loadHoursPerModule,
     saveHoursPerModule
   );
@@ -38,7 +39,7 @@ export default function ConfigHorarioPage() {
                   .filter((m) => !isRetoModule(m, snapshot?.legend?.modules?.[m]))
                   .map((m) => {
                     const label = snapshot?.legend?.modules?.[m] || m;
-                    const v = Number.isFinite(hoursPerModule?.[m]) ? (hoursPerModule?.[m] as number) : 0;
+                    const v = Number.isFinite(hoursPerModule?.[m]) ? hoursPerModule?.[m] : 0;
                     return (
                       <tr key={m} className="border-t">
                         <td className="p-2 whitespace-nowrap">{label}</td>
@@ -50,7 +51,7 @@ export default function ConfigHorarioPage() {
                             value={v}
                             onChange={(e) => {
                               const n = Number(e.target.value);
-                              const next = { ...hoursPerModule, [m]: Number.isFinite(n) ? n : 0 } as Record<ModuleId, number>;
+                              const next = { ...hoursPerModule, [m]: Number.isFinite(n) ? n : 0 };
                               save(next);
                             }}
                           />
@@ -66,7 +67,7 @@ export default function ConfigHorarioPage() {
           <button
             className="px-3 py-1 rounded bg-secondary"
             onClick={() => {
-              const next: Record<ModuleId, number> = {};
+              const next: HoursPerModule = {};
               Object.keys(hoursPerModule || {}).forEach((k) => (next[k] = 0));
               save(next);
             }}

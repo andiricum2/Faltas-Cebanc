@@ -8,6 +8,7 @@ import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLogin } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
+import { logUserAction } from "@/lib/logging/appLogger";
 
 type Role = "A" | "P" | "D" | "E";
 
@@ -29,6 +30,7 @@ export default function LoginPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
+    logUserAction('login_attempt', { role, username });
     await login({ role, username, password }, remember);
   };
 

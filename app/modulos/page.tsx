@@ -3,11 +3,11 @@
 import { useMemo, useState, Fragment } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useSnapshot } from "@/lib/services/snapshotContext";
-import { calcPercent, sumarFaltas } from "@/lib/utils/calculations";
 import { Badge } from "@/components/ui/badge";
 import { percentColorClasses } from "@/lib/utils/ui";
 import { LoadingState } from "@/components/ui/loading-state";
-import type { SnapshotData, ModuleCalculation, RetoCalculation } from "@/lib/types/snapshot";
+import { useModuleCalculations, useRetoCalculations } from "@/lib/hooks";
+import type { SnapshotData } from "@/lib/types/snapshot";
 
 export default function ModulosPage() {
   const { snapshot, loading, error } = useSnapshot();
@@ -15,51 +15,8 @@ export default function ModulosPage() {
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
   const [expandedRetos, setExpandedRetos] = useState<Record<string, boolean>>({});
 
-  const rows = useMemo((): ModuleCalculation[] => {
-    const snapshotData = snapshot as SnapshotData;
-    const moduleCalcs = snapshotData?.moduleCalculations;
-    if (!snapshot || !moduleCalcs) return [];
-    const names = snapshotData.legend?.modules || {};
-    return Object.entries(moduleCalcs)
-      .map(([code, cal]) => {
-        const fd = Number(cal?.faltasDirectas || 0);
-        const fe = Number(cal?.faltasDerivadas || 0);
-        const sd = Number(cal?.sesionesDirectas || 0);
-        const se = Number(cal?.sesionesDerivadas || 0);
-        const tf = Number(cal?.totalFaltas ?? (fd + fe));
-        const ts = Number(cal?.totalSesiones ?? (sd + se));
-        return {
-          code,
-          name: names[code] || code,
-          faltasDirectas: fd,
-          faltasDerivadas: fe,
-          sesionesDirectas: sd,
-          sesionesDerivadas: se,
-          totalFaltas: tf,
-          totalSesiones: ts,
-          percent: calcPercent(tf, ts),
-        };
-      })
-      .sort((a, b) => b.percent - a.percent);
-  }, [snapshot?.moduleCalculations, snapshot?.legend?.modules]);
-
-  const retoRows = useMemo((): RetoCalculation[] => {
-    const snapshotData = snapshot as SnapshotData;
-    if (!snapshotData?.retos) return [];
-    return snapshotData.retos
-      .map((r) => {
-        const classes = snapshotData?.aggregated?.modules?.[r.id]?.classesGiven || 0;
-        const totalFaltas = sumarFaltas(snapshotData?.aggregated?.modules?.[r.id]?.absenceCounts);
-        return {
-          id: r.id,
-          label: r.label || r.id,
-          totalFaltas,
-          totalSesiones: classes,
-          percent: calcPercent(totalFaltas, classes),
-        };
-      })
-      .sort((a, b) => b.percent - a.percent);
-  }, [snapshot?.retos, snapshot?.aggregated?.modules]);
+  const rows = useModuleCalculations(snapshot);
+  const retoRows = useRetoCalculations(snapshot);
 
   if (!snapshot || rows.length === 0) {
     return (
@@ -97,8 +54,9 @@ export default function ModulosPage() {
                   const ratio = Math.min(100, Math.max(0, (m.percent / 20) * 100));
                   const { gradient: colorClass, text: textColor } = percentColorClasses(m.percent);
                   const isOpen = !!expandedModules[m.code];
-                  const absenceCounts = (snapshot as any)?.aggregated?.modules?.[m.code]?.absenceCounts || {};
-                  const breakdown = Object.entries(absenceCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
+                  const moduleData = snapshot?.aggregated?.modules?.[m.code];
+                  const absenceCounts = moduleData?.absenceCounts || {};
+                  const breakdown = Object.entries(absenceCounts).sort((a, b) => b[1] - a[1]);
                   return (
                     <Fragment key={m.code}>
                       <tr
@@ -138,8 +96,8 @@ export default function ModulosPage() {
                                 breakdown.map(([code, count]) => (
                                   <Badge key={`${m.code}-${code}`} className="gap-1">
                                     <span className="font-mono text-xs">{code}</span>
-                                    <span className="text-xs">×{count as number}</span>
-                                    <span className="text-[10px] opacity-70">{(snapshot as any)?.legend?.absenceTypes?.[code] || ''}</span>
+                                    <span className="text-xs">×{count}</span>
+                                    <span className="text-[10px] opacity-70">{snapshot?.legend?.absenceTypes?.[code] || ''}</span>
                                   </Badge>
                                 ))
                               )}
@@ -182,8 +140,9 @@ export default function ModulosPage() {
                   const ratio = Math.min(100, Math.max(0, (r.percent / 20) * 100));
                   const { gradient: colorClass, text: textColor } = percentColorClasses(r.percent);
                   const isOpen = !!expandedRetos[r.id];
-                  const absenceCounts = (snapshot as any)?.aggregated?.modules?.[r.id]?.absenceCounts || {};
-                  const breakdown = Object.entries(absenceCounts).sort((a, b) => (b[1] as number) - (a[1] as number));
+                  const retoData = snapshot?.aggregated?.modules?.[r.id];
+                  const absenceCounts = retoData?.absenceCounts || {};
+                  const breakdown = Object.entries(absenceCounts).sort((a, b) => b[1] - a[1]);
                   return (
                     <Fragment key={r.id}>
                       <tr
@@ -219,8 +178,8 @@ export default function ModulosPage() {
                                 breakdown.map(([code, count]) => (
                                   <Badge key={`${r.id}-${code}`} className="gap-1">
                                     <span className="font-mono text-xs">{code}</span>
-                                    <span className="text-xs">×{count as number}</span>
-                                    <span className="text-[10px] opacity-70">{(snapshot as any)?.legend?.absenceTypes?.[code] || ''}</span>
+                                    <span className="text-xs">×{count}</span>
+                                    <span className="text-[10px] opacity-70">{snapshot?.legend?.absenceTypes?.[code] || ''}</span>
                                   </Badge>
                                 ))
                               )}

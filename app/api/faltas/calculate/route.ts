@@ -3,6 +3,7 @@ import type { StudentSnapshot } from "@/lib/types/faltas";
 import { loadProcessedSnapshot } from "@/lib/server/snapshot";
 import { sumarFaltas, calcPercent } from "@/lib/utils/calculations";
 import { computePlanProjection, type CalculationPlanEntry, type CalculatePlanResponse } from "@/lib/server/calculateUtils";
+import { logApiError, logApiSuccess } from "@/lib/logging/appLogger";
 
 // Removed GET endpoint; this route now only supports POST for planning
 
@@ -20,9 +21,10 @@ export async function POST(request: NextRequest) {
 
     const snapshot: StudentSnapshot = await loadProcessedSnapshot(dni);
     const response = computePlanProjection(snapshot, entries);
+    logApiSuccess('/api/faltas/calculate', { dni, entriesCount: entries.length });
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Error en POST /api/faltas/calculate:", error);
+    logApiError('/api/faltas/calculate', error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

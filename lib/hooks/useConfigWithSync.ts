@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { useConfigDataLoader } from "./useDataLoader";
+import { useCallback, DependencyList } from "react";
 
 /**
  * Hook específico para manejar configuraciones que requieren sincronización
@@ -11,7 +11,7 @@ import { useConfigDataLoader } from "./useDataLoader";
 export function useConfigWithSync<T>(
   loadFunction: () => Promise<T>,
   saveFunction: (data: T) => Promise<void>,
-  dependencies: React.DependencyList = []
+  dependencies: DependencyList = []
 ) {
   const { syncNow } = useSnapshot();
   const { data, loading, error, reload, setData } = useConfigDataLoader(
@@ -20,7 +20,7 @@ export function useConfigWithSync<T>(
     dependencies
   );
 
-  const saveAndSync = React.useCallback(async (newData: T) => {
+  const saveAndSync = useCallback(async (newData: T) => {
     try {
       await saveFunction(newData);
       setData(newData);

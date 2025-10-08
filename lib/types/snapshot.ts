@@ -12,8 +12,13 @@ export interface SnapshotModuleCalculations {
   [moduleCode: string]: SnapshotModule;
 }
 
+export interface SnapshotModuleAggregated {
+  classesGiven: number;
+  absenceCounts: Record<string, number>;
+}
+
 export interface SnapshotAggregated {
-  modules?: Record<string, any>;
+  modules?: Record<string, SnapshotModuleAggregated>;
   absenceTotals?: Record<string, number>;
 }
 
@@ -40,16 +45,16 @@ export interface SnapshotWeek {
   sessions: Array<{
     hour: number;
     weekday: number;
-    cssClass?: string;
-    title?: string;
+    cssClass?: string | null;
+    title?: string | null;
   }>;
 }
 
 export interface SnapshotReto {
   id: string;
   label: string;
-  absenceCounts: Record<string, number>;
-  classesGiven: number;
+  absenceCounts?: Record<string, number>;
+  classesGiven?: number;
 }
 
 export interface SnapshotData {
@@ -94,3 +99,16 @@ export interface ModuleMeta {
 export interface CalculationsData {
   moduleMeta: ModuleMeta[];
 }
+
+// Tipos para planificación de cálculos
+export interface PlannerEntry {
+  id: string;
+  kind: "abs" | "att"; // falta o asistencia
+  code?: string; // código de módulo o reto
+  amount: number;
+}
+
+// Tipos para configuración
+export type HoursPerModule = Record<string, number>;
+export type RetoTargets = Record<string, Record<string, boolean>>;
+export type AutoSyncMinutes = number

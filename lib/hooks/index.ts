@@ -4,3 +4,6 @@ export { useConfigWithSync } from "./useConfigWithSync";
 export { useConfigPage } from "./useConfigPage";
 export { useLogin } from "./useLogin";
 export { useStatistics } from "./useStatistics";
+
+// Hooks para cálculos complejos
+export { useModuleCalculations, useRetoCalculations, useStatisticsMetrics } from "./useComplexCalculations";

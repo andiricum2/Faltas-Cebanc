@@ -7,6 +7,7 @@ import { Select } from "@/components/ui/select";
 import Link from "next/link";
 import { useDataLoader } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
+import type { AutoSyncMinutes } from "@/lib/types/snapshot";
 
 export default function ConfiguracionPage() {
   const { config, setAutoSyncMinutes, setSelectedGroup } = useConfig();
@@ -42,7 +43,7 @@ export default function ConfiguracionPage() {
               aria-label="Auto-sync interval"
               value={String(config.autoSyncMinutes)}
               onChange={async (e) => {
-                setAutoSyncMinutes(Number(e.target.value) as any);
+                setAutoSyncMinutes(Number(e.target.value) as AutoSyncMinutes);
                 await syncNow().catch(() => {});
               }}
             >

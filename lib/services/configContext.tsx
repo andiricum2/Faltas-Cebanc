@@ -1,9 +1,9 @@
 "use client";
 
-import React from "react";
+import { useEffect, useState, useCallback, useMemo, useContext } from "react";
+import { createContext } from "react";
 import { getAppConfig, saveAppConfig } from "@/lib/services/apiClient";
-
-export type AutoSyncMinutes = 0 | 5 | 15 | 30;
+import type { AutoSyncMinutes } from "@/lib/types/snapshot";
 
 export type AppConfig = {
   autoSyncMinutes: AutoSyncMinutes;
@@ -46,12 +46,12 @@ function writeStoredConfig(cfg: AppConfig) {
   } catch {}
 }
 
-const ConfigContext = React.createContext<ConfigContextType | undefined>(undefined);
+const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
 export function ConfigProvider({ children }: { children: React.ReactNode }) {
-  const [config, setConfig] = React.useState<AppConfig>(DEFAULT_CONFIG);
+  const [config, setConfig] = useState<AppConfig>(DEFAULT_CONFIG);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const localCfg = readStoredConfig();
     setConfig(localCfg);
     // Try to hydrate from server (best-effort)
@@ -68,7 +68,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     })();
   }, []);
 
-  const setAutoSyncMinutes = React.useCallback((minutes: AutoSyncMinutes) => {
+  const setAutoSyncMinutes = useCallback((minutes: AutoSyncMinutes) => {
     setConfig((prev) => {
       const next = { ...prev, autoSyncMinutes: minutes };
       writeStoredConfig(next);
@@ -78,7 +78,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const setSelectedGroup = React.useCallback((group: string | null) => {
+  const setSelectedGroup = useCallback((group: string | null) => {
     setConfig((prev) => {
       const next = { ...prev, selectedGroup: group };
       writeStoredConfig(next);
@@ -88,13 +88,13 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const value = React.useMemo(() => ({ config, setAutoSyncMinutes, setSelectedGroup }), [config, setAutoSyncMinutes, setSelectedGroup]);
+  const value = useMemo(() => ({ config, setAutoSyncMinutes, setSelectedGroup }), [config, setAutoSyncMinutes, setSelectedGroup]);
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
 }
 
 export function useConfig() {
-  const ctx = React.useContext(ConfigContext);
+  const ctx = useContext(ConfigContext);
   if (!ctx) throw new Error("useConfig must be used within ConfigProvider");
   return ctx;
 }

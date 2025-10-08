@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { StudentSnapshot, WeekSessions } from "@/lib/types/faltas";
 import { loadProcessedSnapshot } from "@/lib/server/snapshot";
+import { logApiError, logApiSuccess } from "@/lib/logging/appLogger";
 import { extractAbsenceCode } from "@/lib/utils/calculations";
 
 export type SelectedWeekResponse = {
@@ -35,8 +36,9 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(response);
+    logApiSuccess('/api/faltas/selectedWeek', { dni, weekIdx });
   } catch (error) {
-    console.error("Error en /api/faltas/selectedWeek:", error);
+    logApiError('/api/faltas/selectedWeek', error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

@@ -6,6 +6,7 @@ import { loadRetoTargets, saveRetoTargets } from "@/lib/services/configService";
 import { useConfigPage } from "@/lib/hooks";
 import { isRetoModule } from "@/lib/utils/calculations";
 import { useMemo } from "react";
+import type { RetoTargets } from "@/lib/types/snapshot";
 
 export default function ConfigRetosPage() {
   const { snapshot } = useSnapshot();
@@ -17,7 +18,7 @@ export default function ConfigRetosPage() {
   );
   const retos = useMemo(() => snapshot?.retos || [], [snapshot]);
 
-  const { data: retoTargets, save, updateField } = useConfigPage(
+  const { data: retoTargets, save, updateField } = useConfigPage<RetoTargets>(
     loadRetoTargets,
     saveRetoTargets
   );

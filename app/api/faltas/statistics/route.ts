@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import type { StudentSnapshot } from "@/lib/types/faltas";
 import { loadProcessedSnapshot } from "@/lib/server/snapshot";
+import { logApiError, logApiSuccess } from "@/lib/logging/appLogger";
 import { 
   buildKpis, 
   buildWeeklySeries, 
@@ -56,8 +57,9 @@ export async function GET(request: NextRequest) {
     };
 
     return NextResponse.json(response);
+    logApiSuccess('/api/faltas/statistics', { dni });
   } catch (error) {
-    console.error("Error en /api/faltas/statistics:", error);
+    logApiError('/api/faltas/statistics', error);
     return NextResponse.json({ error: "Error interno del servidor" }, { status: 500 });
   }
 }

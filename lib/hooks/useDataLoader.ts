@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import { useState, useCallback, useEffect } from "react";
+import { DependencyList } from "react";
 
 /**
  * Hook genérico para manejar estados de carga de datos
@@ -8,13 +9,13 @@ import React from "react";
  */
 export function useDataLoader<T>(
   loadFunction: () => Promise<T>,
-  dependencies: React.DependencyList = []
+  dependencies: DependencyList = []
 ) {
-  const [data, setData] = React.useState<T | null>(null);
-  const [loading, setLoading] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [data, setData] = useState<T | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const load = React.useCallback(async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -30,12 +31,12 @@ export function useDataLoader<T>(
     }
   }, dependencies);
 
-  const reload = React.useCallback(() => {
+  const reload = useCallback(() => {
     return load();
   }, [load]);
 
   // Auto-load on mount and when dependencies change
-  React.useEffect(() => {
+  useEffect(() => {
     load().catch(() => {}); // Error already handled in load function
   }, [load]);
 
@@ -55,11 +56,11 @@ export function useDataLoader<T>(
 export function useConfigDataLoader<T>(
   loadFunction: () => Promise<T>,
   saveFunction: (data: T) => Promise<void>,
-  dependencies: React.DependencyList = []
+  dependencies: DependencyList = []
 ) {
   const { data, loading, error, reload, setData } = useDataLoader(loadFunction, dependencies);
 
-  const save = React.useCallback(async (newData: T) => {
+  const save = useCallback(async (newData: T) => {
     try {
       await saveFunction(newData);
       setData(newData);

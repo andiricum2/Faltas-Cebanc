@@ -1,7 +1,7 @@
 "use client";
 
-import React from "react";
 import { useConfigWithSync } from "./useConfigWithSync";
+import { useCallback, DependencyList } from "react";
 
 /**
  * Hook específico para páginas de configuración que siguen el patrón común:
@@ -13,7 +13,7 @@ import { useConfigWithSync } from "./useConfigWithSync";
 export function useConfigPage<T>(
   loadFunction: () => Promise<T>,
   saveFunction: (data: T) => Promise<void>,
-  dependencies: React.DependencyList = []
+  dependencies: DependencyList = []
 ) {
   const { data, loading, error, reload, save, setData } = useConfigWithSync(
     loadFunction,
@@ -22,7 +22,7 @@ export function useConfigPage<T>(
   );
 
   // Función helper para actualizar un campo específico
-  const updateField = React.useCallback(<K extends keyof T>(
+  const updateField = useCallback(<K extends keyof T>(
     field: K,
     value: T[K]
   ) => {
@@ -32,7 +32,7 @@ export function useConfigPage<T>(
   }, [data, save]);
 
   // Función helper para resetear todos los valores
-  const resetToDefaults = React.useCallback((defaults: T) => {
+  const resetToDefaults = useCallback((defaults: T) => {
     save(defaults).catch(() => {});
   }, [save]);
 

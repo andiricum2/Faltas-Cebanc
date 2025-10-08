@@ -1,6 +1,7 @@
 "use client";
 
-import React from "react";
+import { useState, useCallback, useEffect } from "react";
+import { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -20,10 +21,10 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { syncNow, loading, error, snapshot } = useSnapshot();
-  const [showConfigModal, setShowConfigModal] = React.useState(false);
-  const [configReasons, setConfigReasons] = React.useState<string[]>([]);
-  const [loggingOut, setLoggingOut] = React.useState<boolean>(false);
-  const [updateInfo, setUpdateInfo] = React.useState<{ version: string; url: string } | null>(null);
+  const [showConfigModal, setShowConfigModal] = useState(false);
+  const [configReasons, setConfigReasons] = useState<string[]>([]);
+  const [loggingOut, setLoggingOut] = useState<boolean>(false);
+  const [updateInfo, setUpdateInfo] = useState<{ version: string; url: string } | null>(null);
   const isLogin = pathname === "/login";
   const isDashboard = pathname === "/" || pathname?.startsWith("/dashboard");
   const isTendencias = pathname?.startsWith("/tendencias");
@@ -36,7 +37,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const requiresSnapshot = isDashboard || isTendencias || isSemanal || isModulos || isCalcular || 
     (isConfiguracion && pathname !== "/configuracion");
   
-  const onSync = React.useCallback(async () => { await syncNow(); }, [syncNow]);
+  const onSync = useCallback(async () => { await syncNow(); }, [syncNow]);
   const onLogout = async () => {
     try {
       setLoggingOut(true);
@@ -49,12 +50,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     }
   };
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (error) { toast.error(error); }
   }, [error]);
 
   // Listen for update availability from AutoUpdate
-  React.useEffect(() => {
+  useEffect(() => {
     const onUpdate = (e: Event) => {
       const custom = e as CustomEvent<{ version: string; url: string }>;
       setUpdateInfo(custom.detail);
@@ -66,7 +67,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   // Check configuration status on mount (except login page)
-  React.useEffect(() => {
+  useEffect(() => {
     if (isLogin) return;
     let cancelled = false;
     (async () => {
@@ -201,7 +202,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   );
 }
 
-function NavItem({ href, label, active, icon: Icon }: { href: string; label: string; active?: boolean; icon?: React.ComponentType<{ className?: string }> }) {
+function NavItem({ href, label, active, icon: Icon }: { href: string; label: string; active?: boolean; icon?: ComponentType<{ className?: string }> }) {
   return (
     <Link
       href={href}

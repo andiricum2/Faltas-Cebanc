@@ -1,82 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useEffect } from "react";
-import { loadRememberedCredentials, saveRememberedCredentials } from "@/lib/services/credentials";
+import { useLogin } from "@/lib/hooks";
+import { LoadingState } from "@/components/ui/loading-state";
 
 type Role = "A" | "P" | "D" | "E";
-
-async function loginApi(payload: { role: Role; username: string; password: string }) {
-  const res = await fetch("/api/faltas/login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-  if (!res.ok) {
-    const data = await res.json();
-    throw new Error(data?.errorMessage || "Login failed");
-  }
-  return await res.json();
-}
 
 export default function LoginPage() {
   const [role, setRole] = useState<Role>("E");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
   const [remember, setRemember] = useState(true);
+
+  const { loading, error, success, login, autoLogin, clearError } = useLogin({
+    onSuccess: () => {
+      window.location.href = "/dashboard";
+    },
+    onError: (error) => {
+      console.error("Login error:", error);
+    }
+  });
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
-    setSuccess(false);
-    setLoading(true);
-    try {
-      await loginApi({ role, username, password });
-      if (remember) {
-        await saveRememberedCredentials({ role, username, password });
-      } else {
-        await saveRememberedCredentials(null);
-      }
-      setSuccess(true);
-      window.location.href = "/dashboard";
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
+    clearError();
+    await login({ role, username, password }, remember);
   };
 
+  // Auto-login con credenciales recordadas
   useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      const creds = await loadRememberedCredentials();
-      if (cancelled || !creds) return;
-      setRole(creds.role);
-      setUsername(creds.username);
-      setPassword(creds.password);
-      try {
-        setLoading(true);
-        await loginApi({ role: creds.role, username: creds.username, password: creds.password });
-        window.location.href = "/dashboard";
-      } catch (err: any) {
-        // If auto-login fails, just let the user log in manually
-        console.warn("Auto-login failed:", err?.message || err);
-      } finally {
-        setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    autoLogin();
+  }, [autoLogin]);
 
   const roles: Array<{ key: Role; label: string }> = [
     { key: "E", label: "Estudiante" },
@@ -86,7 +45,8 @@ export default function LoginPage() {
   ];
 
   return (
-    <div className="min-h-screen w-full flex items-center justify-center p-6">
+    <LoadingState loading={loading} error={error}>
+      <div className="min-h-screen w-full flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-center">Acceso Faltas</CardTitle>
@@ -127,7 +87,8 @@ export default function LoginPage() {
           </form>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </LoadingState>
   );
 }
 

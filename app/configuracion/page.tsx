@@ -6,25 +6,26 @@ import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getGroups } from "@/lib/services/apiClient";
 import { Select } from "@/components/ui/select";
 import Link from "next/link";
+import { useDataLoader } from "@/lib/hooks";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export default function ConfiguracionPage() {
   const { config, setAutoSyncMinutes, setSelectedGroup } = useConfig();
   const { snapshot, syncNow } = useSnapshot();
 
   const hasData = !!snapshot;
-  const [groups, setGroups] = React.useState<string[]>([]);
-
-  React.useEffect(() => {
-    (async () => {
-      try {
-        const data = await getGroups();
-        setGroups(data?.groups || []);
-      } catch {}
-    })();
-  }, []);
+  
+  // Usar useDataLoader para cargar grupos
+  const { data: groupsData, loading: groupsLoading, error: groupsError } = useDataLoader(
+    () => getGroups(),
+    []
+  );
+  
+  const groups = groupsData?.groups || [];
 
   return (
-    <div className="space-y-6">
+    <LoadingState loading={groupsLoading} error={groupsError}>
+      <div className="space-y-6">
       <div>
         <h1 className="text-xl font-semibold">Configuración</h1>
         <p className="text-sm text-muted-foreground">Preferencias de la aplicación</p>
@@ -93,7 +94,8 @@ export default function ConfiguracionPage() {
           <div className="text-xs text-muted-foreground">Usando configuración del grupo "{config.selectedGroup}". Para editar manualmente, selecciona "Personalizado".</div>
         )}
       </section>
-    </div>
+      </div>
+    </LoadingState>
   );
 }
 

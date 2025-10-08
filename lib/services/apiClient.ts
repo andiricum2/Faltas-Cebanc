@@ -96,9 +96,6 @@ export async function getGroups(): Promise<{ groups: string[] }> {
   return request<{ groups: string[] }>("/api/faltas/config/groups");
 }
 
-export async function getGroupByName(name: string): Promise<any> {
-  return request<any>(`/api/faltas/config/groups/${encodeURIComponent(name)}`);
-}
 
 export async function saveRetoTargets(retoTargets: Record<string, Record<string, boolean>>): Promise<{ ok: true }> {
   return request<{ ok: true }>("/api/faltas/config/retoTargets", {
@@ -186,10 +183,6 @@ export async function getNotices(): Promise<{ notices: Notice[] }> {
   return request<{ notices: Notice[] }>("/api/notices");
 }
 
-// --- Hooks helpers (no React deps) ---
-export async function fetchStatistics(dni: string, moduleFilter: string = "all", absenceFilter: string = "all") {
-  return getStatistics(dni, moduleFilter, absenceFilter);
-}
 
 export async function postPlan(dni: string, entries: CalculationPlanEntry[]) {
   return postCalculationPlan(dni, entries);

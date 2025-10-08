@@ -6,9 +6,10 @@ import { useSnapshot } from "@/lib/services/snapshotContext";
 import { calcPercent, sumarFaltas } from "@/lib/utils/calculations";
 import { Badge } from "@/components/ui/badge";
 import { percentColorClasses } from "@/lib/utils/ui";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export default function ModulosPage() {
-  const { snapshot } = useSnapshot();
+  const { snapshot, loading, error } = useSnapshot();
 
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
   const [expandedRetos, setExpandedRetos] = useState<Record<string, boolean>>({});
@@ -67,7 +68,8 @@ export default function ModulosPage() {
   }
 
   return (
-    <div className="w-full space-y-6">
+    <LoadingState loading={loading} error={error}>
+      <div className="w-full space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Módulos · Resumen por asignatura</CardTitle>
@@ -237,6 +239,7 @@ export default function ModulosPage() {
           </div>
         </CardContent>
       </Card>
-    </div>
+      </div>
+    </LoadingState>
   );
 }

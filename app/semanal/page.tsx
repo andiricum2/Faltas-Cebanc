@@ -9,12 +9,12 @@ import { getTodayLocalISO } from "@/lib/utils/dates";
 import { getDefaultWeekIndex } from "@/lib/utils/weeks";
 import { absenceColorClass, moduleColorClass } from "@/lib/utils/ui";
 import { extractAbsenceCode } from "@/lib/utils";
+import { useDataLoader } from "@/lib/hooks";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export default function SemanalPage() {
   const { snapshot } = useSnapshot();
   const [selectedWeekIdx, setSelectedWeekIdx] = useState<number | null>(null);
-  const [selectedWeekData, setSelectedWeekData] = useState<SelectedWeekResponse | null>(null);
-  const [selectedWeekLoading, setSelectedWeekLoading] = useState(false);
 
   // Fecha local de hoy (yyyy-mm-dd)
   const todayISO = useMemo(() => getTodayLocalISO(), []);
@@ -25,30 +25,16 @@ export default function SemanalPage() {
   // Índice de semana (usuario o por defecto)
   const weekIdx = selectedWeekIdx ?? defaultWeekIdx;
 
-  // Cargar datos de semana seleccionada
-  useEffect(() => {
-    if (!snapshot?.identity?.dni) return;
-    if (weekIdx == null) return;
-
-    const loadSelectedWeek = async () => {
-      setSelectedWeekLoading(true);
-      try {
-        const result = await getSelectedWeek(
-          snapshot.identity.dni,
-          weekIdx,
-          "all",
-          "all"
-        );
-        setSelectedWeekData(result);
-      } catch (error) {
-        console.error("Error loading selected week:", error);
-      } finally {
-        setSelectedWeekLoading(false);
+  // Hook para cargar datos de semana usando useDataLoader
+  const { data: selectedWeekData, loading: selectedWeekLoading, error } = useDataLoader(
+    () => {
+      if (!snapshot?.identity?.dni || weekIdx == null) {
+        throw new Error("No hay datos disponibles");
       }
-    };
-
-    loadSelectedWeek();
-  }, [snapshot?.identity?.dni, weekIdx]);
+      return getSelectedWeek(snapshot.identity.dni, weekIdx, "all", "all");
+    },
+    [snapshot?.identity?.dni, weekIdx]
+  );
 
   const selectedWeek = selectedWeekData?.week || null;
   const absenceLegend = selectedWeekData?.absenceLegend || snapshot?.legend.absenceTypes || {};
@@ -61,12 +47,9 @@ export default function SemanalPage() {
     setSelectedWeekIdx(defaultWeekIdx);
   }, [snapshot, selectedWeekIdx, defaultWeekIdx]);
 
-  if (!snapshot) return <div className="text-muted-foreground">Cargando...</div>;
-
-  // colors moved to utils/ui
-
   return (
-    <div className="w-full space-y-6">
+    <LoadingState loading={false} error={null}>
+      <div className="w-full space-y-6">
       <div className="flex items-center justify-between gap-4">
         <h2 className="text-2xl font-semibold tracking-tight">Semanal</h2>
         <div className="flex items-center gap-2">
@@ -88,7 +71,7 @@ export default function SemanalPage() {
             value={(weekIdx ?? 0).toString()}
             onChange={(e)=>setSelectedWeekIdx(Number(e.target.value))}
           >
-            {snapshot.weeks.map((w, idx)=> (
+            {snapshot?.weeks.map((w, idx)=> (
               <option key={w.weekStartISO} value={idx}>{`${w.weekStartISO} → ${w.weekEndISO}`}</option>
             ))}
           </Select>
@@ -98,9 +81,9 @@ export default function SemanalPage() {
             aria-label="Semana siguiente"
             onClick={() => {
               const current = weekIdx ?? 0;
-              if (current < snapshot.weeks.length - 1) setSelectedWeekIdx(current + 1);
+              if (current < (snapshot?.weeks.length ?? 0) - 1) setSelectedWeekIdx(current + 1);
             }}
-            disabled={(weekIdx ?? 0) >= snapshot.weeks.length - 1}
+            disabled={(weekIdx ?? 0) >= (snapshot?.weeks.length ?? 0) - 1}
             title="Semana siguiente"
           >
             →
@@ -109,9 +92,13 @@ export default function SemanalPage() {
       </div>
 
       {selectedWeekLoading ? (
-        <div className="text-center py-8 text-muted-foreground">
-          Cargando datos de la semana...
-        </div>
+        <LoadingState loading={true} error={null}>
+          <div />
+        </LoadingState>
+      ) : error ? (
+        <LoadingState loading={false} error={error}>
+          <div />
+        </LoadingState>
       ) : selectedWeek ? (
         <div className="space-y-6">
           <div className="text-sm text-muted-foreground">Detalle semanal ({selectedWeek.weekStartISO} → {selectedWeek.weekEndISO})</div>
@@ -183,10 +170,11 @@ export default function SemanalPage() {
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 text-muted-foreground">
-          No se pudo cargar la semana seleccionada
-        </div>
+        <LoadingState loading={false} error="No se pudo cargar la semana seleccionada">
+          <div />
+        </LoadingState>
       )}
-    </div>
+      </div>
+    </LoadingState>
   );
 }

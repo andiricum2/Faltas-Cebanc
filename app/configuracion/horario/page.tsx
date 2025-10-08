@@ -4,35 +4,17 @@ import React from "react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { Input } from "@/components/ui/input";
 import { loadHoursPerModule, saveHoursPerModule } from "@/lib/services/configService";
+import { useConfigPage } from "@/lib/hooks";
+import { isRetoModule } from "@/lib/utils/calculations";
 
 export default function ConfigHorarioPage() {
-  const { snapshot, loading, syncNow } = useSnapshot();
+  const { snapshot } = useSnapshot();
 
   type ModuleId = string;
-  const [hoursPerModule, setHoursPerModule] = React.useState<Record<ModuleId, number>>({});
-
-  const isRetoModule = React.useCallback((code: string, label: string | undefined) => {
-    const text = `${code} ${label || ""}`;
-    return /(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i.test(text);
-  }, []);
-
-  React.useEffect(() => {
-    const loadConfig = async () => {
-      const hours = await loadHoursPerModule();
-      setHoursPerModule(hours);
-    };
-    loadConfig();
-  }, []);
-
-  const saveHours = React.useCallback(async (next: Record<ModuleId, number>) => {
-    setHoursPerModule(next);
-    await saveHoursPerModule(next);
-    try { await syncNow(); } catch {}
-  }, []);
-
-  if (!snapshot) {
-    return <div className="text-sm text-muted-foreground">{loading ? "Cargando datos..." : "Sin datos. Ve a Vista general y sincroniza."}</div>;
-  }
+  const { data: hoursPerModule, save } = useConfigPage(
+    loadHoursPerModule,
+    saveHoursPerModule
+  );
 
   return (
     <div className="space-y-6">
@@ -53,11 +35,11 @@ export default function ConfigHorarioPage() {
                 </tr>
               </thead>
               <tbody>
-                {Object.keys(snapshot.legend?.modules || {})
-                  .filter((m) => !isRetoModule(m, snapshot.legend?.modules?.[m]))
+                {Object.keys(snapshot?.legend?.modules || {})
+                  .filter((m) => !isRetoModule(m, snapshot?.legend?.modules?.[m]))
                   .map((m) => {
-                    const label = snapshot.legend?.modules?.[m] || m;
-                    const v = Number.isFinite(hoursPerModule[m]) ? (hoursPerModule[m] as number) : 0;
+                    const label = snapshot?.legend?.modules?.[m] || m;
+                    const v = Number.isFinite(hoursPerModule?.[m]) ? (hoursPerModule?.[m] as number) : 0;
                     return (
                       <tr key={m} className="border-t">
                         <td className="p-2 whitespace-nowrap">{label}</td>
@@ -70,7 +52,7 @@ export default function ConfigHorarioPage() {
                             onChange={(e) => {
                               const n = Number(e.target.value);
                               const next = { ...hoursPerModule, [m]: Number.isFinite(n) ? n : 0 } as Record<ModuleId, number>;
-                              saveHours(next);
+                              save(next);
                             }}
                           />
                         </td>
@@ -86,8 +68,8 @@ export default function ConfigHorarioPage() {
             className="px-3 py-1 rounded bg-secondary"
             onClick={() => {
               const next: Record<ModuleId, number> = {};
-              Object.keys(hoursPerModule).forEach((k) => (next[k] = 0));
-              saveHours(next);
+              Object.keys(hoursPerModule || {}).forEach((k) => (next[k] = 0));
+              save(next);
             }}
           >
             Poner todo a 0

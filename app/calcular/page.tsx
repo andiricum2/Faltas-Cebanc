@@ -9,9 +9,10 @@ import { Trash2 } from "lucide-react";
 import type { CalculationPlanEntry as ApiCalculationPlanEntry } from "@/lib/services/apiClient";
 import { useCalculationPlan } from "@/lib/services/calculationsHooks";
 import { isRetoModule } from "@/lib/utils/calculations";
+import { LoadingState } from "@/components/ui/loading-state";
 
 export default function CalcularPage() {
-	const { snapshot, loading } = useSnapshot();
+	const { snapshot, loading, error } = useSnapshot();
   // GET de cálculos eliminado; solo planificación vía POST
   const calculations = React.useMemo(() => {
     const modules = (snapshot as any)?.aggregated?.modules || {};
@@ -97,14 +98,10 @@ export default function CalcularPage() {
   }, [snapshot?.identity?.dni, entriesApiPayload]);
 
 	return (
-		<div className="space-y-6">
+		<LoadingState loading={loading} error={error}>
+			<div className="space-y-6">
 			<h1 className="text-2xl font-semibold tracking-tight">Calcular</h1>
-			{!snapshot ? (
-				<div className="text-muted-foreground">
-					{loading ? "Cargando datos..." : "Sin datos. Ve a Vista general y sincroniza."}
-				</div>
-			) : (
-				<>
+			<>
 					<div className="rounded-md border bg-amber-50 text-amber-900 px-3 py-2 text-sm">
 						Aviso: esta herramienta ofrece estimaciones que pueden no corresponder con la realidad. No nos hacemos responsables del uso de estos cálculos.
 					</div>
@@ -248,7 +245,7 @@ export default function CalcularPage() {
             </CardContent>
           </Card>
 				</>
-			)}
-		</div>
+			</div>
+		</LoadingState>
 	);
 }

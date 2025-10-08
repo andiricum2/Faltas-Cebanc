@@ -7,30 +7,15 @@ import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, AreaChart, A
 import { TrendingUp, Activity, BarChart3, PieChart as PieChartIcon, AlertCircle } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getStatistics, type StatisticsResponse } from "@/lib/services/apiClient";
+import { useDataLoader } from "@/lib/hooks";
+import { LoadingState } from "@/components/ui/loading-state";
 
-// Hook reutilizable para estadísticas
+// Hook reutilizable para estadísticas usando useDataLoader
 function useStatistics(dni: string | undefined) {
-  const [statistics, setStatistics] = useState<StatisticsResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const reload = useCallback(async () => {
-    if (!dni) return;
-    setLoading(true);
-    setError(null);
-    try {
-      const result = await getStatistics(dni);
-      setStatistics(result);
-    } catch (e: any) {
-      setError("Error al cargar las estadísticas. Inténtalo de nuevo.");
-    } finally {
-      setLoading(false);
-    }
-  }, [dni]);
-
-  useEffect(() => { reload(); }, [reload]);
-
-  return { statistics, loading, error, reload };
+  return useDataLoader(
+    () => getStatistics(dni!),
+    [dni]
+  );
 }
 
 const CHART_COLORS = [
@@ -101,7 +86,7 @@ ChartContainer.displayName = 'ChartContainer';
 
 export default function TendenciasPage() {
   const { snapshot } = useSnapshot();
-  const { statistics, loading: statisticsLoading, error, reload: loadStatistics } = useStatistics(snapshot?.identity?.dni);
+  const { data: statistics, loading: statisticsLoading, error, reload: loadStatistics } = useStatistics(snapshot?.identity?.dni);
 
   // Sin estados de hover para métricas
 
@@ -152,36 +137,17 @@ export default function TendenciasPage() {
   // Early returns for different states
   if (!snapshot) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 mx-auto">
-            <div className="w-full h-full rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
-          </div>
-          <p className="text-muted-foreground">Cargando datos...</p>
-        </div>
-      </div>
+      <LoadingState loading={true} error={null}>
+        <div />
+      </LoadingState>
     );
   }
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-[400px]">
-        <Card className="max-w-md">
-          <CardContent className="p-6 text-center space-y-4">
-            <AlertCircle className="w-12 h-12 mx-auto text-red-500" />
-            <div>
-              <h3 className="text-lg font-semibold">Error al cargar datos</h3>
-              <p className="text-muted-foreground">{error}</p>
-            </div>
-            <button
-              onClick={loadStatistics}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Reintentar
-            </button>
-          </CardContent>
-        </Card>
-      </div>
+      <LoadingState loading={false} error={error} onRetry={loadStatistics}>
+        <div />
+      </LoadingState>
     );
   }
 

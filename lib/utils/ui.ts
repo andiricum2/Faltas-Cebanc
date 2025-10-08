@@ -4,6 +4,29 @@ export function percentColorClasses(percent: number): { gradient: string; text: 
   return { gradient, text };
 }
 
+/**
+ * Obtiene los colores hexadecimales para porcentajes
+ * Útil para gráficos SVG y elementos que necesitan colores exactos
+ */
+export function getPercentageColors(percentage: number): { startColor: string; endColor: string } {
+  if (percentage < 7) {
+    return { startColor: "#10B981", endColor: "#0D9488" }; // emerald-500 -> teal-600
+  } else if (percentage < 14) {
+    return { startColor: "#F59E0B", endColor: "#EA580C" }; // amber-500 -> orange-600
+  } else {
+    return { startColor: "#EF4444", endColor: "#DB2777" }; // red-500 -> pink-600
+  }
+}
+
+/**
+ * Obtiene la clase CSS completa para gradientes de porcentaje
+ * Incluye tanto el gradiente como las clases de texto
+ */
+export function getPercentageGradientClass(percentage: number): string {
+  const { gradient } = percentColorClasses(percentage);
+  return `bg-gradient-to-r ${gradient}`;
+}
+
 export function absenceColorClass(code: string | null): string {
   const map: Record<string, string> = {
     F: "bg-red-100 text-red-900 border-red-300",

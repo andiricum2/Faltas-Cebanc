@@ -4,37 +4,23 @@ import React from "react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { Input } from "@/components/ui/input";
 import { loadRetoTargets, saveRetoTargets } from "@/lib/services/configService";
+import { useConfigPage } from "@/lib/hooks";
+import { isRetoModule } from "@/lib/utils/calculations";
 
 export default function ConfigRetosPage() {
-  const { snapshot, loading, syncNow } = useSnapshot();
+  const { snapshot } = useSnapshot();
 
   const moduleKeys = React.useMemo(() => Object.keys(snapshot?.aggregated?.modules || {}), [snapshot]);
-  const isRetoModule = React.useCallback((code: string) => {
-    const label = snapshot?.legend?.modules?.[code] || code;
-    return /(?<![A-Za-z0-9])\d[A-Za-z]{2}\d(?![A-Za-z0-9])/i.test(`${code} ${label}`);
-  }, [snapshot]);
-  const nonRetoModules = React.useMemo(() => moduleKeys.filter((m) => !isRetoModule(m)), [moduleKeys, isRetoModule]);
+  const nonRetoModules = React.useMemo(() => 
+    moduleKeys.filter((m) => !isRetoModule(m, snapshot?.legend?.modules?.[m])), 
+    [moduleKeys, snapshot?.legend?.modules]
+  );
   const retos = React.useMemo(() => snapshot?.retos || [], [snapshot]);
 
-  const [retoTargets, setRetoTargets] = React.useState<Record<string, Record<string, boolean>>>({});
-
-  React.useEffect(() => {
-    const loadConfig = async () => {
-      const targets = await loadRetoTargets();
-      setRetoTargets(targets);
-    };
-    loadConfig();
-  }, []);
-
-  const persistTargets = React.useCallback(async (next: Record<string, Record<string, boolean>>) => {
-    setRetoTargets(next);
-    await saveRetoTargets(next);
-    try { await syncNow(); } catch {}
-  }, []);
-
-  if (!snapshot) {
-    return <div className="text-sm text-muted-foreground">{loading ? "Cargando datos..." : "Sin datos. Ve a Vista general y sincroniza."}</div>;
-  }
+  const { data: retoTargets, save, updateField } = useConfigPage(
+    loadRetoTargets,
+    saveRetoTargets
+  );
 
   return (
     <div className="space-y-6">
@@ -62,14 +48,14 @@ export default function ConfigRetosPage() {
                   <tbody>
                     {nonRetoModules.map((m) => (
                       <tr key={`${r.id}-${m}`} className="border-t">
-                        <td className="p-2 whitespace-nowrap">{snapshot.legend?.modules?.[m] || m}</td>
+                        <td className="p-2 whitespace-nowrap">{snapshot?.legend?.modules?.[m] || m}</td>
                         <td className="p-2">
                           <input
                             type="checkbox"
-                            checked={!!(retoTargets[r.id]?.[m])}
+                            checked={!!(retoTargets?.[r.id]?.[m])}
                             onChange={(e) => {
-                              const next = { ...retoTargets, [r.id]: { ...(retoTargets[r.id] || {}), [m]: e.target.checked } };
-                              persistTargets(next);
+                              const next = { ...retoTargets, [r.id]: { ...(retoTargets?.[r.id] || {}), [m]: e.target.checked } };
+                              save(next);
                             }}
                           />
                         </td>

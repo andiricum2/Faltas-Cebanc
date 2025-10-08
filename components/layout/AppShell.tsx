@@ -14,11 +14,12 @@ import pkg from "@/package.json";
 import { Download, Github } from "lucide-react";
 import { openExternalUrl } from "@/lib/utils/externalLinks";
 import NoticeBanner from "@/components/ui/notice-banner";
+import { SnapshotRequired } from "@/components/ui/loading-state";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { syncNow, loading, error } = useSnapshot();
+  const { syncNow, loading, error, snapshot } = useSnapshot();
   const [showConfigModal, setShowConfigModal] = React.useState(false);
   const [configReasons, setConfigReasons] = React.useState<string[]>([]);
   const [loggingOut, setLoggingOut] = React.useState<boolean>(false);
@@ -29,6 +30,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const isSemanal = pathname?.startsWith("/semanal");
   const isModulos = pathname?.startsWith("/modulos");
   const isCalcular = pathname?.startsWith("/calcular");
+  const isConfiguracion = pathname?.startsWith("/configuracion");
+  
+  // Páginas que requieren snapshot para funcionar
+  const requiresSnapshot = isDashboard || isTendencias || isSemanal || isModulos || isCalcular || 
+    (isConfiguracion && pathname !== "/configuracion");
+  
   const onSync = React.useCallback(async () => { await syncNow(); }, [syncNow]);
   const onLogout = async () => {
     try {
@@ -165,7 +172,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         </header>
         <div className="p-4 md:p-6 max-w-6xl mx-auto w-full">
           <NoticeBanner />
-          {children}
+          {requiresSnapshot && !snapshot ? (
+            <SnapshotRequired loading={loading} />
+          ) : (
+            children
+          )}
         </div>
         {showConfigModal && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">

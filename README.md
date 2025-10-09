@@ -2,6 +2,8 @@
 
 # Faltas Cebanc ✨
 
+<img width="1920" height="1080" alt="843_1x_shots_so" src="https://github.com/user-attachments/assets/84b39ebd-6561-4787-8932-dcfaa3784b5e" />
+
 Aplicación de escritorio (Tauri + Next.js) para consultar, sincronizar y visualizar faltas de CEBANC de forma rápida y segura.
 
 [![Repo](https://img.shields.io/badge/GitHub-Faltas--Cebanc-181717?logo=github)](https://github.com/andiricum2/Faltas-Cebanc)

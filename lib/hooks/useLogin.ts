@@ -1,6 +1,5 @@
 import { loadRememberedCredentials, saveRememberedCredentials } from "@/lib/services/credentials";
 import { useState, useCallback } from "react";
-import { postSync } from "@/lib/services/apiClient";
 import type { Role } from "@/lib/types/faltas";
 
 interface LoginCredentials {
@@ -36,18 +35,13 @@ export function useLogin(options: UseLoginOptions = {}) {
     credentials: LoginCredentials, 
     remember: boolean = true
   ) => {
+    if (loading) return; // dedupe while already logging in
     setError(null);
     setSuccess(false);
     setLoading(true);
     
     try {
       await loginApi(credentials);
-      // Ensure initial sync completes before proceeding
-      try {
-        await postSync();
-      } catch (e) {
-        // Non-fatal for UX; server also triggers sync on login
-      }
       
       if (remember) {
         await saveRememberedCredentials(credentials);
@@ -64,9 +58,10 @@ export function useLogin(options: UseLoginOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [loginApi, options]);
+  }, [loginApi, options, loading]);
 
   const autoLogin = useCallback(async () => {
+    if (loading) return false; // dedupe while already logging in
     setLoading(true);
     setError(null);
     
@@ -78,7 +73,6 @@ export function useLogin(options: UseLoginOptions = {}) {
       }
       
       await loginApi(creds);
-      try { await postSync(); } catch {}
       setSuccess(true);
       options.onSuccess?.();
       return true;
@@ -88,7 +82,7 @@ export function useLogin(options: UseLoginOptions = {}) {
     } finally {
       setLoading(false);
     }
-  }, [loginApi, options]);
+  }, [loginApi, options, loading]);
 
   const clearError = useCallback(() => {
     setError(null);

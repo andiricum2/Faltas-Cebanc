@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLogin } from "@/lib/hooks";
-import { LoadingState } from "@/components/ui/loading-state";
+import { postSync } from "@/lib/services/apiClient";
 import { logUserAction } from "@/lib/logging/appLogger";
 import type { Role } from "@/lib/types/faltas";
 import { roles } from "@/lib/utils";
@@ -17,9 +17,12 @@ export default function LoginPage() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [remember, setRemember] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
+  const [autoLogging, setAutoLogging] = useState<boolean>(false);
 
   const { loading, error, success, login, autoLogin, clearError } = useLogin({
-    onSuccess: () => {
+    onSuccess: async () => {
+      try { await postSync(); } catch {}
       window.location.href = "/dashboard";
     },
     onError: (error) => {
@@ -31,16 +34,66 @@ export default function LoginPage() {
     e.preventDefault();
     clearError();
     logUserAction('login_attempt', { role, username });
-    await login({ role, username, password }, remember);
+    try {
+      setAutoLogging(false);
+      setSubmitting(true);
+      await login({ role, username, password }, remember);
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   // Auto-login con credenciales recordadas
   useEffect(() => {
-    autoLogin();
-  }, [autoLogin]);
+    // Only attempt auto-login if we're on the login page
+    // This prevents duplicate attempts when coming from the main page
+    const attemptAutoLogin = async () => {
+      try {
+        setAutoLogging(true);
+        const success = await autoLogin();
+        if (!success) {
+          setAutoLogging(false);
+          return;
+        }
+      } catch (error) {
+        console.warn("Auto-login failed:", error);
+      }
+    };
+    
+    attemptAutoLogin();
+  }, []);
+
+  // Pantalla de carga para autologin
+  if (autoLogging) {
+    return (
+      <div className="min-h-screen w-full flex items-center justify-center p-6">
+        <div className="w-full max-w-xs flex flex-col items-center gap-6">
+          <img
+            src="/logo.png"
+            alt="Faltas"
+            className="h-16 w-16 animate-pulse"
+          />
+          <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+            <div className="h-full bg-gray-900 indeterminate-bar" />
+          </div>
+          <p className="text-gray-600 text-sm">Iniciando sesión...</p>
+        </div>
+        <style jsx>{`
+          @keyframes indeterminateLogin {
+            0% { transform: translateX(-100%); }
+            50% { transform: translateX(0%); }
+            100% { transform: translateX(100%); }
+          }
+          .indeterminate-bar {
+            width: 40%;
+            animation: indeterminateLogin 1.2s linear infinite;
+          }
+        `}</style>
+      </div>
+    );
+  }
 
   return (
-    <LoadingState loading={loading} error={error}>
       <div className="min-h-screen w-full flex items-center justify-center p-6">
       <Card className="w-full max-w-md">
         <CardHeader>
@@ -76,14 +129,13 @@ export default function LoginPage() {
 
             {error && <div className="text-red-600 text-sm">{error}</div>}
             {success && <div className="text-green-600 text-sm">Login correcto</div>}
-            <Button type="submit" disabled={loading}>
-              {loading ? "Entrando..." : "Entrar"}
+            <Button type="submit" disabled={submitting}>
+              {submitting ? "Entrando..." : "Entrar"}
             </Button>
           </form>
         </CardContent>
       </Card>
       </div>
-    </LoadingState>
   );
 }
 

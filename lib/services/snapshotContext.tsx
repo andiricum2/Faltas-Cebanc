@@ -53,9 +53,10 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
       setSnapshot(s);
     } catch (e: any) {
       if (e?.code === "UNAUTHENTICATED") {
-        try { await apiLogout(); } catch {}
-        try { await saveRememberedCredentials(null); } catch {}
-        window.location.href = "/login";
+        // If we're on any page other than login, redirect to login to trigger its flow.
+        if (!isLoginPage) {
+          window.location.href = "/login";
+        }
         return;
       }
       setError(e?.message || "Error");
@@ -72,12 +73,12 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
   }, [refresh, isLoginPage]);
 
   useEffect(() => {
-    // Auto-sync once on first mount to keep data fresh across all pages (skip on login page)
-    if (!isLoginPage && !didAutoSyncRef.current) {
+    // Auto-sync once only after we have a snapshot (i.e., authenticated). Skip on login page.
+    if (!isLoginPage && !didAutoSyncRef.current && snapshot) {
       didAutoSyncRef.current = true;
       syncNow().catch(() => {});
     }
-  }, [syncNow, isLoginPage]);
+  }, [syncNow, isLoginPage, snapshot]);
 
   useEffect(() => {
     // Manage periodic auto-sync according to config
@@ -85,7 +86,8 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
       clearInterval(intervalRef.current);
       intervalRef.current = null;
     }
-    if (isLoginPage) return;
+    // Require being authenticated (we infer that when snapshot exists)
+    if (isLoginPage || !snapshot) return;
     const minutes = config.autoSyncMinutes;
     if (!minutes || minutes <= 0) return; // disabled
     const ms = minutes * 60 * 1000;
@@ -98,7 +100,7 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
         intervalRef.current = null;
       }
     };
-  }, [config.autoSyncMinutes, isLoginPage, syncNow]);
+  }, [config.autoSyncMinutes, isLoginPage, syncNow, snapshot]);
 
   const value = useMemo(
     () => ({ snapshot, loading, error, refresh, syncNow }),

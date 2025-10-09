@@ -23,7 +23,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   const [loggingOut, setLoggingOut] = useState<boolean>(false);
   const [updateInfo, setUpdateInfo] = useState<{ version: string; url: string } | null>(null);
   const isLogin = pathname === "/login";
-  const isDashboard = pathname === "/" || pathname?.startsWith("/dashboard");
+  const isHome = pathname === "/";
+  const isDashboard = pathname?.startsWith("/dashboard");
   const isTendencias = pathname?.startsWith("/tendencias");
   const isSemanal = pathname?.startsWith("/semanal");
   const isModulos = pathname?.startsWith("/modulos");
@@ -63,12 +64,8 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  if (isLogin) {
-    return (
-      <main className="min-h-screen">
-        <div className="p-4 md:p-6 max-w-6xl mx-auto w-full">{children}</div>
-      </main>
-    );
+  if (isLogin || isHome) {
+    return <>{children}</>;
   }
 
   return (

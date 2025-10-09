@@ -3,7 +3,6 @@ import { NextRequest } from "next/server";
 import { FaltasClient } from "@/lib/http/faltasClient";
 import { logger } from "@/lib/logging/appLogger";
 import { isLoginBody, LoginBody, LoginResult } from "@/lib/types/faltas";
-import { POST as syncPost } from "@/app/api/faltas/sync/route";
 
 export async function POST(req: NextRequest) {
   try {
@@ -25,16 +24,7 @@ export async function POST(req: NextRequest) {
       cookieStore.set({ name: "PHPSESSID", value: result.sessionId, httpOnly: true, secure: true, sameSite: "lax", path: "/" });
     }
 
-    // Immediately trigger a full sync to fetch/scrape and persist data
-    try {
-      const resp = await syncPost(new NextRequest(new URL("/api/faltas/sync")));
-      if (!resp.ok) {
-        const text = await resp.text();
-        logger.warn(`Login completed but sync failed`, 'HTTP', { text });
-      }
-    } catch (e: any) {
-      logger.warn(`Login completed but sync threw`, 'HTTP', { error: String(e?.message || e) });
-    }
+    // Do not trigger sync here; the client will call sync after navigation
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   } catch (error: any) {

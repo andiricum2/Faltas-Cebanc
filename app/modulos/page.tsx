@@ -67,12 +67,12 @@ export default function ModulosPage() {
                           <span className="text-sm">{isOpen ? '▾' : '▸'}</span>
                         </td>
                         <td className="py-2 pr-3 font-medium">{m.name}</td>
-                        <td className="py-2 pr-3 text-center">{m.faltasDirectas}</td>
-                        <td className="py-2 pr-3 text-center">{m.faltasDerivadas}</td>
-                        <td className="py-2 pr-3 text-center">{m.sesionesDirectas}</td>
-                        <td className="py-2 pr-3 text-center">{m.sesionesDerivadas}</td>
-                        <td className="py-2 pr-3 font-medium text-center">{m.totalFaltas}</td>
-                        <td className="py-2 pr-3 text-center">{m.totalSesiones}</td>
+                        <td className="py-2 pr-3 text-center">{m.faltasDirectas.toFixed(2)}</td>
+                        <td className="py-2 pr-3 text-center">{m.faltasDerivadas.toFixed(2)}</td>
+                        <td className="py-2 pr-3 text-center">{m.sesionesDirectas.toFixed(2)}</td>
+                        <td className="py-2 pr-3 text-center">{m.sesionesDerivadas.toFixed(2)}</td>
+                        <td className="py-2 pr-3 font-medium text-center">{m.totalFaltas.toFixed(2)}</td>
+                        <td className="py-2 pr-3 text-center">{m.totalSesiones.toFixed(2)}</td>
                         <td className="py-2">
                           <div className="flex items-center gap-2 min-w-[160px]">
                             <span className={`text-xs font-bold ${textColor}`}>{m.percent.toFixed(2)}%</span>
@@ -153,8 +153,8 @@ export default function ModulosPage() {
                           <span className="text-sm">{isOpen ? '▾' : '▸'}</span>
                         </td>
                         <td className="py-2 pr-3 font-medium">{r.label}</td>
-                        <td className="py-2 pr-3 text-center">{r.totalFaltas}</td>
-                        <td className="py-2 pr-3 text-center">{r.totalSesiones}</td>
+                        <td className="py-2 pr-3 text-center">{r.totalFaltas.toFixed(2)}</td>
+                        <td className="py-2 pr-3 text-center">{r.totalSesiones.toFixed(2)}</td>
                         <td className="py-2">
                           <div className="flex items-center gap-2 min-w-[160px]">
                             <span className={`text-xs font-bold ${textColor}`}>{r.percent.toFixed(2)}%</span>

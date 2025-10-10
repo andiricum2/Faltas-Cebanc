@@ -45,3 +45,49 @@ export async function POST(req: NextRequest) {
 }
 
 
+export async function GET(req: NextRequest) {
+  try {
+    const dni = await requireCookieDni();
+    if (!dni) return NextResponse.json({ ok: false, error: "UNAUTHENTICATED" }, { status: 401 });
+
+    const { searchParams } = new URL(req.url);
+    const day = searchParams.get("day") || new Date().toISOString().slice(0, 10);
+    const limitParam = searchParams.get("limit");
+    const limit = Math.max(1, Math.min(5000, Number(limitParam) || 500));
+
+    const dir = path.join(getUserDataDir(dni), "logs");
+    const file = path.join(dir, `${day}.ndjson`);
+
+    let content = "";
+    try {
+      content = await fs.readFile(file, "utf-8");
+    } catch (e: any) {
+      // If file does not exist, return empty logs
+      if (e && (e.code === "ENOENT" || String(e?.message || e).includes("ENOENT"))) {
+        return NextResponse.json({ ok: true, day, logs: [] });
+      }
+      throw e;
+    }
+
+    const lines = content
+      .split("\n")
+      .filter((l) => l.trim().length > 0);
+
+    const sliced = lines.slice(-limit);
+    const logs = sliced
+      .map((l) => {
+        try {
+          return JSON.parse(l);
+        } catch {
+          return null;
+        }
+      })
+      .filter((v) => v !== null);
+
+    return NextResponse.json({ ok: true, day, count: logs.length, logs });
+  } catch (e: any) {
+    return NextResponse.json({ ok: false, error: String(e?.message || e) }, { status: 500 });
+  }
+}
+
+

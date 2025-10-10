@@ -18,6 +18,8 @@ class Logger {
   private level: LogLevel;
   private logs: LogEntry[] = [];
   private maxLogs = 1000; // Límite de logs en memoria
+  private shipQueue: LogEntry[] = [];
+  private shipTimer: any = null;
 
   constructor(level: LogLevel = LogLevel.INFO) {
     this.level = level;
@@ -45,6 +47,9 @@ class Logger {
       this.logs = this.logs.slice(-this.maxLogs);
     }
 
+    // Encolar para envío
+    this.enqueueShip(entry);
+
     // También loggear en consola para desarrollo
     if (process.env.NODE_ENV === 'development') {
       const prefix = `[${LogLevel[level]}] ${context ? `[${context}] ` : ''}`;
@@ -63,6 +68,50 @@ class Logger {
           break;
       }
     }
+  }
+
+  private enqueueShip(entry: LogEntry) {
+    this.shipQueue.push(entry);
+    if (!this.shipTimer) {
+      this.shipTimer = setTimeout(() => this.flushShip(), 2000);
+    }
+    if (this.shipQueue.length >= 50) {
+      this.flushShip();
+    }
+    // Escribir en Tauri (si disponible)
+    if (typeof window !== "undefined" && (window as any).__TAURI__) {
+      try {
+        (window as any).__TAURI__.invoke("log_client", {
+          level: LogLevel[entry.level],
+          message: `${entry.context ? `[${entry.context}] ` : ""}${entry.message}`,
+        }).catch(() => {});
+      } catch {}
+    }
+  }
+
+  private async flushShip() {
+    const batch = this.shipQueue.splice(0, this.shipQueue.length);
+    this.shipTimer && clearTimeout(this.shipTimer);
+    this.shipTimer = null;
+    if (batch.length === 0) return;
+    try {
+      if (typeof fetch !== "undefined") {
+        await fetch("/api/faltas/logs", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            logs: batch.map((l) => ({
+              level: LogLevel[l.level] as any,
+              message: l.message,
+              context: l.context,
+              data: l.data,
+              timestamp: l.timestamp.toISOString(),
+            })),
+          }),
+          keepalive: true,
+        }).catch(() => {});
+      }
+    } catch {}
   }
 
   debug(message: string, context?: string, data?: any): void {

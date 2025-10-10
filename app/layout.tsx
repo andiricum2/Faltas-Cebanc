@@ -6,6 +6,7 @@ import AppShell from "@/components/layout/AppShell";
 import { SnapshotProvider } from "@/lib/services/snapshotContext";
 import { ConfigProvider } from "@/lib/services/configContext";
 import { Toaster } from "sonner";
+import GlobalErrorToasts from "@/components/ui/GlobalErrorToasts";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,6 +33,7 @@ export default function RootLayout({
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <AutoUpdate />
         <Toaster richColors position="top-right" />
+        <GlobalErrorToasts />
         <ConfigProvider>
           <SnapshotProvider>
             <AppShell>

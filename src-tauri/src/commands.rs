@@ -16,4 +16,10 @@ pub async fn open_external_url(app: AppHandle, url: String) -> Result<(), String
 	}
 }
 
+#[tauri::command]
+pub fn log_client(app: AppHandle, level: String, message: String) {
+    let lvl = level.to_uppercase();
+    if lvl == "ERROR" { crate::logging::log_error(&app, &message); } else { crate::logging::log_info(&app, &format!("{}", message)); }
+}
+
 

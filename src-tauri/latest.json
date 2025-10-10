@@ -1,0 +1,11 @@
+﻿{
+    "version":  "0.4.3",
+    "notes":  "Release 0.4.3",
+    "pub_date":  "2025-10-09T08:33:25Z",
+    "platforms":  {
+                      "windows-x86_64":  {
+                                             "signature":  "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRZjRIbWxRckxjanBjNmdML1MzbVNsNUg0bXZlS2pvVnVXRmw4ZjZzVEhkOXFRcGlzUXlwbjcwUVEyNzVjUTBKWGZKQXpWVzRxY2s2NXJGWEdwMjl1NENZMW54cDkwZkFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzU5OTk4ODA0CWZpbGU6RmFsdGFzIENlYmFuY18wLjQuM194NjQtc2V0dXAuZXhlCi9kY0ZjKzRja3BFTVU2VGdXL0pmTWhpb3VlVlRWcXF0dUpOTFNQWWpTVkdXdVJuOXVZSVhUWE82RE9iOE16YWd1NVgrVW96Z3VCSmcvWnRDR1hlaUR3PT0K",
+                                             "url":  "https://github.com/andiricum2/Faltas-Cebanc/releases/download/v0.4.3/Faltas%20Cebanc_0.4.3_x64-setup.exe"
+                                         }
+                  }
+}

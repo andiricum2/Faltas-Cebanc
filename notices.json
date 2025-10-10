@@ -50,19 +50,6 @@
       "label": "Ver huelga",
       "url": "https://sindicatodeestudiantes.net/index.php/noticias/movimiento-estudiantil/15-de-octubre-huelga-estudiantil-lo-paramos-todo-para-parar-el-genocidio"
     }
-  },
-  {
-    "id": "error-en-grupos",
-    "title": "Error en grupos",
-    "description": "Se ha producido un error en los grupos. Por favor, usa en configuración el grupo personalizado.",
-    "icon": "error",
-    "severity": "error",
-    "startDate": "2025-10-01T00:00:00.000Z",
-    "endDate": "2025-10-12T00:00:00.000Z",
-    "action": {
-      "label": "Ir a configuración",
-      "url": "http://localhost:3000/configuracion"
-    }
   }
 ]
 

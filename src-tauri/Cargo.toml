@@ -1,6 +1,6 @@
 [package]
 name = "faltas-cebanc"
-version = "0.4.3"
+version = "1.0.0"
 description = "Faltas Cebanc"
 authors = ["DM3"]
 edition = "2024"

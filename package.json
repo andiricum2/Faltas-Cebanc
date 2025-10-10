@@ -1,6 +1,6 @@
 {
   "name": "faltas",
-  "version": "0.4.3",
+  "version": "1.0.0",
   "private": true,
   "main": "src-tauri/src/main.rs",
   "scripts": {

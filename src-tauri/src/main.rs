@@ -6,18 +6,8 @@ mod sidecar;
 mod commands;
 
 use tauri::Manager;
-use std::panic;
 
 fn main() {
-	// Crash reporting: write panics to log file in release
-	#[cfg(not(debug_assertions))]
-	panic::set_hook(Box::new(|info| {
-		if let Some(app) = tauri::APP_HANDLE.get() {
-			let msg = info.to_string();
-			crate::logging::log_error(app, &format!("Panic: {}", msg));
-		}
-	}));
-
 	let app = tauri::Builder::default()
 		.manage(state::AppState::default())
 		.plugin(tauri_plugin_opener::init())

@@ -11,11 +11,13 @@ import { postSync } from "@/lib/services/apiClient";
 import { logUserAction } from "@/lib/logging/appLogger";
 import type { Role } from "@/lib/types/faltas";
 import { roles } from "@/lib/utils";
+import { CheckCircle, XCircle } from "lucide-react";
 
 export default function LoginPage() {
   const [role, setRole] = useState<Role>("E");
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [autoLogging, setAutoLogging] = useState<boolean>(false);
@@ -66,14 +68,35 @@ export default function LoginPage() {
   // Pantalla de carga para autologin
   if (autoLogging) {
     return (
-      <div className="min-h-screen w-full flex items-center justify-center p-6">
-        <div className="w-full max-w-xs flex flex-col items-center gap-6">
+      <div className="relative min-h-screen w-full flex items-center justify-center p-6 overflow-hidden bg-white">
+        {/* Fondo dinámico */}
+        <svg className="absolute inset-0 w-full h-full" aria-hidden="true">
+          <defs>
+            <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+              <circle cx="1.5" cy="1.5" r="1.5" className="text-black/10" fill="currentColor" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dots)" />
+          {/* Líneas animadas sutiles */}
+          <g className="opacity-20">
+            <line x1="0" y1="0" x2="100%" y2="100%" stroke="black" strokeWidth="0.5">
+              <animate attributeName="x2" values="0;100%" dur="6s" repeatCount="indefinite" />
+              <animate attributeName="y2" values="0;100%" dur="6s" repeatCount="indefinite" />
+            </line>
+            <line x1="100%" y1="0" x2="0" y2="100%" stroke="black" strokeWidth="0.5">
+              <animate attributeName="x2" values="100%;0" dur="7s" repeatCount="indefinite" />
+              <animate attributeName="y2" values="0;100%" dur="7s" repeatCount="indefinite" />
+            </line>
+          </g>
+        </svg>
+
+        <div className="relative w-full max-w-xs flex flex-col items-center gap-6 animate-in fade-in zoom-in duration-300">
           <img
             src="/logo.png"
             alt="Faltas"
-            className="h-16 w-16 animate-pulse"
+            className="h-16 w-16 drop-shadow-sm animate-bounce"
           />
-          <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
+          <div className="w-full h-2 bg-gray-200 rounded overflow-hidden shadow-inner">
             <div className="h-full bg-gray-900 indeterminate-bar" />
           </div>
           <p className="text-gray-600 text-sm">Iniciando sesión...</p>
@@ -94,47 +117,106 @@ export default function LoginPage() {
   }
 
   return (
-      <div className="min-h-screen w-full flex items-center justify-center p-6">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-center">Acceso Faltas</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={onSubmit} className="flex flex-col gap-5">
-            <div className="flex flex-col gap-2">
-              <Label>Rol</Label>
-              <Select value={role} onChange={(e) => setRole(e.target.value as Role)} required>
-                {roles.map((r) => (
-                  <option key={r.key} value={r.key}>
-                    {r.label}
-                  </option>
-                ))}
-              </Select>
+      <div className="relative min-h-screen w-full flex items-center justify-center p-6 overflow-hidden bg-white">
+        {/* Fondo dinámico: puntos y conexiones */}
+        <svg className="absolute inset-0 w-full h-full" aria-hidden="true">
+          <defs>
+            <pattern id="dots" x="0" y="0" width="24" height="24" patternUnits="userSpaceOnUse">
+              <circle cx="1.5" cy="1.5" r="1.5" className="text-black/10" fill="currentColor" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#dots)" />
+          <g className="opacity-20">
+            <line x1="0" y1="0" x2="100%" y2="100%" stroke="black" strokeWidth="0.5">
+              <animate attributeName="x2" values="0;100%" dur="8s" repeatCount="indefinite" />
+              <animate attributeName="y2" values="0;100%" dur="8s" repeatCount="indefinite" />
+            </line>
+            <line x1="100%" y1="0" x2="0" y2="100%" stroke="black" strokeWidth="0.5">
+              <animate attributeName="x2" values="100%;0" dur="9s" repeatCount="indefinite" />
+              <animate attributeName="y2" values="0;100%" dur="9s" repeatCount="indefinite" />
+            </line>
+          </g>
+        </svg>
+
+        <Card className="relative w-full max-w-md border-black/10 shadow-xl backdrop-blur-sm bg-white/80 animate-in fade-in slide-in-from-bottom-3 duration-300">
+          <CardHeader className="space-y-2">
+            <div className="w-full flex items-center justify-center">
+              <img src="/logo.png" alt="Faltas" className="h-12 w-12" />
             </div>
+            <CardTitle className="text-center tracking-tight">Acceso Faltas</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={onSubmit} className="flex flex-col gap-5">
+              {(error || success) && (
+                <div aria-live="polite" role="status" className="space-y-0.5">
+                  {error ? (
+                    <div className="rounded-lg bg-red-50 text-red-900 border border-red-200 px-3 py-2.5 text-sm shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="h-7 w-1.5 rounded-full bg-red-400" />
+                        <XCircle className="h-4.5 w-4.5" />
+                        <div className="flex-1">{error}</div>
+                      </div>
+                    </div>
+                  ) : null}
+                  {success ? (
+                    <div className="rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200 px-3 py-2.5 text-sm shadow-sm">
+                      <div className="flex items-center gap-3">
+                        <div className="h-7 w-1.5 rounded-full bg-emerald-400" />
+                        <CheckCircle className="h-4.5 w-4.5" />
+                        <div className="flex-1">Login correcto</div>
+                      </div>
+                    </div>
+                  ) : null}
+                </div>
+              )}
+              <div className="grid grid-cols-1 gap-2">
+                <Label>Rol</Label>
+                <Select value={role} onChange={(e) => setRole(e.target.value as Role)} required>
+                  {roles.map((r) => (
+                    <option key={r.key} value={r.key}>
+                      {r.label}
+                    </option>
+                  ))}
+                </Select>
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <Label>Usuario</Label>
-              <Input value={username} onChange={(e) => setUsername(e.target.value)} required />
-            </div>
+              <div className="grid grid-cols-1 gap-2">
+                <Label>Usuario</Label>
+                <Input placeholder="Tu usuario" value={username} onChange={(e) => setUsername(e.target.value)} required />
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <Label>Contraseña</Label>
-              <Input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required />
-            </div>
+              <div className="grid grid-cols-1 gap-2">
+                <Label>Contraseña</Label>
+                <div className="relative">
+                  <Input
+                    placeholder="••••••••"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded border border-black/20 bg-white/70 hover:bg-white transition"
+                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  >
+                    {showPassword ? "Ocultar" : "Mostrar"}
+                  </button>
+                </div>
+              </div>
 
-          <label className="flex items-center gap-2 text-sm">
-            <input type="checkbox" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-            Recordar usuario y contraseña
-          </label>
+              <label className="flex items-center gap-2 text-sm select-none">
+                <input type="checkbox" className="accent-black" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
+                Recordar usuario y contraseña
+              </label>
 
-            {error && <div className="text-red-600 text-sm">{error}</div>}
-            {success && <div className="text-green-600 text-sm">Login correcto</div>}
-            <Button type="submit" disabled={submitting}>
-              {submitting ? "Entrando..." : "Entrar"}
-            </Button>
-          </form>
-        </CardContent>
-      </Card>
+              <Button type="submit" disabled={submitting} className="transition-transform hover:translate-y-[-1px] active:translate-y-[0]">
+                {submitting ? "Entrando..." : "Entrar"}
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
   );
 }

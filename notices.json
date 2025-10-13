@@ -41,7 +41,7 @@
   {
     "id": "huelga-15-10-2025",
     "title": "Huelga 15 de Octubre 2025",
-    "description": "Se ha convocado la huelga.",
+    "description": "Se ha convocado la huelga. Acordaros de votar por la huelga.",
     "icon": "success",
     "severity": "error",
     "startDate": "2025-10-06T00:00:00.000Z",

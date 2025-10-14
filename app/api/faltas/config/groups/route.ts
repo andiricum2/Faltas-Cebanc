@@ -1,33 +1,26 @@
 export async function GET() {
   try {
-    const repo = "andiricum2/Faltas-Cebanc"; // owner/repo
-    const branch = "main";
-    const dir = "grupos";
-
-    // Use GitHub REST API to list directory contents
-    const apiUrl = `https://api.github.com/repos/${repo}/contents/${encodeURIComponent(dir)}?ref=${encodeURIComponent(branch)}`;
-    const ghRes = await fetch(apiUrl, {
-      headers: {
-        "Accept": "application/vnd.github+json",
-        "User-Agent": "FaltasCebanc-App"
+    const rawUrl = `https://raw.githubusercontent.com/andiricum2/Faltas-Cebanc/main/grupos/index.json`;
+    
+    try {
+      const rawRes = await fetch(rawUrl, { headers: { "User-Agent": "FaltasCebanc-App" } });
+      if (rawRes.ok) {
+        const data: any = await rawRes.json();
+        const groups = Array.isArray(data)
+          ? data.map((g) => String(g).replace(/\.json$/i, ""))
+          : Array.isArray(data?.groups)
+            ? data.groups.map((g: any) => String(g).replace(/\.json$/i, ""))
+            : [];
+        if (groups.length > 0) {
+          return new Response(JSON.stringify({ ok: true, groups }), { status: 200, headers: { "Content-Type": "application/json" } });
+        }
       }
-    });
-
-    if (!ghRes.ok) {
-      return new Response(JSON.stringify({ ok: true, groups: [] }), { status: 200, headers: { "Content-Type": "application/json" } });
+    } catch (_) {
+      // ignore and return empty list below
     }
-
-    const items: Array<{ name: string; type: string }>|any = await ghRes.json();
-    const groups = Array.isArray(items)
-      ? items
-          .filter((e) => e?.type === "file" && typeof e?.name === "string" && e.name.toLowerCase().endsWith(".json"))
-          .map((e) => e.name.replace(/\.json$/i, ""))
-      : [];
-
-    return new Response(JSON.stringify({ ok: true, groups }), { status: 200, headers: { "Content-Type": "application/json" } });
+    // Fallback: return empty list
+    return new Response(JSON.stringify({ ok: true, groups: [] }), { status: 200, headers: { "Content-Type": "application/json" } });
   } catch (e: any) {
     return new Response(JSON.stringify({ ok: true, groups: [] }), { status: 200, headers: { "Content-Type": "application/json" } });
   }
 }
-
-

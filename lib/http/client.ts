@@ -19,11 +19,24 @@ export async function request<T>(input: string, init?: RequestInit): Promise<T> 
       throw err;
     }
     if (!res.ok) {
-      const text = await res.text().catch(() => "");
-      const msg = text || `HTTP ${res.status}`;
+      let msg = `HTTP ${res.status}`;
+      const body = await res.text().catch(() => "");
+      if (body) {
+        try {
+          const data = JSON.parse(body);
+          msg = data?.errorMessage || msg;
+        } catch {
+          msg = body;
+        }
+      }
+
       const isUser = res.status >= 400 && res.status < 500;
       emitToast(isUser ? msg : "Ha ocurrido un error. Inténtalo más tarde.", isUser ? "warning" : "error", isUser ? "Revisa la petición" : "Error del servidor");
-      throw new Error(msg);
+
+      const err: any = new Error(msg);
+      err.status = res.status;
+      err.code = "HTTP_ERROR";
+      throw err;
     }
     try {
       return (await res.json()) as T;

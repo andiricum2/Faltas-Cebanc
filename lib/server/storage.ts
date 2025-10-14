@@ -30,7 +30,9 @@ export async function readJsonFileOptional<T = unknown>(filePath: string): Promi
 export async function writeJsonFile(filePath: string, data: unknown): Promise<void> {
   const dir = path.dirname(filePath);
   await ensureDir(dir);
-  const tmp = `${filePath}.tmp`;
+  // Use a unique temp filename to avoid conflicts with concurrent writes
+  const uniqueSuffix = `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  const tmp = `${filePath}.tmp.${uniqueSuffix}`;
   const json = JSON.stringify(data, null, 2);
   await fs.writeFile(tmp, json, "utf-8");
   try {
@@ -39,8 +41,15 @@ export async function writeJsonFile(filePath: string, data: unknown): Promise<vo
     if (err?.code === "ENOENT") {
       // Ensure directory exists and retry
       await ensureDir(dir);
-      await fs.rename(tmp, filePath);
-      return;
+      try {
+        await fs.rename(tmp, filePath);
+        return;
+      } catch (e2: any) {
+        // On Windows, rename can still fail due to locks; fall back to copy+unlink
+        await fs.copyFile(tmp, filePath);
+        await fs.rm(tmp, { force: true });
+        return;
+      }
     }
     if (err?.code === "EXDEV") {
       // Cross-device link not permitted; fall back to copy+unlink

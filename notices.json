@@ -39,17 +39,13 @@
     }
   },
   {
-    "id": "huelga-15-10-2025",
+    "id": "huelga-15-10-2025-desconvocatoria",
     "title": "Huelga 15 de Octubre 2025",
-    "description": "Se ha convocado la huelga. Acordaros de votar por la huelga.",
-    "icon": "success",
+    "description": "Huelga Cancelada. No ha habido suficiente participación para que se produzca la huelga. 242 Sí, 30 No, 11 Blanco, 6 Abstención, 20 Desvinculado",
+    "icon": "error",
     "severity": "error",
     "startDate": "2025-10-06T00:00:00.000Z",
-    "endDate": "2025-10-15T00:00:00.000Z",
-    "action": {
-      "label": "Ver huelga",
-      "url": "https://sindicatodeestudiantes.net/index.php/noticias/movimiento-estudiantil/15-de-octubre-huelga-estudiantil-lo-paramos-todo-para-parar-el-genocidio"
-    }
+    "endDate": "2025-10-15T00:00:00.000Z"
   }
 ]
 

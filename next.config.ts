@@ -7,11 +7,9 @@ const nextConfig = {
   },
   // Do not copy local data directory into the standalone build output
   outputFileTracingExcludes: {
-    "*": [".data/**"],
-  },
-  // Ensure the local grupos directory is bundled with the standalone server
-  outputFileTracingIncludes: {
-    "*": ["grupos/**"],
+    "*": [
+      ".data/**"
+    ],
   },
 };
 

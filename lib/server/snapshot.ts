@@ -55,19 +55,28 @@ export async function loadProcessedSnapshot(dni: string): Promise<StudentSnapsho
     }
   } catch {}
 
-  // Si hay grupo seleccionado, cargar presets del grupo y usarlos (sobre-escriben personalizados)
+  // Si hay grupo seleccionado, cargar presets del grupo desde GitHub y usarlos (sobre-escriben personalizados)
   if (selectedGroup && selectedGroup !== "personalizado") {
     try {
-      const groupsDir = path.join(baseBase, "grupos");
-      const filePath = path.join(groupsDir, `${selectedGroup}.json`);
-      const raw = await fs.readFile(filePath, "utf-8");
-      const parsed = JSON.parse(raw) || {};
-      const gHours: Record<string, number> = parsed.hoursPerModule || parsed.hours || {};
-      const gTargets: Record<string, Record<string, boolean>> = parsed.retoTargets || {};
-      hoursPerModule = gHours || {};
-      retoTargets = gTargets || {};
+      const repo = "andiricum2/Faltas-Cebanc"; // owner/repo
+      const branch = "main";
+      const dir = "grupos";
+
+      {
+        const rawUrl = `https://raw.githubusercontent.com/${repo}/${encodeURIComponent(branch)}/${encodeURIComponent(dir)}/${encodeURIComponent(selectedGroup)}.json`;
+        const res = await fetch(rawUrl, { headers: { "User-Agent": "FaltasCebanc-App" } });
+        if (res.ok) {
+          const parsed = await res.json();
+          const gHours: Record<string, number> = parsed.hoursPerModule || parsed.hours || {};
+          const gTargets: Record<string, Record<string, boolean>> = parsed.retoTargets || {};
+          hoursPerModule = gHours || {};
+          retoTargets = gTargets || {};
+        } else {
+          console.warn(`No se pudo fetchear grupo '${selectedGroup}' desde GitHub (status ${res.status}).`);
+        }
+      }
     } catch (e) {
-      console.warn(`No se pudo cargar grupo '${selectedGroup}', usando configuraciones personalizadas si existen.`);
+      console.warn(`No se pudo cargar grupo '${selectedGroup}' desde GitHub, usando configuraciones personalizadas si existen.`);
     }
   }
 

@@ -94,42 +94,37 @@ export function getModuleCalculations(
 
   // Procesar cada reto
   for (const retoId of retos) {
-    const retoData = snapshot.aggregated.modules[retoId];
-    const retoFaltas = sumarFaltas(retoData?.absenceCounts);
-    const retoAsistencias = retoData?.classesGiven || 0;
 
-    if (retoFaltas > 0 || retoAsistencias > 0) {
-      // Determinar módulos objetivo
-      let targets = nonRetoModules;
-      const selected = retoTargets[retoId];
-      if (selected && Object.values(selected).some(Boolean)) {
-        targets = nonRetoModules.filter(m => !!selected[m]);
+    // Determinar módulos objetivo
+    let targets = nonRetoModules;
+    const selected = retoTargets[retoId];
+    if (selected && Object.values(selected).some(Boolean)) {
+      targets = nonRetoModules.filter(m => !!selected[m]);
+    }
+
+    if (targets.length > 0) {
+      // Calcular coeficientes basados en horas semanales
+      const hours = targets.map(m => Math.max(0, Number(hoursPerModule[m] || 0)));
+      const sumHours = hours.reduce((a, b) => a + b, 0);
+
+      let coeficientesReto: Record<string, number>;
+      if (sumHours > 0) {
+        coeficientesReto = Object.fromEntries(
+          targets.map((m, i) => [m, Number((hours[i] / sumHours))])
+        );
+      } else {
+        const equal = Number((1 / targets.length));
+        coeficientesReto = Object.fromEntries(
+          targets.map(m => [m, equal])
+        );
       }
 
-      if (targets.length > 0) {
-        // Calcular coeficientes basados en horas semanales
-        const hours = targets.map(m => Math.max(0, Number(hoursPerModule[m] || 0)));
-        const sumHours = hours.reduce((a, b) => a + b, 0);
-
-        let coeficientesReto: Record<string, number>;
-        if (sumHours > 0) {
-          coeficientesReto = Object.fromEntries(
-            targets.map((m, i) => [m, Number((hours[i] / sumHours))])
-          );
-        } else {
-          const equal = Number((1 / targets.length));
-          coeficientesReto = Object.fromEntries(
-            targets.map(m => [m, equal])
-          );
-        }
-
-        // Limpiar faltas del reto si se especifica
-        if (cleanRetoFaltas) {
-          distributedSnapshot.aggregated.modules[retoId].absenceCounts = {};
-        }
-
-        coeficientes[retoId] = coeficientesReto;
+      // Limpiar faltas del reto si se especifica
+      if (cleanRetoFaltas) {
+        distributedSnapshot.aggregated.modules[retoId].absenceCounts = {};
       }
+
+      coeficientes[retoId] = coeficientesReto;
     }
   }
 

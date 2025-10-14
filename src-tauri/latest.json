@@ -1,11 +1,11 @@
 ﻿{
-    "version":  "1.0.0",
-    "notes":  "Release 1.0.0",
-    "pub_date":  "2025-10-10T08:52:11Z",
+    "version":  "1.1.0",
+    "notes":  "Release 1.1.0",
+    "pub_date":  "2025-10-14T08:04:32Z",
     "platforms":  {
                       "windows-x86_64":  {
-                                             "signature":  "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRZjRIbWxRckxjanU4TW9pMVh2alBpc0R6dFloMkFHcGtDWVdmYzJZb0VYY2VxVUhPaDRvQXQ2M2ZIdTg1NkJjTzFvbFg5SWxvV3dMOC9BVEhwdWNwaUNQdVpzdk0yUkFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwMDg2MzMxCWZpbGU6RmFsdGFzIENlYmFuY18xLjAuMF94NjQtc2V0dXAuZXhlCkxmYzhKOXJYSWdESEs3a0dIWXZ3OVFvK1JPWjU4SldLZDVMVHRpelYrdW1OR1J6dGEzQU9ndU9mTEFXUXgxV0J0ZnhPQUZRcHFRWVlrRzFEYUN1WURBPT0K",
-                                             "url":  "https://github.com/andiricum2/Faltas-Cebanc/releases/download/v1.0.0/Faltas%20Cebanc_1.0.0_x64-setup.exe"
+                                             "signature":  "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVRZjRIbWxRckxjamcwdHVZNFFsMElOaERLUUcrZjZNa0ZJQjRPeFFNTmxHRDJKKzh2bnRTcm84aCtLTWs1T1hScWpXakZDajZnYytSd1ZKUVRyd05wSzIyM2hyNWpiaHdNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzYwNDI5MDcyCWZpbGU6RmFsdGFzIENlYmFuY18xLjEuMF94NjQtc2V0dXAuZXhlCnB1eEFvdU1rbHdkeWlsaDdIQlowbDRrM1RtRGY3Wmczcm5uaGwvc2lQOEIzT2ZyZEJSZTZnSUJzdW5ST2U3UG1GTnJSNVBVa2h0L1ZjZ1I4cUdqQkNnPT0K",
+                                             "url":  "https://github.com/andiricum2/Faltas-Cebanc/releases/download/v1.1.0/Faltas%20Cebanc_1.1.0_x64-setup.exe"
                                          }
                   }
 }

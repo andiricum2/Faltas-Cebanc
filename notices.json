@@ -50,6 +50,15 @@
       "label": "Ver huelga",
       "url": "https://sindicatodeestudiantes.net/index.php/noticias/movimiento-estudiantil/15-de-octubre-huelga-estudiantil-lo-paramos-todo-para-parar-el-genocidio"
     }
+  },
+  {
+    "id": "huelga-15-10-2025-votos",
+    "title": "Huelga 15 de Octubre 2025",
+    "description": "Limite de votos: 14/10/2025 a las 11:00. Acordaros de votar por la huelga.",
+    "icon": "warning",
+    "severity": "warning",
+    "startDate": "2025-10-06T00:00:00.000Z",
+    "endDate": "2025-10-15T00:00:00.000Z"
   }
 ]
 

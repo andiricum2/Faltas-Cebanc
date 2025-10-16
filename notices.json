@@ -24,28 +24,6 @@
       "label": "Ir a configuración",
       "url": "http://localhost:3000/configuracion"
     }
-  },
-  {
-    "id": "lista-horas-semanales",
-    "title": "Lista de Horas Semanales",
-    "description": "Para ver las horas semanales de tu modulo, haz click en el siguiente boton.",
-    "icon": "success",
-    "severity": "success",
-    "startDate": "2025-10-01T00:00:00.000Z",
-    "endDate": "2025-10-05T00:00:00.000Z",
-    "action": {
-      "label": "Ver horas semanales",
-      "url": "https://docs.google.com/spreadsheets/d/18eIEQfLAhivNrOylAFUhKUXr2cSOFnFRr8i4yGei9FQ/edit?gid=0#gid=0"
-    }
-  },
-  {
-    "id": "huelga-15-10-2025-desconvocatoria",
-    "title": "Huelga 15 de Octubre 2025",
-    "description": "Huelga Cancelada. No ha habido suficiente participación para que se produzca la huelga. 242 Sí, 30 No, 11 Blanco, 6 Abstención, 20 Desvinculado",
-    "icon": "error",
-    "severity": "error",
-    "startDate": "2025-10-06T00:00:00.000Z",
-    "endDate": "2025-10-15T00:00:00.000Z"
   }
 ]
 

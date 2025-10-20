@@ -10,10 +10,12 @@ import { absenceColorClass, moduleColorClass } from "@/lib/utils/ui";
 import { extractAbsenceCode } from "@/lib/utils";
 import { useDataLoader } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
+import { useTranslations } from "next-intl";
 
 export default function SemanalPage() {
   const { snapshot } = useSnapshot();
   const [selectedWeekIdx, setSelectedWeekIdx] = useState<number | null>(null);
+  const t = useTranslations();
 
   // Fecha local de hoy (yyyy-mm-dd)
   const todayISO = useMemo(() => getTodayLocalISO(), []);
@@ -28,7 +30,7 @@ export default function SemanalPage() {
   const { data: selectedWeekData, loading: selectedWeekLoading, error } = useDataLoader(
     () => {
       if (!snapshot?.identity?.dni || weekIdx == null) {
-        throw new Error("No hay datos disponibles");
+        throw new Error(t('weekly.noDataAvailable'));
       }
       return getSelectedWeek(snapshot.identity.dni, weekIdx, "all", "all");
     },
@@ -50,18 +52,18 @@ export default function SemanalPage() {
     <LoadingState loading={false} error={null}>
       <div className="w-full space-y-6">
       <div className="flex items-center justify-between gap-4">
-        <h2 className="text-2xl font-semibold tracking-tight">Semanal</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">{t('navigation.weekly')}</h2>
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
             size="icon"
-            aria-label="Semana anterior"
+            aria-label={t('common.previous')}
             onClick={() => {
               const current = weekIdx ?? 0;
               if (current > 0) setSelectedWeekIdx(current - 1);
             }}
             disabled={(weekIdx ?? 0) <= 0}
-            title="Semana anterior"
+            title={t('common.previous')}
           >
             ←
           </Button>
@@ -77,13 +79,13 @@ export default function SemanalPage() {
           <Button
             variant="outline"
             size="icon"
-            aria-label="Semana siguiente"
+            aria-label={t('common.next')}
             onClick={() => {
               const current = weekIdx ?? 0;
               if (current < (snapshot?.weeks.length ?? 0) - 1) setSelectedWeekIdx(current + 1);
             }}
             disabled={(weekIdx ?? 0) >= (snapshot?.weeks.length ?? 0) - 1}
-            title="Semana siguiente"
+            title={t('common.next')}
           >
             →
           </Button>
@@ -100,12 +102,12 @@ export default function SemanalPage() {
         </LoadingState>
       ) : selectedWeek ? (
         <div className="space-y-6">
-          <div className="text-sm text-muted-foreground">Detalle semanal ({selectedWeek.weekStartISO} → {selectedWeek.weekEndISO})</div>
+          <div className="text-sm text-muted-foreground">{t('weekly.weeklyDetail', { start: selectedWeek.weekStartISO, end: selectedWeek.weekEndISO })}</div>
           <div className="overflow-auto rounded-md border">
             <table className="min-w-[860px] w-full text-sm">
               <thead className="bg-muted">
                 <tr>
-                  <th className="px-3 py-2 text-left font-semibold">Hora</th>
+                  <th className="px-3 py-2 text-left font-semibold">{t('weekly.hour')}</th>
                   {selectedWeek.daysISO.map((d)=> (
                     <th key={d} className="px-3 py-2 text-left font-semibold">{d}</th>
                   ))}
@@ -144,7 +146,7 @@ export default function SemanalPage() {
           </div>
           <div className="grid gap-4 md:grid-cols-2">
             <section>
-              <h3 className="text-base font-semibold mb-4">Leyenda faltas</h3>
+              <h3 className="text-base font-semibold mb-4">{t('weekly.absenceLegend')}</h3>
               <div className="flex flex-wrap gap-2 text-sm">
                 {Object.entries(absenceLegend).map(([k, v]) => (
                   <div key={k} className="flex items-center gap-2 rounded-md border px-2 py-1">
@@ -156,7 +158,7 @@ export default function SemanalPage() {
               </div>
             </section>
             <section>
-              <h3 className="text-base font-semibold mb-4">Leyenda asignaturas</h3>
+              <h3 className="text-base font-semibold mb-4">{t('weekly.subjectLegend')}</h3>
               <div className="flex flex-wrap gap-2 text-sm max-h-40 overflow-auto p-1 border rounded-md">
                 {Object.entries(moduleLegend).map(([k, v]) => (
                   <div key={k} className="flex items-center gap-2 rounded-md border px-2 py-1">
@@ -169,7 +171,7 @@ export default function SemanalPage() {
           </div>
         </div>
       ) : (
-        <LoadingState loading={false} error="No se pudo cargar la semana seleccionada">
+        <LoadingState loading={false} error={t('weekly.couldNotLoadWeek')}>
           <div />
         </LoadingState>
       )}

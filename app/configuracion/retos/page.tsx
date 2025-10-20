@@ -6,10 +6,12 @@ import { loadRetoTargets, saveRetoTargets } from "@/lib/services/configRepositor
 import { useConfigPage } from "@/lib/hooks";
 import { isRetoModule } from "@/lib/utils";
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import type { RetoTargets } from "@/lib/types/snapshot";
 
 export default function ConfigRetosPage() {
   const { snapshot } = useSnapshot();
+  const t = useTranslations();
 
   const moduleKeys = useMemo(() => Object.keys(snapshot?.aggregated?.modules || {}), [snapshot]);
   const nonRetoModules = useMemo(() => 
@@ -25,11 +27,11 @@ export default function ConfigRetosPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Configuración · Retos</h1>
+      <h1 className="text-xl font-semibold">{t('challenges.title')}</h1>
 
       <section className="space-y-3">
         {retos.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No se han detectado retos en los datos actuales.</div>
+          <div className="text-sm text-muted-foreground">{t('challenges.noChallenges')}</div>
         ) : null}
         {retos.map((r) => (
           <div key={r.id} className="border rounded p-3 space-y-3">
@@ -37,13 +39,13 @@ export default function ConfigRetosPage() {
               <div className="font-medium">{r.label} ({r.id})</div>
             </div>
             <div className="space-y-2">
-              <div className="text-sm font-medium">Asignar a módulos</div>
+              <div className="text-sm font-medium">{t('challenges.assignToModules')}</div>
               <div className="rounded border max-h-60 overflow-auto">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-muted">
-                      <th className="text-left p-2">Módulo</th>
-                      <th className="text-left p-2 w-24">Asignado</th>
+                      <th className="text-left p-2">{t('schedule.module')}</th>
+                      <th className="text-left p-2 w-24">{t('challenges.assigned')}</th>
                     </tr>
                   </thead>
                   <tbody>

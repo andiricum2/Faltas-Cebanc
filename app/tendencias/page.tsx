@@ -8,6 +8,7 @@ import { TrendingUp, Activity, BarChart3, PieChart as PieChartIcon } from "lucid
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { useStatistics, useStatisticsMetrics } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
+import { useTranslations } from "next-intl";
 
 const CHART_COLORS = [
   '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
@@ -78,6 +79,7 @@ ChartContainer.displayName = 'ChartContainer';
 export default function TendenciasPage() {
   const { snapshot } = useSnapshot();
   const { data: statistics, loading: statisticsLoading, error, reload: loadStatistics } = useStatistics(snapshot?.identity?.dni);
+  const t = useTranslations();
 
   // Sin estados de hover para métricas
 
@@ -134,7 +136,7 @@ export default function TendenciasPage() {
         ) : metrics ? (
           <>
             <MetricCard
-              title="Porcentaje de faltas"
+              title={t('dashboard.attendancePercentage')}
               value={`${snapshot.percentages.totalPercent}%`}
               icon={Activity}
               color="blue"
@@ -143,7 +145,7 @@ export default function TendenciasPage() {
             />
 
             <MetricCard
-              title="Faltas totales"
+              title={t('dashboard.totalAbsences')}
               value={metrics.totalFaltas}
               icon={Activity}
               color="green"
@@ -158,7 +160,7 @@ export default function TendenciasPage() {
             </MetricCard>
 
             <MetricCard
-              title="Máximo semanal"
+              title={t('trends.maxWeekly')}
               value={metrics.maxWeek}
               icon={BarChart3}
               color="amber"
@@ -166,14 +168,14 @@ export default function TendenciasPage() {
               <div className="mt-4">
                 <div className="text-xs text-muted-foreground">
                   {metrics.maxWeekLabel && (
-                    <span>Semana: {metrics.maxWeekLabel}</span>
+                    <span>{t('trends.week')}: {metrics.maxWeekLabel}</span>
                   )}
                 </div>
               </div>
             </MetricCard>
 
             <MetricCard
-              title="Tipos de falta"
+              title={t('trends.absenceTypes')}
               value={absenceTypeData.length}
               icon={PieChartIcon}
               color="purple"
@@ -192,7 +194,7 @@ export default function TendenciasPage() {
           <div className="col-span-full flex items-center justify-center py-8">
             <div className="text-center space-y-2">
               <Activity className="w-8 h-8 mx-auto text-muted-foreground" />
-              <p className="text-muted-foreground">No hay métricas disponibles</p>
+              <p className="text-muted-foreground">{t('trends.noMetrics')}</p>
             </div>
           </div>
         )}
@@ -206,51 +208,42 @@ export default function TendenciasPage() {
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
               <CardTitle className="flex items-center gap-2">
                 <TrendingUp className="w-5 h-5 text-blue-600" />
-                Evolución semanal
+                {t('trends.weeklyEvolution')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
               <ChartContainer>
                 <ResponsiveContainer width="100%" height="100%">
-                  {weeklySeries.length > 0 ? (
-                    <AreaChart data={weeklySeries}>
-                      <defs>
-                        <linearGradient id="colorAbsences" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
-                          <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-                      <XAxis 
-                        dataKey="label" 
-                        className="text-xs"
-                        tick={{ fontSize: 12 }}
-                        interval="preserveStartEnd"
-                      />
-                      <YAxis 
-                        allowDecimals={false} 
-                        className="text-xs"
-                        tick={{ fontSize: 12 }}
-                      />
-                      <Tooltip content={<CustomTooltip />} />
-                      <Area
-                        type="monotone"
-                        dataKey="total"
-                        stroke="#3b82f6"
-                        fillOpacity={1}
-                        fill="url(#colorAbsences)"
-                        strokeWidth={3}
-                        name="Faltas"
-                      />
-                    </AreaChart>
-                  ) : (
-                    <div className="flex items-center justify-center h-full">
-                      <div className="text-center space-y-2">
-                        <TrendingUp className="w-8 h-8 mx-auto text-muted-foreground" />
-                        <p className="text-muted-foreground">No hay datos de evolución semanal</p>
-                      </div>
-                    </div>
-                  )}
+                  <AreaChart data={weeklySeries}>
+                    <defs>
+                      <linearGradient id="colorAbsences" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.3}/>
+                        <stop offset="95%" stopColor="#3b82f6" stopOpacity={0}/>
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+                    <XAxis 
+                      dataKey="label" 
+                      className="text-xs"
+                      tick={{ fontSize: 12 }}
+                      interval="preserveStartEnd"
+                    />
+                    <YAxis 
+                      allowDecimals={false} 
+                      className="text-xs"
+                      tick={{ fontSize: 12 }}
+                    />
+                    <Tooltip content={<CustomTooltip />} />
+                    <Area
+                      type="monotone"
+                      dataKey="total"
+                      stroke="#3b82f6"
+                      fillOpacity={1}
+                      fill="url(#colorAbsences)"
+                      strokeWidth={3}
+                      name="Faltas"
+                    />
+                  </AreaChart>
                 </ResponsiveContainer>
               </ChartContainer>
             </CardContent>
@@ -261,7 +254,7 @@ export default function TendenciasPage() {
             <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/50 dark:to-pink-950/50">
               <CardTitle className="flex items-center gap-2">
                 <PieChartIcon className="w-5 h-5 text-purple-600" />
-                Distribución por tipo
+                {t('trends.distributionByType')}
               </CardTitle>
             </CardHeader>
             <CardContent className="p-6">
@@ -292,7 +285,7 @@ export default function TendenciasPage() {
                     <div className="flex items-center justify-center h-full">
                       <div className="text-center space-y-2">
                         <PieChartIcon className="w-8 h-8 mx-auto text-muted-foreground" />
-                        <p className="text-muted-foreground">No hay datos de tipos de faltas</p>
+                        <p className="text-muted-foreground">{t('trends.noAbsenceTypeData')}</p>
                       </div>
                     </div>
                   )}

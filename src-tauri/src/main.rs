@@ -18,11 +18,15 @@ fn main() {
 				if let Ok(Some((child, port))) = sidecar::spawn_next_sidecar(&_app.handle()) {
 					let state = _app.state::<state::AppState>();
 					*state.sidecar_process.lock().unwrap() = Some(child);
+					logging::log_info(&_app.handle(), &format!("Sidecar process spawned successfully on port {}", port));
 
 					if let Some(win) = _app.get_webview_window("main") {
 						let url = url::Url::parse(&format!("http://127.0.0.1:{}", port)).unwrap();
 						let _ = win.navigate(url);
+						logging::log_info(&_app.handle(), "Navigated to sidecar URL");
 					}
+				} else {
+					logging::log_sidecar_error(&_app.handle(), "Failed to spawn sidecar process");
 				}
 			}
 			Ok(())
@@ -36,8 +40,11 @@ fn main() {
 		RunEvent::ExitRequested { .. } | RunEvent::Exit => {
 			let state = app_handle.state::<state::AppState>();
 			if let Some(mut child) = state.sidecar_process.lock().unwrap().take() {
+				logging::log_sidecar_exit(&app_handle);
 				if let Err(e) = child.kill() {
-					logging::log_error(&app_handle, &format!("Failed to kill sidecar process: {}", e));
+					logging::log_sidecar_error(&app_handle, &format!("Failed to kill sidecar process: {}", e));
+				} else {
+					logging::log_info(&app_handle, "Sidecar process terminated successfully");
 				}
 			}
 			logging::log_app_exit(&app_handle);

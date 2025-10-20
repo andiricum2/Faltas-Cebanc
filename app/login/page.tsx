@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLogin } from "@/lib/hooks";
 import { postSync } from "@/lib/services/apiClient";
 import { logUserAction } from "@/lib/logging/appLogger";
+import { useTranslations } from "next-intl";
 import type { Role } from "@/lib/types/faltas";
 import { roles } from "@/lib/utils";
 import { CheckCircle, XCircle } from "lucide-react";
@@ -21,6 +22,7 @@ export default function LoginPage() {
   const [remember, setRemember] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [autoLogging, setAutoLogging] = useState<boolean>(false);
+  const t = useTranslations();
 
   const { loading, error, success, login, autoLogin, clearError } = useLogin({
     onSuccess: async () => {
@@ -99,7 +101,7 @@ export default function LoginPage() {
           <div className="w-full h-2 bg-gray-200 rounded overflow-hidden shadow-inner">
             <div className="h-full bg-gray-900 indeterminate-bar" />
           </div>
-          <p className="text-gray-600 text-sm">Iniciando sesión...</p>
+          <p className="text-gray-600 text-sm">{t('login.loggingIn')}</p>
         </div>
         <style jsx>{`
           @keyframes indeterminateLogin {
@@ -143,7 +145,7 @@ export default function LoginPage() {
             <div className="w-full flex items-center justify-center">
               <img src="/logo.png" alt="Faltas" className="h-12 w-12" />
             </div>
-            <CardTitle className="text-center tracking-tight">Acceso Faltas</CardTitle>
+            <CardTitle className="text-center tracking-tight">{t('login.title')}</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={onSubmit} className="flex flex-col gap-5">
@@ -154,7 +156,7 @@ export default function LoginPage() {
                       <div className="flex items-center gap-3">
                         <div className="h-7 w-1.5 rounded-full bg-red-400" />
                         <XCircle className="h-4.5 w-4.5" />
-                        <div className="flex-1">{error}</div>
+                        <div className="flex-1">{t('login.loginError')}</div>
                       </div>
                     </div>
                   ) : null}
@@ -163,30 +165,30 @@ export default function LoginPage() {
                       <div className="flex items-center gap-3">
                         <div className="h-7 w-1.5 rounded-full bg-emerald-400" />
                         <CheckCircle className="h-4.5 w-4.5" />
-                        <div className="flex-1">Login correcto</div>
+                        <div className="flex-1">{t('login.loginSuccess')}</div>
                       </div>
                     </div>
                   ) : null}
                 </div>
               )}
               <div className="grid grid-cols-1 gap-2">
-                <Label>Rol</Label>
+                <Label>{t('login.role')}</Label>
                 <Select value={role} onChange={(e) => setRole(e.target.value as Role)} required>
                   {roles.map((r) => (
                     <option key={r.key} value={r.key}>
-                      {r.label}
+                      {t(r.labelKey)}
                     </option>
                   ))}
                 </Select>
               </div>
 
               <div className="grid grid-cols-1 gap-2">
-                <Label>Usuario</Label>
-                <Input placeholder="Tu usuario" value={username} onChange={(e) => setUsername(e.target.value)} required />
+                <Label>{t('login.username')}</Label>
+                <Input placeholder={t('login.username')} value={username} onChange={(e) => setUsername(e.target.value)} required />
               </div>
 
               <div className="grid grid-cols-1 gap-2">
-                <Label>Contraseña</Label>
+                <Label>{t('login.password')}</Label>
                 <div className="relative">
                   <Input
                     placeholder="••••••••"
@@ -199,20 +201,20 @@ export default function LoginPage() {
                     type="button"
                     onClick={() => setShowPassword((v) => !v)}
                     className="absolute right-2 top-1/2 -translate-y-1/2 text-xs px-2 py-1 rounded border border-black/20 bg-white/70 hover:bg-white transition"
-                    aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    aria-label={showPassword ? t('common.hide') : t('common.show')}
                   >
-                    {showPassword ? "Ocultar" : "Mostrar"}
+                    {showPassword ? t('common.hide') : t('common.show')}
                   </button>
                 </div>
               </div>
 
               <label className="flex items-center gap-2 text-sm select-none">
                 <input type="checkbox" className="accent-black" checked={remember} onChange={(e) => setRemember(e.target.checked)} />
-                Recordar usuario y contraseña
+                {t('login.rememberMe')}
               </label>
 
               <Button type="submit" disabled={submitting} className="transition-transform hover:translate-y-[-1px] active:translate-y-[0]">
-                {submitting ? "Entrando..." : "Entrar"}
+                {submitting ? t('login.loggingIn') : t('login.loginButton')}
               </Button>
             </form>
           </CardContent>

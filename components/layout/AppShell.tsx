@@ -16,12 +16,14 @@ import { Download, Github } from "lucide-react";
 import { openExternalUrl } from "@/lib/utils";
 import NoticeBanner from "@/components/ui/notice-banner";
 import { SnapshotRequired } from "@/components/ui/loading-state";
+import { useTranslations } from "next-intl";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { syncNow, loading, error, snapshot } = useSnapshot();
   const [loggingOut, setLoggingOut] = useState<boolean>(false);
   const [updateInfo, setUpdateInfo] = useState<{ version: string; url: string } | null>(null);
+  const t = useTranslations();
   const isLogin = pathname === "/login";
   const isHome = pathname === "/";
   const isDashboard = pathname?.startsWith("/dashboard");
@@ -76,12 +78,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           <span className="font-semibold">Faltas</span>
         </div>
         <nav className="p-2 text-sm">
-          <NavItem href="/dashboard" active={isDashboard} label="Vista general" icon={LayoutDashboard} />
-          <NavItem href="/tendencias" active={isTendencias} label="Tendencias" icon={LineChart} />
-          <NavItem href="/semanal" active={isSemanal} label="Semanal" icon={CalendarDays} />
-          <NavItem href="/modulos" active={isModulos} label="Módulos" icon={Layers} />
-          <NavItem href="/calcular" active={isCalcular} label="Calcular" icon={Calculator} />
-          <NavItem href="/configuracion" label="Configuración" icon={SlidersHorizontal} />
+          <NavItem href="/dashboard" active={isDashboard} label={t('navigation.dashboard')} icon={LayoutDashboard} />
+          <NavItem href="/tendencias" active={isTendencias} label={t('navigation.trends')} icon={LineChart} />
+          <NavItem href="/semanal" active={isSemanal} label={t('navigation.weekly')} icon={CalendarDays} />
+          <NavItem href="/modulos" active={isModulos} label={t('navigation.modules')} icon={Layers} />
+          <NavItem href="/calcular" active={isCalcular} label={t('navigation.calculate')} icon={Calculator} />
+          <NavItem href="/configuracion" label={t('navigation.configuration')} icon={SlidersHorizontal} />
         </nav>
         
         <div className="mt-auto p-3 border-t space-y-2">
@@ -91,7 +93,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               <div className="rounded-md border bg-sidebar-accent/50 p-3 space-y-2">
                 <div className="flex items-center gap-2">
                   <Download className="h-4 w-4" />
-                  <div className="text-sm font-medium">Actualización disponible</div>
+                  <div className="text-sm font-medium">{t('version.updateRequired')}</div>
                 </div>
                 <Button
                   variant="default"
@@ -100,7 +102,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
                   className="w-full justify-center"
                 >
                 <div className="text-xs justify-center text-white">
-                  Descargar v{updateInfo.version}
+                  {t('version.downloadUpdate')} v{updateInfo.version}
                 </div>
                 </Button>
               </div>
@@ -109,7 +111,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
 
 
           <div className="grid grid-cols-4 gap-2">
-            <Button onClick={onSync} disabled={loading} variant="outline" size="sm" className="col-span-3 w-full justify-center" aria-label="Sincronizar">
+            <Button onClick={onSync} disabled={loading} variant="outline" size="sm" className="col-span-3 w-full justify-center" aria-label={t('common.sync')}>
             {loading ? (
               <svg className="mr-2 h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -118,9 +120,9 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
             ) : (
               <RefreshCcw className="mr-2 h-4 w-4" />
             )}
-            {loading ? "Sincronizando..." : "Sincronizar Datos"}
+            {loading ? t('common.syncing') : t('common.sync')}
             </Button>
-            <Button onClick={onLogout} disabled={loggingOut} variant="outline" size="sm" className="col-span-1 w-full justify-center" aria-label="Cerrar sesión" title="Cerrar sesión">
+            <Button onClick={onLogout} disabled={loggingOut} variant="outline" size="sm" className="col-span-1 w-full justify-center" aria-label={t('common.logout')} title={t('common.logout')}>
               {loggingOut ? (
                 <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

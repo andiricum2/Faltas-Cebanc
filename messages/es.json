@@ -1,0 +1,198 @@
+{
+  "common": {
+    "loading": "Cargando...",
+    "error": "Error",
+    "success": "Éxito",
+    "save": "Guardar",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "close": "Cerrar",
+    "back": "Atrás",
+    "next": "Siguiente",
+    "previous": "Anterior",
+    "search": "Buscar",
+    "filter": "Filtrar",
+    "reset": "Restablecer",
+    "edit": "Editar",
+    "delete": "Eliminar",
+    "add": "Añadir",
+    "remove": "Quitar",
+    "select": "Seleccionar",
+    "all": "Todos",
+    "none": "Ninguno",
+    "yes": "Sí",
+    "no": "No",
+    "ok": "OK",
+    "show": "Mostrar",
+    "hide": "Ocultar",
+    "today": "Hoy",
+    "noAbsences": "Sin faltas",
+    "sync": "Sincronizar",
+    "syncing": "Sincronizando...",
+    "logout": "Cerrar sesión",
+    "errorLoadingData": "Error al cargar datos",
+    "retry": "Reintentar"
+  },
+  "navigation": {
+    "dashboard": "Vista general",
+    "trends": "Tendencias",
+    "weekly": "Semanal",
+    "modules": "Módulos",
+    "calculate": "Calcular",
+    "configuration": "Configuración",
+    "login": "Iniciar sesión",
+    "logout": "Cerrar sesión"
+  },
+  "configuration": {
+    "title": "Configuración",
+    "subtitle": "Preferencias de la aplicación",
+    "appearance": {
+      "title": "Apariencia",
+      "subtitle": "Personaliza el aspecto de la aplicación",
+      "theme": "Tema",
+      "themeSystem": "Sistema",
+      "themeLight": "Claro",
+      "themeDark": "Oscuro",
+      "themeDescription": "El tema del sistema sigue la preferencia de tu dispositivo",
+      "language": "Idioma",
+      "languageDescription": "Selecciona el idioma de la aplicación"
+    },
+    "autoSync": {
+      "title": "Auto-sync",
+      "subtitle": "Selecciona cada cuánto tiempo sincronizar automáticamente",
+      "interval": "Intervalo",
+      "disabled": "Desactivado",
+      "every5Minutes": "Cada 5 minutos",
+      "every15Minutes": "Cada 15 minutos",
+      "every30Minutes": "Cada 30 minutos",
+      "classGroup": "Grupo de clase",
+      "custom": "Personalizado",
+      "groupDescription": "Si no encuentras el grupo, puedes contribuir creando un PR en GitHub"
+    },
+    "sections": {
+      "title": "Secciones",
+      "subtitle": "Elige qué deseas configurar",
+      "schedule": {
+        "title": "Horario",
+        "description": "Define las horas semanales por módulo"
+      },
+      "challenges": {
+        "title": "Retos",
+        "description": "Asigna módulos a cada reto y establece horas de reto"
+      },
+      "usingGroupConfig": "Usando configuración del grupo \"{group}\". Para editar manualmente, selecciona \"Personalizado\""
+    }
+  },
+  "login": {
+    "title": "Iniciar sesión",
+    "subtitle": "Accede a tu cuenta de Faltas Cebanc",
+    "role": "Rol",
+    "student": "Estudiante",
+    "teacher": "Profesor",
+    "director": "Dirección",
+    "admin": "Administrador",
+    "username": "Usuario",
+    "password": "Contraseña",
+    "rememberMe": "Recordar credenciales",
+    "loginButton": "Iniciar sesión",
+    "loggingIn": "Iniciando sesión...",
+    "loginError": "Error al iniciar sesión",
+    "loginSuccess": "Login correcto",
+    "invalidCredentials": "Credenciales inválidas",
+    "networkError": "Error de conexión",
+    "autoLogin": "Inicio automático"
+  },
+  "dashboard": {
+    "title": "Vista general",
+    "welcome": "¡Hola, {name}!",
+    "totalAbsences": "Total faltas",
+    "attendancePercentage": "Porcentaje de asistencia",
+    "currentWeek": "Semana actual",
+    "absenceBreakdown": "Desglose de faltas",
+    "weeklyAbsences": "Faltas semanales",
+    "modules": "Módulos",
+    "challenges": "Retos",
+    "noData": "No hay datos disponibles",
+    "syncRequired": "Se requiere sincronización"
+  },
+  "schedule": {
+    "title": "Configuración · Horario",
+    "subtitle": "Define las horas semanales de cada módulo. Se usarán para repartir los retos",
+    "module": "Módulo",
+    "hoursPerWeek": "Horas/semana",
+    "setAllToZero": "Poner todo a 0"
+  },
+  "challenges": {
+    "title": "Configuración · Retos",
+    "noChallenges": "No se han detectado retos en los datos actuales",
+    "assignToModules": "Asignar a módulos",
+    "assigned": "Asignado"
+  },
+  "notices": {
+    "dismiss": "Cerrar aviso",
+    "moreInfo": "Más información"
+  },
+  "calculate": {
+    "warning": "Aviso: esta herramienta ofrece estimaciones que pueden no corresponder con la realidad. No nos hacemos responsables del uso de estos cálculos.",
+    "clear": "Vaciar",
+    "addEntries": "Añade entradas para simular asistencias y faltas futuras.",
+    "type": "Tipo",
+    "challengeModule": "Reto/Módulo",
+    "amount": "Cantidad",
+    "absence": "Falta",
+    "attendance": "Asistencia",
+    "challenges": "Retos",
+    "modules": "Módulos",
+    "calculating": "Calculando...",
+    "generalCurrent": "General · Actual",
+    "generalProjected": "General · Proyectado",
+    "variation": "Variación",
+    "sessions": "Ses: {count}",
+    "absences": "Fal: {count}",
+    "sessionDiff": "Diferencia Ses: {count}",
+    "absenceDiff": "Diferencia Fal: {count}",
+    "module": "Módulo",
+    "currentPercent": "Actual %",
+    "projectedPercent": "Proyectado %",
+    "differencePercent": "Diferencia %"
+  },
+  "modules": {
+    "title": "Módulos · Resumen por asignatura",
+    "byChallengeTitle": "Módulos · Resumen por reto",
+    "subject": "Asignatura",
+    "challenge": "Reto",
+    "directAbsences": "Faltas directas",
+    "derivedAbsences": "Faltas derivadas",
+    "directSessions": "Sesiones directas",
+    "derivedSessions": "Sesiones derivadas",
+    "totalAbsences": "Total faltas",
+    "totalSessions": "Total sesiones",
+    "totalPercent": "% Total",
+    "noData": "Sin datos de módulos",
+    "noBreakdown": "Sin faltas desglosadas",
+    "noChallengeData": "No hay datos de retos"
+  },
+  "weekly": {
+    "noDataAvailable": "No hay datos disponibles",
+    "weeklyDetail": "Detalle semanal ({start} → {end})",
+    "hour": "Hora",
+    "absenceLegend": "Leyenda faltas",
+    "subjectLegend": "Leyenda asignaturas",
+    "couldNotLoadWeek": "No se pudo cargar la semana seleccionada"
+  },
+  "trends": {
+    "title": "Tendencias",
+    "maxWeekly": "Máximo semanal",
+    "week": "Semana",
+    "absenceTypes": "Tipos de falta",
+    "noMetrics": "No hay métricas disponibles",
+    "weeklyEvolution": "Evolución semanal",
+    "distributionByType": "Distribución por tipo",
+    "noAbsenceTypeData": "No hay datos de tipos de faltas"
+  },
+  "version": {
+    "updateRequired": "Actualización requerida",
+    "downloadUpdate": "Descargar actualización",
+    "reason": "Motivo"
+  }
+}

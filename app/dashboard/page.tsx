@@ -7,10 +7,12 @@ import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getTodayLocalISO, findCurrentWeekIndex, aggregateWeeklyAbsences } from "@/lib/utils";
 import { LoadingState } from "@/components/ui/loading-state";
 import { getPercentageColors } from "@/lib/utils/ui";
+import { useTranslations } from "next-intl";
 
 export default function DashboardPage() {
   const { snapshot, loading, error } = useSnapshot();
   const [animateBars, setAnimateBars] = useState(false);
+  const t = useTranslations();
 
   const totalPercent = snapshot?.percentages.totalPercent ?? 0;
   const userName = snapshot?.identity.fullName ?? "";
@@ -61,8 +63,8 @@ export default function DashboardPage() {
             <CardContent className="p-5 flex items-center">
               <div className="flex items-center justify-between w-full">
                 <div>
-                  <div className="text-xs text-muted-foreground">Porcentaje total</div>
-                  <div className="text-sm text-muted-foreground">Ausencias acumuladas</div>
+                  <div className="text-xs text-muted-foreground">{t('dashboard.attendancePercentage')}</div>
+                  <div className="text-sm text-muted-foreground">{t('dashboard.totalAbsences')}</div>
                 </div>
                 <div className="relative h-20 w-20">
                   {(() => {
@@ -124,7 +126,7 @@ export default function DashboardPage() {
         {selectedWeek ? (
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0">
-              <CardTitle className="text-base">Faltas esta semana</CardTitle>
+              <CardTitle className="text-base">{t('dashboard.weeklyAbsences')}</CardTitle>
               <div className="text-xs text-muted-foreground">{selectedWeek.weekStartISO} → {selectedWeek.weekEndISO}</div>
             </CardHeader>
             <CardContent>
@@ -139,7 +141,7 @@ export default function DashboardPage() {
                       <div className="flex items-center justify-between">
                         <div className="text-xs text-muted-foreground">{d.date}</div>
                         {isToday ? (
-                          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">Hoy</Badge>
+                          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">{t('common.today')}</Badge>
                         ) : null}
                       </div>
                       <div className="mt-1 text-2xl font-semibold">{d.total}</div>
@@ -147,7 +149,7 @@ export default function DashboardPage() {
                         {Object.entries(d.types).map(([type, count]) => (
                           <Badge key={type} variant="outline">{type}: {count}</Badge>
                         ))}
-                        {d.total === 0 ? <Badge variant="success">Sin faltas</Badge> : null}
+                        {d.total === 0 ? <Badge variant="success">{t('common.noAbsences')}</Badge> : null}
                       </div>
                     </div>
                   );

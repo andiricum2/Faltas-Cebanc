@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 
 interface LoadingStateProps {
   loading: boolean;
@@ -18,10 +19,12 @@ export function LoadingState({
   loading, 
   error, 
   children, 
-  loadingMessage = "Cargando datos...",
+  loadingMessage,
   errorMessage,
   onRetry 
 }: LoadingStateProps) {
+  const t = useTranslations();
+  
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -29,7 +32,7 @@ export function LoadingState({
           <div className="w-16 h-16 mx-auto">
             <div className="w-full h-full rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
           </div>
-          <p className="text-muted-foreground">{loadingMessage}</p>
+          <p className="text-muted-foreground">{loadingMessage || t('common.loading')}</p>
         </div>
       </div>
     );
@@ -43,7 +46,7 @@ export function LoadingState({
             <div className="w-full h-full rounded-full border-4 border-red-200 border-t-red-600" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-red-600">Error al cargar datos</h3>
+            <h3 className="text-lg font-semibold text-red-600">{t('common.errorLoadingData')}</h3>
             <p className="text-muted-foreground">{errorMessage || error}</p>
           </div>
           {onRetry && (
@@ -51,7 +54,7 @@ export function LoadingState({
               onClick={onRetry}
               className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
             >
-              Reintentar
+              {t('common.retry')}
             </button>
           )}
         </div>

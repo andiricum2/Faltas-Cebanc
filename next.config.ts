@@ -1,6 +1,10 @@
+import createNextIntlPlugin from 'next-intl/plugin';
+
+const withNextIntl = createNextIntlPlugin('./i18n.ts');
+
 const nextConfig = {
   // Use standalone output to keep API routes working inside Tauri
-  output: "standalone",
+  output: "standalone" as const,
   // Pin Turbopack root to this project
   turbopack: {
     root: __dirname,
@@ -13,4 +17,4 @@ const nextConfig = {
   },
 };
 
-export default nextConfig;
+export default withNextIntl(nextConfig);

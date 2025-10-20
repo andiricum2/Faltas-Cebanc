@@ -10,10 +10,12 @@ import type { CalculationPlanEntry as ApiCalculationPlanEntry } from "@/lib/serv
 import { useCalculationPlan } from "@/lib/services/calculationsHooks";
 import { isRetoModule } from "@/lib/utils";
 import { LoadingState } from "@/components/ui/loading-state";
+import { useTranslations } from "next-intl";
 import type { SnapshotData, CalculationsData, ModuleMeta, PlannerEntry } from "@/lib/types/snapshot";
 
 export default function CalcularPage() {
 	const { snapshot, loading, error } = useSnapshot();
+  const t = useTranslations();
   
   // GET de cálculos eliminado; solo planificación vía POST
   const calculations = useMemo((): CalculationsData => {
@@ -96,10 +98,10 @@ export default function CalcularPage() {
 	return (
 		<LoadingState loading={loading} error={error}>
 			<div className="space-y-6">
-			<h1 className="text-2xl font-semibold tracking-tight">Calcular</h1>
+			<h1 className="text-2xl font-semibold tracking-tight">{t('navigation.calculate')}</h1>
 			<>
 					<div className="rounded-md border bg-amber-50 text-amber-900 px-3 py-2 text-sm">
-						Aviso: esta herramienta ofrece estimaciones que pueden no corresponder con la realidad. No nos hacemos responsables del uso de estos cálculos.
+						{t('calculate.warning')}
 					</div>
 					{/* Se ha simplificado la página: solo se muestra la simulación de futuro */}
 
@@ -107,17 +109,17 @@ export default function CalcularPage() {
             <CardHeader>
             <div className="flex flex-wrap items-center gap-2">
                 <button className="inline-flex items-center px-3 py-2 rounded border bg-background hover:bg-muted" onClick={addEntry}>
-                  Añadir
+                  {t('common.add')}
                 </button>
 
                 <button
                   className="inline-flex items-center px-3 py-2 rounded border bg-background hover:bg-muted ml-auto"
                   onClick={() => setEntries([])}
                   disabled={entries.length === 0}
-                  title="Vaciar"
+                  title={t('calculate.clear')}
                 >
                   <Trash2 className="w-4 h-4 mr-2" aria-hidden="true" />
-                  Vaciar
+                  {t('calculate.clear')}
                 </button>
 
                 <button
@@ -133,15 +135,15 @@ export default function CalcularPage() {
 
 
               {entries.length === 0 ? (
-                <div className="text-sm text-muted-foreground">Añade entradas para simular asistencias y faltas futuras.</div>
+                <div className="text-sm text-muted-foreground">{t('calculate.addEntries')}</div>
               ) : (
                 <div className="overflow-auto">
                   <table className="w-full text-sm min-w-[680px]">
                     <thead>
                       <tr>
-                        <th className="text-left p-2">Tipo</th>
-                        <th className="text-left p-2">Reto/Módulo</th>
-                        <th className="text-left p-2">Cantidad</th>
+                        <th className="text-left p-2">{t('calculate.type')}</th>
+                        <th className="text-left p-2">{t('calculate.challengeModule')}</th>
+                        <th className="text-left p-2">{t('calculate.amount')}</th>
                         <th className="text-left p-2"></th>
                       </tr>
                     </thead>
@@ -151,21 +153,21 @@ export default function CalcularPage() {
                           <tr key={e.id} className="border-t">
                             <td className="p-2">
                               <Select value={e.kind} onChange={(ev) => updateEntry(e.id, { kind: (ev.target.value as "abs"|"att") })}>
-                                <option value="abs">Falta</option>
-                                <option value="att">Asistencia</option>
+                                <option value="abs">{t('calculate.absence')}</option>
+                                <option value="att">{t('calculate.attendance')}</option>
                               </Select>
                             </td>
                             <td className="p-2">
                               <Select value={e.code || ""} onChange={(ev) => updateEntry(e.id, { code: ev.target.value })}>
                                 {sortedRetoOptions.length > 0 ? (
-                  <optgroup label="Retos">
+                  <optgroup label={t('calculate.challenges')}>
                     {sortedRetoOptions.map((m: any) => (
                                       <option key={`${e.id}-reto-${m.code}`} value={m.code}>{m.label}</option>
                                     ))}
                                   </optgroup>
                                 ) : null}
                                 {sortedModuleOptions.length > 0 ? (
-                                  <optgroup label="Módulos">
+                                  <optgroup label={t('calculate.modules')}>
                     {sortedModuleOptions.map((m: any) => (
                                       <option key={`${e.id}-mod-${m.code}`} value={m.code}>{m.label}</option>
                                     ))}
@@ -178,7 +180,7 @@ export default function CalcularPage() {
                             </td>
                             <td className="p-2">
                               <div className="flex items-center gap-3">
-                                <button className="text-red-600 hover:underline" onClick={() => removeEntry(e.id)}>Quitar</button>
+                                <button className="text-red-600 hover:underline" onClick={() => removeEntry(e.id)}>{t('common.remove')}</button>
                               </div>
                             </td>
                           </tr>
@@ -191,26 +193,26 @@ export default function CalcularPage() {
 
               {/* Resultados */}
               {planLoading ? (
-                <div className="text-sm text-muted-foreground">Calculando...</div>
+                <div className="text-sm text-muted-foreground">{t('calculate.calculating')}</div>
               ) : planResult ? (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                     <div className="rounded bg-muted px-3 py-2">
-                      <div className="text-muted-foreground">General · Actual</div>
+                      <div className="text-muted-foreground">{t('calculate.generalCurrent')}</div>
                       <div className="text-xl font-semibold">{planResult.general.base.percent}%</div>
-                      <div className="text-xs text-muted-foreground">Ses: {planResult.general.base.totalSessions} · Fal: {planResult.general.base.totalAbsences}</div>
+                      <div className="text-xs text-muted-foreground">{t('calculate.sessions', { count: planResult.general.base.totalSessions })} · {t('calculate.absences', { count: planResult.general.base.totalAbsences })}</div>
                     </div>
                     <div className="rounded bg-muted px-3 py-2">
-                      <div className="text-muted-foreground">General · Proyectado</div>
+                      <div className="text-muted-foreground">{t('calculate.generalProjected')}</div>
                       <div className="text-xl font-semibold">{planResult.general.projected.percent}%</div>
-                      <div className="text-xs text-muted-foreground">Ses: {planResult.general.projected.totalSessions} · Fal: {planResult.general.projected.totalAbsences}</div>
+                      <div className="text-xs text-muted-foreground">{t('calculate.sessions', { count: planResult.general.projected.totalSessions })} · {t('calculate.absences', { count: planResult.general.projected.totalAbsences })}</div>
                     </div>
                     <div className="rounded bg-muted px-3 py-2">
-                      <div className="text-muted-foreground">Variación</div>
+                      <div className="text-muted-foreground">{t('calculate.variation')}</div>
                       <div className={`text-xl font-semibold ${planResult.general.delta.percent > 0 ? "text-red-600" : "text-emerald-600"}`}>
                         {planResult.general.delta.percent >= 0 ? "+" : ""}{planResult.general.delta.percent.toFixed(2)}%
                       </div>
-                      <div className="text-xs text-muted-foreground">Diferencia Ses: {planResult.general.delta.sessions} · Diferencia Fal: {planResult.general.delta.absences}</div>
+                      <div className="text-xs text-muted-foreground">{t('calculate.sessionDiff', { count: planResult.general.delta.sessions })} · {t('calculate.absenceDiff', { count: planResult.general.delta.absences })}</div>
                     </div>
                   </div>
 
@@ -218,10 +220,10 @@ export default function CalcularPage() {
                     <table className="w-full text-sm">
                       <thead>
                         <tr>
-                          <th className="text-left p-1">Módulo</th>
-                          <th className="text-left p-1">Actual %</th>
-                          <th className="text-left p-1">Proyectado %</th>
-                          <th className="text-left p-1">Diferencia %</th>
+                          <th className="text-left p-1">{t('calculate.module')}</th>
+                          <th className="text-left p-1">{t('calculate.currentPercent')}</th>
+                          <th className="text-left p-1">{t('calculate.projectedPercent')}</th>
+                          <th className="text-left p-1">{t('calculate.differencePercent')}</th>
                         </tr>
                       </thead>
                       <tbody>

@@ -1,0 +1,198 @@
+{
+  "common": {
+    "loading": "Kargatzen...",
+    "error": "Errorea",
+    "success": "Arrakasta",
+    "save": "Gorde",
+    "cancel": "Utzi",
+    "confirm": "Berretsi",
+    "close": "Itxi",
+    "back": "Atzera",
+    "next": "Hurrengoa",
+    "previous": "Aurrekoa",
+    "search": "Bilatu",
+    "filter": "Iragazi",
+    "reset": "Berrezarri",
+    "edit": "Editatu",
+    "delete": "Ezabatu",
+    "add": "Gehitu",
+    "remove": "Kendu",
+    "select": "Hautatu",
+    "all": "Denak",
+    "none": "Bat ere ez",
+    "yes": "Bai",
+    "no": "Ez",
+    "ok": "Ados",
+    "show": "Erakutsi",
+    "hide": "Ezkutatu",
+    "today": "Gaur",
+    "noAbsences": "Faltarik ez",
+    "sync": "Sinkronizatu",
+    "syncing": "Sinkronizatzen...",
+    "logout": "Saioa itxi",
+    "errorLoadingData": "Datuak kargatzeko errorea",
+    "retry": "Berriz saiatu"
+  },
+  "navigation": {
+    "dashboard": "Ikuspegi orokorra",
+    "trends": "Joerak",
+    "weekly": "Astekoa",
+    "modules": "Moduluak",
+    "calculate": "Kalkulatu",
+    "configuration": "Konfigurazioa",
+    "login": "Hasi saioa",
+    "logout": "Itxi saioa"
+  },
+  "configuration": {
+    "title": "Konfigurazioa",
+    "subtitle": "Aplikazioaren hobespenak",
+    "appearance": {
+      "title": "Itxura",
+      "subtitle": "Aplikazioaren itxura pertsonalizatu",
+      "theme": "Gaia",
+      "themeSystem": "Sistema",
+      "themeLight": "Argia",
+      "themeDark": "Iluna",
+      "themeDescription": "Sistemaren gaia zure gailuaren hobespena jarraitzen du",
+      "language": "Hizkuntza",
+      "languageDescription": "Aplikazioaren hizkuntza hautatu"
+    },
+    "autoSync": {
+      "title": "Auto-sinkronizazioa",
+      "subtitle": "Zenbat denboran behin sinkronizatu automatikoki hautatu",
+      "interval": "Tartea",
+      "disabled": "Desgaituta",
+      "every5Minutes": "5 minuturo",
+      "every15Minutes": "15 minuturo",
+      "every30Minutes": "30 minuturo",
+      "classGroup": "Klase taldea",
+      "custom": "Pertsonalizatua",
+      "groupDescription": "Taldea ez baduzu aurkitzen, GitHub-en PR bat sortuz ekar dezakezu"
+    },
+    "sections": {
+      "title": "Atalak",
+      "subtitle": "Zer konfiguratu nahi duzun aukeratu",
+      "schedule": {
+        "title": "Ordutegia",
+        "description": "Modulu bakoitzeko asteko orduak definitu"
+      },
+      "challenges": {
+        "title": "Erronkak",
+        "description": "Moduluak erronka bakoitzari esleitu eta erronka orduak ezarri"
+      },
+      "usingGroupConfig": "\"{group}\" taldearen konfigurazioa erabiltzen. Eskuz editatzeko, \"Pertsonalizatua\" hautatu"
+    }
+  },
+  "login": {
+    "title": "Hasi saioa",
+    "subtitle": "Sartu zure Faltas Cebanc kontuan",
+    "role": "Rola",
+    "student": "Ikaslea",
+    "teacher": "Irakaslea",
+    "director": "Zuzendaritza",
+    "admin": "Administratzailea",
+    "username": "Erabiltzailea",
+    "password": "Pasahitza",
+    "rememberMe": "Kredentzialak gogoratu",
+    "loginButton": "Hasi saioa",
+    "loggingIn": "Saioa hasten...",
+    "loginError": "Saioa hasteko errorea",
+    "loginSuccess": "Saioa zuzen hasi da",
+    "invalidCredentials": "Kredentzial baliogabeak",
+    "networkError": "Konexio errorea",
+    "autoLogin": "Hasi automatikoa"
+  },
+  "dashboard": {
+    "title": "Ikuspegi orokorra",
+    "welcome": "Kaixo, {name}!",
+    "totalAbsences": "Falta guztiak",
+    "attendancePercentage": "Asistentzia ehunekoa",
+    "currentWeek": "Uneko astea",
+    "absenceBreakdown": "Falten banaketa",
+    "weeklyAbsences": "Asteko falta",
+    "modules": "Moduluak",
+    "challenges": "Erronkak",
+    "noData": "Ez dago daturik eskuragarri",
+    "syncRequired": "Sinkronizazioa beharrezkoa"
+  },
+  "schedule": {
+    "title": "Konfigurazioa · Ordutegia",
+    "subtitle": "Modulu bakoitzeko asteko orduak definitu. Erronkak banatzeko erabiliko dira",
+    "module": "Modulua",
+    "hoursPerWeek": "Ordu/aste",
+    "setAllToZero": "Denak 0-ra jarri"
+  },
+  "challenges": {
+    "title": "Konfigurazioa · Erronkak",
+    "noChallenges": "Ez dira erronkarik detektatu uneko datuetan",
+    "assignToModules": "Moduluetara esleitu",
+    "assigned": "Esleitua"
+  },
+  "notices": {
+    "dismiss": "Oharra itxi",
+    "moreInfo": "Informazio gehiago"
+  },
+  "calculate": {
+    "warning": "Oharra: tresna honek estimazioak eskaintzen ditu eta ez dira errealitatearekin bat etorri. Ez gara erantzule kalkulu hauen erabileraz.",
+    "clear": "Hustu",
+    "addEntries": "Gehitu sarrerak etorkizuneko asistentziak eta falta simulatzeko.",
+    "type": "Mota",
+    "challengeModule": "Erronka/Modulua",
+    "amount": "Kopurua",
+    "absence": "Falta",
+    "attendance": "Asistentzia",
+    "challenges": "Erronkak",
+    "modules": "Moduluak",
+    "calculating": "Kalkulatzen...",
+    "generalCurrent": "Orokorra · Unekoa",
+    "generalProjected": "Orokorra · Proiektatua",
+    "variation": "Aldaketa",
+    "sessions": "Saio: {count}",
+    "absences": "Falta: {count}",
+    "sessionDiff": "Saio diferentzia: {count}",
+    "absenceDiff": "Falta diferentzia: {count}",
+    "module": "Modulua",
+    "currentPercent": "Uneko %",
+    "projectedPercent": "Proiektatua %",
+    "differencePercent": "Diferentzia %"
+  },
+  "modules": {
+    "title": "Moduluak · Ikasgaiaren laburpena",
+    "byChallengeTitle": "Moduluak · Erronkaren araberako laburpena",
+    "subject": "Ikasgaia",
+    "challenge": "Erronka",
+    "directAbsences": "Zuzeneko falta",
+    "derivedAbsences": "Deribatu falta",
+    "directSessions": "Zuzeneko saioak",
+    "derivedSessions": "Deribatu saioak",
+    "totalAbsences": "Falta guztiak",
+    "totalSessions": "Saio guztiak",
+    "totalPercent": "% Guztira",
+    "noData": "Modulu daturik ez",
+    "noBreakdown": "Ez dago faltarik desglosean",
+    "noChallengeData": "Ez dago erronken daturik"
+  },
+  "weekly": {
+    "noDataAvailable": "Ez dago daturik eskuragarri",
+    "weeklyDetail": "Asteko xehetasuna ({start} → {end})",
+    "hour": "Ordua",
+    "absenceLegend": "Falta legenda",
+    "subjectLegend": "Ikasgai legenda",
+    "couldNotLoadWeek": "Ezin izan da hautatutako astea kargatu"
+  },
+  "trends": {
+    "title": "Joerak",
+    "maxWeekly": "Asteko gehienezkoa",
+    "week": "Astea",
+    "absenceTypes": "Falta motak",
+    "noMetrics": "Ez dago metrikarik eskuragarri",
+    "weeklyEvolution": "Asteko bilakaera",
+    "distributionByType": "Motaren araberako banaketa",
+    "noAbsenceTypeData": "Ez dago falta moten daturik"
+  },
+  "version": {
+    "updateRequired": "Eguneratzea beharrezkoa",
+    "downloadUpdate": "Eguneratzea deskargatu",
+    "reason": "Arrazoia"
+  }
+}

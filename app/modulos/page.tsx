@@ -7,9 +7,11 @@ import { Badge } from "@/components/ui/badge";
 import { percentColorClasses } from "@/lib/utils/ui";
 import { LoadingState } from "@/components/ui/loading-state";
 import { useModuleCalculations, useRetoCalculations } from "@/lib/hooks";
+import { useTranslations } from "next-intl";
 
 export default function ModulosPage() {
   const { snapshot, loading, error } = useSnapshot();
+  const t = useTranslations();
 
   const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({});
   const [expandedRetos, setExpandedRetos] = useState<Record<string, boolean>>({});
@@ -20,7 +22,7 @@ export default function ModulosPage() {
   if (!snapshot || rows.length === 0) {
     return (
       <div className="flex items-center justify-center min-h-[300px]">
-        <p className="text-muted-foreground">Sin datos de módulos</p>
+        <p className="text-muted-foreground">{t('modules.noData')}</p>
       </div>
     );
   }
@@ -30,7 +32,7 @@ export default function ModulosPage() {
       <div className="w-full space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>Módulos · Resumen por asignatura</CardTitle>
+          <CardTitle>{t('modules.title')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -38,14 +40,14 @@ export default function ModulosPage() {
               <thead>
                 <tr className="text-left border-b">
                   <th className="py-2 pr-3 w-8"></th>
-                  <th className="py-2 pr-3">Asignatura</th>
-                  <th className="py-2 pr-3 text-center">Faltas directas</th>
-                  <th className="py-2 pr-3 text-center">Faltas derivadas</th>
-                  <th className="py-2 pr-3 text-center">Sesiones directas</th>
-                  <th className="py-2 pr-3 text-center">Sesiones derivadas</th>
-                  <th className="py-2 pr-3 text-center">Total faltas</th>
-                  <th className="py-2 pr-3 text-center">Total sesiones</th>
-                  <th className="py-2 text-center">% Total</th>
+                  <th className="py-2 pr-3">{t('modules.subject')}</th>
+                  <th className="py-2 pr-3 text-center">{t('modules.directAbsences')}</th>
+                  <th className="py-2 pr-3 text-center">{t('modules.derivedAbsences')}</th>
+                  <th className="py-2 pr-3 text-center">{t('modules.directSessions')}</th>
+                  <th className="py-2 pr-3 text-center">{t('modules.derivedSessions')}</th>
+                  <th className="py-2 pr-3 text-center">{t('modules.totalAbsences')}</th>
+                  <th className="py-2 pr-3 text-center">{t('modules.totalSessions')}</th>
+                  <th className="py-2 text-center">{t('modules.totalPercent')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -120,7 +122,7 @@ export default function ModulosPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Módulos · Resumen por reto</CardTitle>
+          <CardTitle>{t('modules.byChallengeTitle')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
@@ -128,10 +130,10 @@ export default function ModulosPage() {
               <thead>
                 <tr className="text-left border-b">
                   <th className="py-2 pr-3 w-8"></th>
-                  <th className="py-2 pr-3">Reto</th>
-                  <th className="py-2 pr-3 text-center">Total faltas</th>
-                  <th className="py-2 pr-3 text-center">Total sesiones</th>
-                  <th className="py-2 text-center">% Total</th>
+                  <th className="py-2 pr-3">{t('modules.challenge')}</th>
+                  <th className="py-2 pr-3 text-center">{t('modules.totalAbsences')}</th>
+                  <th className="py-2 pr-3 text-center">{t('modules.totalSessions')}</th>
+                  <th className="py-2 text-center">{t('modules.totalPercent')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -172,7 +174,7 @@ export default function ModulosPage() {
                           <td colSpan={5} className="py-3 pl-4">
                             <div className="flex flex-wrap gap-2">
                               {breakdown.length === 0 ? (
-                                <span className="text-muted-foreground text-xs">Sin faltas desglosadas</span>
+                                <span className="text-muted-foreground text-xs">{t('modules.noBreakdown')}</span>
                               ) : (
                                 breakdown.map(([code, count]) => (
                                   <Badge key={`${r.id}-${code}`} className="gap-1">
@@ -191,7 +193,7 @@ export default function ModulosPage() {
                 })}
                 {retoRows.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="py-6 text-center text-muted-foreground">No hay datos de retos</td>
+                    <td colSpan={4} className="py-6 text-center text-muted-foreground">{t('modules.noChallengeData')}</td>
                   </tr>
                 ) : null}
               </tbody>

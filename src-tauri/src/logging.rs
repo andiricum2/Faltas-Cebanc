@@ -35,4 +35,20 @@ pub fn log_app_exit(app: &AppHandle) {
 	log_info(app, "App exiting");
 }
 
+pub fn log_sidecar_start(app: &AppHandle, port: u16) {
+	log_info(app, &format!("Sidecar process starting on port {}", port));
+}
+
+pub fn log_sidecar_ready(app: &AppHandle, host: &str, port: u16) {
+	log_info(app, &format!("Sidecar process ready at http://{}:{}", host, port));
+}
+
+pub fn log_sidecar_exit(app: &AppHandle) {
+	log_info(app, "Sidecar process exiting");
+}
+
+pub fn log_sidecar_error(app: &AppHandle, error: &str) {
+	log_error(app, &format!("Sidecar error: {}", error));
+}
+
 

@@ -4,6 +4,7 @@ import { getCookieDni, getUserDataDir, readJsonFileOptional, ensureDir, writeJso
 type AppConfig = {
   autoSyncMinutes?: number;
   selectedGroup?: string | null;
+  theme?: 'light' | 'dark' | 'system';
 };
 
 export async function GET(req: NextRequest) {
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
     const next: AppConfig = {};
     if (typeof config.autoSyncMinutes === "number") next.autoSyncMinutes = config.autoSyncMinutes;
     if (typeof config.selectedGroup === "string" || config.selectedGroup === null) next.selectedGroup = config.selectedGroup;
+    if (config.theme === "light" || config.theme === "dark" || config.theme === "system") next.theme = config.theme;
 
     const baseDir = getUserDataDir(dni);
     await ensureDir(baseDir);

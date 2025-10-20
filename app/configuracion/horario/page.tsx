@@ -5,10 +5,12 @@ import { Input } from "@/components/ui/input";
 import { loadHoursPerModule, saveHoursPerModule } from "@/lib/services/configRepository";
 import { useConfigPage } from "@/lib/hooks";
 import { isRetoModule } from "@/lib/utils";
+import { useTranslations } from "next-intl";
 import type { HoursPerModule } from "@/lib/types/snapshot";
 
 export default function ConfigHorarioPage() {
   const { snapshot } = useSnapshot();
+  const t = useTranslations();
 
   type ModuleId = string;
   const { data: hoursPerModule, save } = useConfigPage<HoursPerModule>(
@@ -18,20 +20,20 @@ export default function ConfigHorarioPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Configuración · Horario</h1>
+      <h1 className="text-xl font-semibold">{t('schedule.title')}</h1>
 
       <section className="space-y-2">
         <div>
-          <h2 className="text-sm font-medium">Horario semanal por módulo</h2>
-          <p className="text-xs text-muted-foreground">Define las horas semanales de cada módulo. Se usarán para repartir los retos.</p>
+          <h2 className="text-sm font-medium">{t('schedule.subtitle')}</h2>
+          <p className="text-xs text-muted-foreground">{t('schedule.subtitle')}</p>
         </div>
         <div className="rounded border">
           <div className="max-h-[420px] overflow-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr>
-                  <th className="text-left p-2">Módulo</th>
-                  <th className="text-left p-2">Horas/semana</th>
+                  <th className="text-left p-2">{t('schedule.module')}</th>
+                  <th className="text-left p-2">{t('schedule.hoursPerWeek')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -72,7 +74,7 @@ export default function ConfigHorarioPage() {
               save(next);
             }}
           >
-            Poner todo a 0
+            {t('schedule.setAllToZero')}
           </button>
         </div>
       </section>

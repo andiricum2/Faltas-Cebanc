@@ -61,8 +61,12 @@ pub fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::proces
 		cmd.creation_flags(0x08000000);
 	}
 
-	logging::log_info(app, "Spawning Next.js sidecar");
-	let mut child = cmd.spawn().context("failed to spawn next sidecar")?;
+	logging::log_sidecar_start(app, port);
+	let mut child = cmd.spawn().context("failed to spawn next sidecar")
+		.map_err(|e| {
+			logging::log_sidecar_error(app, &format!("Failed to spawn sidecar: {}", e));
+			e
+		})?;
 
 	#[cfg(not(debug_assertions))]
 	{
@@ -90,7 +94,7 @@ pub fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::proces
 	}
 
 	wait_for_server(host, port, 20000);
-	logging::log_info(app, &format!("Sidecar ready at http://{}:{}", host, port));
+	logging::log_sidecar_ready(app, host, port);
 
 	Ok(Some((child, port)))
 }

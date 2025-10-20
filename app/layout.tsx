@@ -8,6 +8,8 @@ import { ConfigProvider } from "@/lib/services/configContext";
 import { Toaster } from "sonner";
 import GlobalErrorToasts from "@/components/ui/GlobalErrorToasts";
 import VersionGate from "@/components/VersionGate";
+import { ThemeProvider } from "@/components/ThemeProvider";
+import { LocaleProvider } from "@/lib/hooks/useLocaleContext";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,11 +39,15 @@ export default function RootLayout({
         <Toaster richColors position="top-right" />
         <GlobalErrorToasts />
         <ConfigProvider>
-          <SnapshotProvider>
-            <AppShell>
-              {children}
-            </AppShell>
-          </SnapshotProvider>
+          <LocaleProvider>
+            <ThemeProvider>
+              <SnapshotProvider>
+                <AppShell>
+                  {children}
+                </AppShell>
+              </SnapshotProvider>
+            </ThemeProvider>
+          </LocaleProvider>
         </ConfigProvider>
       </body>
     </html>

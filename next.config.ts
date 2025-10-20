@@ -15,6 +15,12 @@ const nextConfig = {
       ".data/**"
     ],
   },
+  // Include messages directory in standalone build
+  outputFileTracingIncludes: {
+    "*": [
+      "messages/**"
+    ],
+  },
 };
 
 export default withNextIntl(nextConfig);

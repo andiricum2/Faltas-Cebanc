@@ -24,6 +24,15 @@
       "label": "Ir a configuración",
       "url": "http://localhost:3000/configuracion"
     }
+  },
+  {
+    "id": "huelga-28-octubre",
+    "title": "Huelga: 28 de octubre",
+    "description": "Pendiente de convocatoria",
+    "icon": "warning",
+    "severity": "warning",
+    "startDate": "2025-10-22T00:00:00.000Z",
+    "endDate": "2025-10-29T00:00:00.000Z"
   }
 ]
 

@@ -1,4 +1,12 @@
 {
+  "weekSchedule": [
+    ["AaD", "Emple II", "SisI", "PMyDM", "PMyDM"],
+    ["AaD", "SisI", "SisI", "PSyP", "PMyDM"],
+    ["SGE", "SGE", "DI", "PSyP", "DI"],
+    ["Emple II", "DI", "PdDAM", "AaD", "SGE"],
+    ["DI", "AaD", "PtCdC", "PtCdC", "SisI"],
+    ["DI", "PtCdC", "PSyP", "PtCdC", "SisI"]
+  ],
   "hoursPerModule": {
     "AaD": 4,
     "DI": 5,

@@ -10,6 +10,7 @@ import { COLOR_CATEGORIES } from "@/lib/theme/constants";
 import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useTranslations } from "next-intl";
+import { openExternalUrl } from "@/lib/utils";
 
 export function ColorEditor() {
   const {
@@ -41,10 +42,10 @@ export function ColorEditor() {
         <CardDescription>
           {t('theme.colors.subtitle')}{" "}
           <a 
-            href="https://oklch.com" 
+            onClick={() => openExternalUrl("https://oklch.com")}
             target="_blank" 
             rel="noopener noreferrer"
-            className="text-primary hover:underline"
+            className="text-primary hover:underline cursor-pointer"
           >
             {t('theme.colors.learnMore')}
           </a>
@@ -78,7 +79,7 @@ export function ColorEditor() {
               <div key={categoryKey} className="border rounded-lg">
                 <button
                   onClick={() => toggleCategory(categoryKey)}
-                  className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
+                  className="w-full flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer"
                 >
                   <h3 className="font-semibold text-sm">{label}</h3>
                   {isExpanded ? (

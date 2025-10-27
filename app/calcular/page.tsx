@@ -180,7 +180,7 @@ export default function CalcularPage() {
                             </td>
                             <td className="p-2">
                               <div className="flex items-center gap-3">
-                                <button className="text-red-600 hover:underline" onClick={() => removeEntry(e.id)}>{t('common.remove')}</button>
+                                <button className="text-destructive hover:underline" onClick={() => removeEntry(e.id)}>{t('common.remove')}</button>
                               </div>
                             </td>
                           </tr>
@@ -209,7 +209,7 @@ export default function CalcularPage() {
                     </div>
                     <div className="rounded bg-muted px-3 py-2">
                       <div className="text-muted-foreground">{t('calculate.variation')}</div>
-                      <div className={`text-xl font-semibold ${planResult.general.delta.percent > 0 ? "text-red-600" : "text-emerald-600"}`}>
+                      <div className={`text-xl font-semibold ${planResult.general.delta.percent > 0 ? "text-destructive" : "text-chart-1"}`}>
                         {planResult.general.delta.percent >= 0 ? "+" : ""}{planResult.general.delta.percent.toFixed(2)}%
                       </div>
                       <div className="text-xs text-muted-foreground">{t('calculate.sessionDiff', { count: planResult.general.delta.sessions })} · {t('calculate.absenceDiff', { count: planResult.general.delta.absences })}</div>
@@ -232,7 +232,7 @@ export default function CalcularPage() {
                             <td className="p-1 whitespace-nowrap">{row.label}</td>
                             <td className="p-1">{row.base.percent}%</td>
                             <td className="p-1">{row.projected.percent}%</td>
-                            <td className={`p-1 ${row.delta.percent > 0 ? "text-red-600" : "text-emerald-600"}`}>{row.delta.percent.toFixed(2)}%</td>
+                            <td className={`p-1 ${row.delta.percent > 0 ? "text-destructive" : "text-chart-1"}`}>{row.delta.percent.toFixed(2)}%</td>
                           </tr>
                         ))}
                       </tbody>

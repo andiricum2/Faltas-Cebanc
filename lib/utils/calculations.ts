@@ -52,6 +52,7 @@ export function getModuleCalculations(
   },
   retoTargets: Record<string, Record<string, boolean>>,
   hoursPerModule: Record<string, number>,
+  retoModuleHours: Record<string, Record<string, number>> = {},
   options: {
     cleanRetoFaltas?: boolean; // Si true, limpia las faltas del reto después de distribuir
     addModuleCalculations?: boolean; // Si true, añade cálculos detallados por módulo
@@ -62,6 +63,7 @@ export function getModuleCalculations(
   moduleCalculations?: Record<string, {
     faltasDirectas: number;
     faltasDerivadas: number;
+    faltasDerivadasPorTipo: Record<string, number>; // Desglose por tipo de falta (F, J, R, etc.)
     sesionesDirectas: number;
     sesionesDerivadas: number;
     totalFaltas: number;
@@ -103,8 +105,16 @@ export function getModuleCalculations(
     }
 
     if (targets.length > 0) {
-      // Calcular coeficientes basados en horas semanales
-      const hours = targets.map(m => Math.max(0, Number(hoursPerModule[m] || 0)));
+      // Calcular coeficientes basados en horas específicas del reto o horas semanales del módulo
+      const retoHours = retoModuleHours[retoId] || {};
+      const hours = targets.map(m => {
+        // Si hay horas específicas para este módulo en este reto, usarlas
+        if (retoHours[m] !== undefined) {
+          return Math.max(0, Number(retoHours[m]));
+        }
+        // Si no, usar las horas semanales del módulo
+        return Math.max(0, Number(hoursPerModule[m] || 0));
+      });
       const sumHours = hours.reduce((a, b) => a + b, 0);
 
       let coeficientesReto: Record<string, number>;
@@ -134,6 +144,7 @@ export function getModuleCalculations(
       const moduleData = distributedSnapshot.aggregated.modules[moduleCode];
       let faltasDerivadas = 0;
       let asistenciasDerivadas = 0;
+      const faltasDerivadasPorTipo: Record<string, number> = {};
 
       // Calcular faltas derivadas de retos usando datos originales
       Object.entries(coeficientes).forEach(([retoId, coeficientesReto]) => {
@@ -141,29 +152,49 @@ export function getModuleCalculations(
         if (coeficiente > 0) {
           // Usar datos originales del reto, no los distribuidos
           const retoData = snapshot.aggregated.modules[retoId];
-          const retoFaltas = sumarFaltas(retoData?.absenceCounts);
           const retoAsistencias = retoData?.classesGiven || 0;
-          faltasDerivadas += Number((retoFaltas * coeficiente).toFixed(2));
-          asistenciasDerivadas += Number((retoAsistencias * coeficiente).toFixed(2));
+          
+          // Multiplicar cada tipo de falta por el coeficiente antes de sumarlas
+          const absenceCounts = retoData?.absenceCounts || {};
+          const ponderatedAbsences: Record<string, number> = {};
+          for (const [code, count] of Object.entries(absenceCounts)) {
+            const ponderatedValue = Number((count * coeficiente).toFixed(2));
+            ponderatedAbsences[code] = ponderatedValue;
+            
+            // Acumular por tipo de falta
+            faltasDerivadasPorTipo[code] = (faltasDerivadasPorTipo[code] || 0) + ponderatedValue;
+          }
+          const retoFaltasPonderadas = Number(sumarFaltas(ponderatedAbsences).toFixed(2));
+          
+          // No redondear valores intermedios para evitar acumulación de errores
+          faltasDerivadas += retoFaltasPonderadas;
+          asistenciasDerivadas += retoAsistencias * coeficiente;
         }
       });
 
       // Calcular faltas directas (excluyendo las distribuidas de retos)
       // Las faltas directas son las que NO vienen de retos
       const faltasDirectas = sumarFaltas(moduleData?.absenceCounts);
-      const asistenciasDirectas = Number((moduleData?.classesGiven || 0).toFixed(2));
+      const asistenciasDirectas = moduleData?.classesGiven || 0;
+      
+      // Redondear solo al final para evitar acumulación de errores
       const totalFaltas = Number((faltasDirectas + faltasDerivadas).toFixed(2));
       const totalSesiones = Number((asistenciasDirectas + asistenciasDerivadas).toFixed(2));
-      const sesionesDirectas = Number(asistenciasDirectas.toFixed(2));
-      const sesionesDerivadas = Number(asistenciasDerivadas.toFixed(2));
+
+      // Redondear las faltas derivadas por tipo
+      const faltasDerivadasPorTipoRedondeadas: Record<string, number> = {};
+      for (const [code, value] of Object.entries(faltasDerivadasPorTipo)) {
+        faltasDerivadasPorTipoRedondeadas[code] = Number(value.toFixed(2));
+      }
 
       moduleCalculations[moduleCode] = {
-        faltasDirectas: Math.max(0, faltasDirectas),
+        faltasDirectas: Math.max(0, Number(faltasDirectas.toFixed(2))),
         faltasDerivadas: Number(faltasDerivadas.toFixed(2)),
-        sesionesDirectas,
-        sesionesDerivadas,
-        totalFaltas: Number(totalFaltas.toFixed(2)),
-        totalSesiones: Number(totalSesiones.toFixed(2))
+        faltasDerivadasPorTipo: faltasDerivadasPorTipoRedondeadas,
+        sesionesDirectas: Number(asistenciasDirectas.toFixed(2)),
+        sesionesDerivadas: Number(asistenciasDerivadas.toFixed(2)),
+        totalFaltas,
+        totalSesiones
       };
     }
   }

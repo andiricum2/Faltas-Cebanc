@@ -84,3 +84,56 @@ export async function getCookieDni(): Promise<string | null> {
 export async function requireCookieDni(): Promise<string | null> {
   return await getCookieDni();
 }
+
+// Funciones específicas para manejar la persistencia de snapshot y archivos relacionados
+export async function loadSnapshot(): Promise<any> {
+  try {
+    const dni = await getCookieDni();
+    if (!dni) {
+      throw new Error("No DNI found in cookies");
+    }
+
+    const userDir = getUserDataDir(dni);
+    const snapshotPath = path.join(userDir, "snapshot.json");
+
+    const data = await fs.readFile(snapshotPath, "utf-8");
+    return JSON.parse(data);
+  } catch (error) {
+    console.error("Failed to load snapshot:", error);
+    return {};
+  }
+}
+
+export async function saveSnapshot(snapshot: any): Promise<void> {
+  try {
+    const dni = await getCookieDni();
+    if (!dni) {
+      throw new Error("No DNI found in cookies");
+    }
+
+    const userDir = getUserDataDir(dni);
+    const snapshotPath = path.join(userDir, "snapshot.json");
+
+    await writeJsonFile(snapshotPath, snapshot);
+  } catch (error) {
+    console.error("Failed to save snapshot:", error);
+    throw error;
+  }
+}
+
+export async function saveTheme(theme: any): Promise<void> {
+  try {
+    const dni = await getCookieDni();
+    if (!dni) {
+      throw new Error("No DNI found in cookies");
+    }
+
+    const userDir = getUserDataDir(dni);
+    const themePath = path.join(userDir, "theme.json");
+
+    await writeJsonFile(themePath, theme);
+  } catch (error) {
+    console.error("Failed to save theme:", error);
+    throw error;
+  }
+}

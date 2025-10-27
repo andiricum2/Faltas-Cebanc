@@ -2,6 +2,7 @@
 export interface SnapshotModule {
   faltasDirectas?: number;
   faltasDerivadas?: number;
+  faltasDerivadasPorTipo?: Record<string, number>; // Desglose por tipo de falta (F, J, R, etc.)
   sesionesDirectas?: number;
   sesionesDerivadas?: number;
   totalFaltas?: number;
@@ -73,6 +74,7 @@ export interface ModuleCalculation {
   name: string;
   faltasDirectas: number;
   faltasDerivadas: number;
+  faltasDerivadasPorTipo: Record<string, number>; // Desglose por tipo de falta (F, J, R, etc.)
   sesionesDirectas: number;
   sesionesDerivadas: number;
   totalFaltas: number;
@@ -111,4 +113,14 @@ export interface PlannerEntry {
 // Tipos para configuración
 export type HoursPerModule = Record<string, number>;
 export type RetoTargets = Record<string, Record<string, boolean>>;
-export type AutoSyncMinutes = number
+export type RetoModuleHours = Record<string, Record<string, number>>; // retoId -> moduleId -> hours
+export type AutoSyncMinutes = number;
+
+// Tipos para horario semanal (6 horas x 5 días)
+// Structure: [hour][day] = moduleCode | null
+// hour: 0-5 (representing hours 1-6)
+// day: 0-4 (representing Monday-Friday)
+export type WeekSchedule = (string | null)[][];
+
+// Import theme types
+import type { ThemeConfig } from "./theme";

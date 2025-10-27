@@ -6,7 +6,7 @@ import { Select } from "@/components/ui/select";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { getSelectedWeek } from "@/lib/services/apiClient";
 import { getTodayLocalISO, getDefaultWeekIndex } from "@/lib/utils";
-import { absenceColorClass, moduleColorClass } from "@/lib/utils/ui";
+import { absenceColorStyle, moduleColorStyle } from "@/lib/utils/ui";
 import { extractAbsenceCode } from "@/lib/utils";
 import { useDataLoader } from "@/lib/hooks";
 import { LoadingState } from "@/components/ui/loading-state";
@@ -120,16 +120,20 @@ export default function SemanalPage() {
                     {selectedWeek.daysISO.map((d, idx)=> {
                       const cell = selectedWeek.sessions.find((s)=> s.hour === h && s.weekday === (idx+1));
                       const code = extractAbsenceCode(cell?.cssClass || null);
-                      const color = absenceColorClass(code);
+                      const absenceStyle = absenceColorStyle(code);
                       return (
                         <td
                           key={d+"-"+h}
-                          className={`px-3 py-2 border-t truncate ${color}`}
+                          className="px-3 py-2 border-t truncate"
+                          style={absenceStyle}
                           title={cell?.title || undefined}
                         >
                           {cell?.title ? (
                             <div className="flex items-center gap-2">
-                              <span className={`inline-block h-2 w-2 rounded-full ${moduleColorClass(cell.title)}`} />
+                              <span 
+                                className="inline-block h-2 w-2 rounded-full" 
+                                style={moduleColorStyle(cell.title)}
+                              />
                               <span className="truncate">{cell.title}</span>
                               {code && <span className="ml-auto font-mono text-xs">{code}</span>}
                             </div>
@@ -150,7 +154,10 @@ export default function SemanalPage() {
               <div className="flex flex-wrap gap-2 text-sm">
                 {Object.entries(absenceLegend).map(([k, v]) => (
                   <div key={k} className="flex items-center gap-2 rounded-md border px-2 py-1">
-                    <span className={`inline-block h-3 w-3 rounded ${absenceColorClass(k)}`} />
+                    <span 
+                      className="inline-block h-3 w-3 rounded" 
+                      style={absenceColorStyle(k)}
+                    />
                     <span className="font-mono text-xs">{k}</span>
                     <span className="truncate">{v}</span>
                   </div>
@@ -162,7 +169,10 @@ export default function SemanalPage() {
               <div className="flex flex-wrap gap-2 text-sm max-h-40 overflow-auto p-1 border rounded-md">
                 {Object.entries(moduleLegend).map(([k, v]) => (
                   <div key={k} className="flex items-center gap-2 rounded-md border px-2 py-1">
-                    <span className={`inline-block h-3 w-3 rounded ${moduleColorClass(k)}`} />
+                    <span 
+                      className="inline-block h-3 w-3 rounded" 
+                      style={moduleColorStyle(k)}
+                    />
                     <span className="truncate" title={v}>{k}</span>
                   </div>
                 ))}

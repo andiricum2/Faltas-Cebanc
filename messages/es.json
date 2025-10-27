@@ -37,11 +37,15 @@
     "dashboard": "Vista general",
     "trends": "Tendencias",
     "weekly": "Semanal",
+    "schedule": "Horario",
     "modules": "Módulos",
     "calculate": "Calcular",
     "configuration": "Configuración",
     "login": "Iniciar sesión",
-    "logout": "Cerrar sesión"
+    "logout": "Cerrar sesión",
+    "mainMenu": "Menú principal",
+    "navigation": "Navegación",
+    "actions": "Acciones"
   },
   "configuration": {
     "title": "Configuración",
@@ -116,17 +120,37 @@
     "syncRequired": "Se requiere sincronización"
   },
   "schedule": {
-    "title": "Configuración · Horario",
-    "subtitle": "Define las horas semanales de cada módulo. Se usarán para repartir los retos",
+    "title": "Horario",
+    "configTitle": "Configuración · Horario",
+    "subtitle": "Define el horario semanal seleccionando módulos para cada sesión",
+    "viewSubtitle": "Vista del horario semanal",
+    "editSchedule": "Editar horario",
+    "weeklySchedule": "Horario Semanal",
+    "scheduledClasses": "Vista de las clases programadas",
     "module": "Módulo",
     "hoursPerWeek": "Horas/semana",
-    "setAllToZero": "Poner todo a 0"
+    "setAllToZero": "Poner todo a 0",
+    "monday": "Lunes",
+    "tuesday": "Martes",
+    "wednesday": "Miércoles",
+    "thursday": "Jueves",
+    "friday": "Viernes",
+    "hour": "Hora {number}",
+    "clearSchedule": "Limpiar horario",
+    "selectModule": "Seleccionar módulo",
+    "noModule": "Sin módulo",
+    "hoursSummary": "Resumen de horas",
+    "totalHours": "Total: {hours} horas"
   },
   "challenges": {
     "title": "Configuración · Retos",
     "noChallenges": "No se han detectado retos en los datos actuales",
     "assignToModules": "Asignar a módulos",
-    "assigned": "Asignado"
+    "assigned": "Asignado",
+    "retoHours": "Horas específicas del reto",
+    "retoHoursDescription": "Define horas específicas para cada módulo en este reto. Si no se definen, se usarán las horas semanales del módulo.",
+    "hours": "Horas",
+    "useModuleHours": "Usar horas del módulo"
   },
   "notices": {
     "dismiss": "Cerrar aviso",
@@ -170,7 +194,10 @@
     "totalPercent": "% Total",
     "noData": "Sin datos de módulos",
     "noBreakdown": "Sin faltas desglosadas",
-    "noChallengeData": "No hay datos de retos"
+    "noChallengeData": "No hay datos de retos",
+    "advancedView": "Vista avanzada",
+    "directAbsencesBreakdown": "Desglose de faltas directas",
+    "derivedAbsencesBreakdown": "Desglose de faltas derivadas de retos"
   },
   "weekly": {
     "noDataAvailable": "No hay datos disponibles",
@@ -194,5 +221,186 @@
     "updateRequired": "Actualización requerida",
     "downloadUpdate": "Descargar actualización",
     "reason": "Motivo"
+  },
+  "theme": {
+    "title": "Configuración de Tema",
+    "subtitle": "Personaliza los colores y la apariencia de la aplicación",
+    "mode": {
+      "title": "Modo de Tema",
+      "description": "Selecciona cómo quieres que se muestre el tema",
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    },
+    "presets": {
+      "title": "Presets de Colores",
+      "description": "Elige un conjunto de colores predefinido o crea el tuyo",
+      "createButton": "Crear Preset",
+      "cancelButton": "Cancelar",
+      "custom": "Personalizado",
+      "system": {
+        "default": {
+          "name": "Predeterminado",
+          "description": "El tema neutral predeterminado"
+        },
+        "blue": {
+          "name": "Azul",
+          "description": "Un tema azul profesional"
+        },
+        "green": {
+          "name": "Verde",
+          "description": "Un tema verde fresco"
+        },
+        "purple": {
+          "name": "Morado",
+          "description": "Un tema morado creativo"
+        },
+        "orange": {
+          "name": "Naranja",
+          "description": "Un tema naranja cálido"
+        }
+      },
+      "form": {
+        "name": "Nombre del Preset",
+        "namePlaceholder": "Mi tema personalizado",
+        "description": "Descripción",
+        "descriptionPlaceholder": "Un tema con mis colores favoritos",
+        "saveButton": "Guardar Preset Actual",
+        "saveDescription": "Se guardará el tema actual (incluyendo todas las personalizaciones) como un preset reutilizable."
+      },
+      "delete": {
+        "confirm": "¿Estás seguro de que quieres eliminar este preset?"
+      }
+    },
+    "colors": {
+      "title": "Colores Personalizados",
+      "subtitle": "Ajusta los colores individualmente usando formato OKLCH.",
+      "learnMore": "Aprende sobre OKLCH →",
+      "editLight": "Editar Tema Claro",
+      "editDark": "Editar Tema Oscuro",
+      "invalid": "Inválido",
+      "placeholder": "oklch(0.5 0.2 180)",
+      "categories": {
+        "base": "Colores Base",
+        "surfaces": "Superficies",
+        "interactive": "Elementos Interactivos",
+        "states": "Estados y Acentos",
+        "borders": "Bordes",
+        "charts": "Gráficos",
+        "absences": "Tipos de Ausencia",
+        "modules": "Colores de Módulos"
+      },
+      "labels": {
+        "background": "Fondo",
+        "foreground": "Primer plano",
+        "card": "Tarjeta",
+        "cardForeground": "Texto tarjeta",
+        "popover": "Popover",
+        "popoverForeground": "Texto popover",
+        "primary": "Primario",
+        "primaryForeground": "Texto primario",
+        "secondary": "Secundario",
+        "secondaryForeground": "Texto secundario",
+        "muted": "Apagado",
+        "mutedForeground": "Texto apagado",
+        "accent": "Acento",
+        "accentForeground": "Texto acento",
+        "destructive": "Destructivo",
+        "border": "Borde",
+        "input": "Entrada",
+        "ring": "Anillo",
+        "chart1": "Gráfico 1",
+        "chart2": "Gráfico 2",
+        "chart3": "Gráfico 3",
+        "chart4": "Gráfico 4",
+        "chart5": "Gráfico 5",
+        "absenceF": "Falta - Fondo",
+        "absenceFText": "Falta - Texto",
+        "absenceJ": "Justificada - Fondo",
+        "absenceJText": "Justificada - Texto",
+        "absenceC": "Compensada - Fondo",
+        "absenceCText": "Compensada - Texto",
+        "absenceE": "Expulsión - Fondo",
+        "absenceEText": "Expulsión - Texto",
+        "absenceR": "Retraso - Fondo",
+        "absenceRText": "Retraso - Texto",
+        "absenceH": "Huelga - Fondo",
+        "absenceHText": "Huelga - Texto",
+        "module1": "Módulo 1",
+        "module2": "Módulo 2",
+        "module3": "Módulo 3",
+        "module4": "Módulo 4",
+        "module5": "Módulo 5",
+        "module6": "Módulo 6",
+        "module7": "Módulo 7",
+        "module8": "Módulo 8",
+        "module9": "Módulo 9",
+        "module10": "Módulo 10"
+      },
+      "description": {
+        "unknown": "Color desconocido",
+        "lightness": {
+          "veryDark": "muy oscuro",
+          "dark": "oscuro",
+          "medium": "medio",
+          "light": "claro",
+          "veryLight": "muy claro"
+        },
+        "chroma": {
+          "neutral": "neutral",
+          "muted": "apagado",
+          "saturated": "saturado",
+          "vivid": "vívido"
+        },
+        "hue": {
+          "red": "rojo",
+          "orange": "naranja",
+          "yellow": "amarillo",
+          "green": "verde",
+          "cyan": "cian",
+          "blue": "azul",
+          "purple": "morado",
+          "gray": "gris"
+        }
+      }
+    },
+    "actions": {
+      "title": "Acciones",
+      "reset": "Restaurar Valores Predeterminados",
+      "resetDialog": {
+        "title": "¿Restaurar valores predeterminados?",
+        "description": "Esta acción restablecerá completamente la configuración del tema. Se perderán los siguientes cambios:",
+        "items": {
+          "mode": "Modo de tema: volverá a Sistema",
+          "preset": "Preset seleccionado: volverá a Predeterminado",
+          "customColors": "Colores personalizados: se borrarán todas las modificaciones",
+          "customPresets": "Presets personalizados: se eliminarán todos los presets creados"
+        },
+        "warning": "Esta acción no se puede deshacer.",
+        "confirm": "Sí, restaurar",
+        "cancel": "Cancelar"
+      }
+    },
+    "preview": {
+      "title": "Vista Previa",
+      "description": "Visualiza cómo se verán los elementos con el tema actual",
+      "buttons": "Botones",
+      "cards": "Tarjetas",
+      "forms": "Formularios",
+      "badges": "Badges",
+      "palette": "Paleta de Colores",
+      "cardNormal": "Card Normal",
+      "cardNormalDesc": "Tarjeta estándar",
+      "cardNormalContent": "Contenido de ejemplo.",
+      "cardPrimary": "Card Primary",
+      "cardPrimaryDesc": "Tarjeta primaria",
+      "cardPrimaryContent": "Con colores primarios.",
+      "cardSecondary": "Card Secondary",
+      "cardSecondaryDesc": "Tarjeta secundaria",
+      "cardSecondaryContent": "Con colores secundarios.",
+      "field1": "Campo 1",
+      "field2": "Campo 2",
+      "textField": "Campo de texto"
+    }
   }
 }

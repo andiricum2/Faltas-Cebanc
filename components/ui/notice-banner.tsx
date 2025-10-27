@@ -23,14 +23,14 @@ function IconFor({ icon, severity }: { icon?: string; severity?: string }) {
 function palette(severity?: string): { bg: string; text: string; border: string; accent: string } {
   switch (severity) {
     case "info":
-      return { bg: "bg-blue-50", text: "text-blue-900", border: "border-blue-200", accent: "bg-blue-400" };
+      return { bg: "bg-primary/10", text: "text-primary", border: "border-primary/30", accent: "bg-primary/60" };
     case "success":
-      return { bg: "bg-emerald-50", text: "text-emerald-900", border: "border-emerald-200", accent: "bg-emerald-400" };
+      return { bg: "bg-chart-1/10", text: "text-chart-1", border: "border-chart-1/30", accent: "bg-chart-1/60" };
     case "error":
-      return { bg: "bg-red-50", text: "text-red-900", border: "border-red-200", accent: "bg-red-400" };
+      return { bg: "bg-destructive/10", text: "text-destructive", border: "border-destructive/30", accent: "bg-destructive/60" };
     case "warning":
     default:
-      return { bg: "bg-amber-50", text: "text-amber-900", border: "border-amber-200", accent: "bg-amber-400" };
+      return { bg: "bg-chart-4/10", text: "text-chart-4", border: "border-chart-4/30", accent: "bg-chart-4/60" };
   }
 }
 

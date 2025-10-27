@@ -16,10 +16,10 @@ export default function Home() {
           alt="Faltas"
           className="h-16 w-16 animate-pulse"
         />
-        <div className="w-full h-2 bg-gray-200 rounded overflow-hidden">
-          <div className="h-full bg-gray-900 indeterminate-bar" />
+        <div className="w-full h-2 bg-muted rounded overflow-hidden">
+          <div className="h-full bg-foreground indeterminate-bar" />
         </div>
-        <p className="text-gray-600 text-sm">Cargando...</p>
+        <p className="text-muted-foreground text-sm">Cargando...</p>
       </div>
 
       <style jsx>{`

@@ -30,7 +30,7 @@ export function LoadingState({
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 mx-auto">
-            <div className="w-full h-full rounded-full border-4 border-blue-200 border-t-blue-600 animate-spin" />
+            <div className="w-full h-full rounded-full border-4 border-primary/20 border-t-primary animate-spin" />
           </div>
           <p className="text-muted-foreground">{loadingMessage || t('common.loading')}</p>
         </div>
@@ -43,16 +43,16 @@ export function LoadingState({
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center space-y-4">
           <div className="w-16 h-16 mx-auto">
-            <div className="w-full h-full rounded-full border-4 border-red-200 border-t-red-600" />
+            <div className="w-full h-full rounded-full border-4 border-destructive/20 border-t-destructive" />
           </div>
           <div>
-            <h3 className="text-lg font-semibold text-red-600">{t('common.errorLoadingData')}</h3>
+            <h3 className="text-lg font-semibold text-destructive">{t('common.errorLoadingData')}</h3>
             <p className="text-muted-foreground">{errorMessage || error}</p>
           </div>
           {onRetry && (
             <button
               onClick={onRetry}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
             >
               {t('common.retry')}
             </button>

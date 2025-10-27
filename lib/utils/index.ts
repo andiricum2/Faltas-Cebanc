@@ -10,5 +10,7 @@ export * from "./calculations";
 export * from "./absences";
 export * from "./externalLinks";
 export * from "./constants";
+export * from "./themeUtils";
+export { absenceColorStyle, moduleColorStyle, absenceColorClass, moduleColorClass } from "./ui";
 
 

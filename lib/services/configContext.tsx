@@ -8,20 +8,17 @@ import type { AutoSyncMinutes } from "@/lib/types/snapshot";
 export type AppConfig = {
   autoSyncMinutes: AutoSyncMinutes;
   selectedGroup?: string | null; // null or "personalizado" means custom
-  theme: 'light' | 'dark' | 'system';
 };
 
 type ConfigContextType = {
   config: AppConfig;
   setAutoSyncMinutes: (minutes: AutoSyncMinutes) => void;
   setSelectedGroup: (group: string | null) => void;
-  setTheme: (theme: 'light' | 'dark' | 'system') => void;
 };
 
 const DEFAULT_CONFIG: AppConfig = {
   autoSyncMinutes: 0,
   selectedGroup: null,
-  theme: 'system',
 };
 
 const STORAGE_KEY = "faltas.appConfig";
@@ -33,12 +30,9 @@ function readStoredConfig(): AppConfig {
     const parsed = JSON.parse(raw);
     const minutes = Number(parsed?.autoSyncMinutes);
     const valid: AutoSyncMinutes[] = [0, 5, 15, 30];
-    const theme = parsed?.theme;
-    const validThemes: ('light' | 'dark' | 'system')[] = ['light', 'dark', 'system'];
     return {
       autoSyncMinutes: (valid.includes(minutes as any) ? (minutes as AutoSyncMinutes) : 0),
       selectedGroup: typeof parsed?.selectedGroup === "string" ? parsed.selectedGroup : (parsed?.selectedGroup === null ? null : null),
-      theme: validThemes.includes(theme) ? theme : 'system',
     };
   } catch {
     return DEFAULT_CONFIG;
@@ -94,17 +88,7 @@ export function ConfigProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-  const setTheme = useCallback((theme: 'light' | 'dark' | 'system') => {
-    setConfig((prev) => {
-      const next = { ...prev, theme };
-      writeStoredConfig(next);
-      // fire and forget server save
-      saveAppConfig({ config: next }).catch(() => {});
-      return next;
-    });
-  }, []);
-
-  const value = useMemo(() => ({ config, setAutoSyncMinutes, setSelectedGroup, setTheme }), [config, setAutoSyncMinutes, setSelectedGroup, setTheme]);
+  const value = useMemo(() => ({ config, setAutoSyncMinutes, setSelectedGroup }), [config, setAutoSyncMinutes, setSelectedGroup]);
 
   return <ConfigContext.Provider value={value}>{children}</ConfigContext.Provider>;
 }

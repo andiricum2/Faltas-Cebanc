@@ -27,35 +27,59 @@ export function getPercentageGradientClass(percentage: number): string {
   return `bg-gradient-to-r ${gradient}`;
 }
 
-export function absenceColorClass(code: string | null): string {
-  const map: Record<string, string> = {
-    F: "bg-red-100 text-red-900 border-red-300",
-    J: "bg-emerald-100 text-emerald-900 border-emerald-300",
-    C: "bg-teal-100 text-teal-900 border-teal-300",
-    E: "bg-purple-100 text-purple-900 border-purple-300",
-    R: "bg-amber-100 text-amber-900 border-amber-300",
-    H: "bg-slate-200 text-slate-900 border-slate-300",
+/**
+ * Gets inline styles for absence type backgrounds using theme colors
+ * @param code - Absence code (F, J, C, E, R, H)
+ * @returns Inline style object
+ */
+export function absenceColorStyle(code: string | null): React.CSSProperties {
+  if (!code) return {};
+  
+  const colorVar = `--absence-${code.toLowerCase()}`;
+  const textVar = `--absence-${code.toLowerCase()}-text`;
+  
+  return {
+    backgroundColor: `var(${colorVar})`,
+    color: `var(${textVar})`,
+    borderColor: `var(${colorVar})`,
   };
-  return code && map[code] ? map[code] : "";
 }
 
-export function moduleColorClass(mod: string | null): string {
-  if (!mod) return "bg-white";
-  const palette = [
-    "bg-blue-200",
-    "bg-green-200",
-    "bg-yellow-200",
-    "bg-pink-200",
-    "bg-cyan-200",
-    "bg-lime-200",
-    "bg-indigo-200",
-    "bg-orange-200",
-    "bg-fuchsia-200",
-    "bg-sky-200",
-  ];
+/**
+ * Legacy function for backward compatibility
+ * Returns empty string as we now use inline styles
+ * @deprecated Use absenceColorStyle instead
+ */
+export function absenceColorClass(code: string | null): string {
+  return "";
+}
+
+/**
+ * Gets inline style for module color using theme colors
+ * @param mod - Module name
+ * @returns Inline style object
+ */
+export function moduleColorStyle(mod: string | null): React.CSSProperties {
+  if (!mod) return { backgroundColor: 'var(--background)' };
+  
+  // Hash module name to consistently select from 10 module colors
   let hash = 0;
-  for (let i = 0; i < mod.length; i++) hash = (hash * 31 + mod.charCodeAt(i)) >>> 0;
-  const idx = hash % palette.length;
-  return palette[idx];
+  for (let i = 0; i < mod.length; i++) {
+    hash = (hash * 31 + mod.charCodeAt(i)) >>> 0;
+  }
+  const idx = (hash % 10) + 1; // 1-10
+  
+  return {
+    backgroundColor: `var(--module${idx})`,
+  };
+}
+
+/**
+ * Legacy function for backward compatibility
+ * Returns empty string as we now use inline styles
+ * @deprecated Use moduleColorStyle instead
+ */
+export function moduleColorClass(mod: string | null): string {
+  return "";
 }
 

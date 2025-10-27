@@ -87,10 +87,13 @@ export type StudentSnapshot = {
   moduleCalculations?: Record<string, {
     faltasDirectas: number;
     faltasDerivadas: number;
+    faltasDerivadasPorTipo: Record<string, number>; // Desglose por tipo de falta (F, J, R, etc.)
     sesionesDirectas: number;
     sesionesDerivadas: number;
     totalFaltas: number;
+    totalSesiones: number;
   }>; // Cálculos detallados por módulo (incluyendo distribución de retos)
+  theme?: import("./theme").ThemeConfig; // User theme configuration
 };
 
 

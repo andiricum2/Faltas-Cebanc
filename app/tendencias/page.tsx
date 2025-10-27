@@ -207,7 +207,7 @@ export default function TendenciasPage() {
           <Card className="overflow-hidden">
             <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50">
               <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="w-5 h-5 text-blue-600" />
+                <TrendingUp className="w-5 h-5 text-primary" />
                 {t('trends.weeklyEvolution')}
               </CardTitle>
             </CardHeader>

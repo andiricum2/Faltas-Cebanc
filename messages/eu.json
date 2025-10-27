@@ -37,11 +37,15 @@
     "dashboard": "Ikuspegi orokorra",
     "trends": "Joerak",
     "weekly": "Astekoa",
+    "schedule": "Ordutegia",
     "modules": "Moduluak",
     "calculate": "Kalkulatu",
     "configuration": "Konfigurazioa",
     "login": "Hasi saioa",
-    "logout": "Itxi saioa"
+    "logout": "Itxi saioa",
+    "mainMenu": "Menu nagusia",
+    "navigation": "Nabigazioa",
+    "actions": "Ekintzak"
   },
   "configuration": {
     "title": "Konfigurazioa",
@@ -116,17 +120,37 @@
     "syncRequired": "Sinkronizazioa beharrezkoa"
   },
   "schedule": {
-    "title": "Konfigurazioa · Ordutegia",
-    "subtitle": "Modulu bakoitzeko asteko orduak definitu. Erronkak banatzeko erabiliko dira",
+    "title": "Ordutegia",
+    "configTitle": "Konfigurazioa · Ordutegia",
+    "subtitle": "Asteko ordutegia definitu saio bakoitzean moduluak hautatuz",
+    "viewSubtitle": "Asteko ordutegiko ikuspegia",
+    "editSchedule": "Ordutegia editatu",
+    "weeklySchedule": "Asteko Ordutegia",
+    "scheduledClasses": "Programatutako klaseen ikuspegia",
     "module": "Modulua",
     "hoursPerWeek": "Ordu/aste",
-    "setAllToZero": "Denak 0-ra jarri"
+    "setAllToZero": "Denak 0-ra jarri",
+    "monday": "Astelehena",
+    "tuesday": "Asteartea",
+    "wednesday": "Asteazkena",
+    "thursday": "Osteguna",
+    "friday": "Ostirala",
+    "hour": "Ordua {number}",
+    "clearSchedule": "Ordutegia garbitu",
+    "selectModule": "Modulua hautatu",
+    "noModule": "Modulurik ez",
+    "hoursSummary": "Orduen laburpena",
+    "totalHours": "Guztira: {hours} ordu"
   },
   "challenges": {
     "title": "Konfigurazioa · Erronkak",
     "noChallenges": "Ez dira erronkarik detektatu uneko datuetan",
     "assignToModules": "Moduluetara esleitu",
-    "assigned": "Esleitua"
+    "assigned": "Esleitua",
+    "retoHours": "Erronkaren ordu espezifikoak",
+    "retoHoursDescription": "Modulu bakoitzeko ordu espezifikoak definitu erronka honetan. Ez badira definitzen, moduluaren asteko orduak erabiliko dira.",
+    "hours": "Orduak",
+    "useModuleHours": "Moduluaren orduak erabili"
   },
   "notices": {
     "dismiss": "Oharra itxi",
@@ -170,7 +194,10 @@
     "totalPercent": "% Guztira",
     "noData": "Modulu daturik ez",
     "noBreakdown": "Ez dago faltarik desglosean",
-    "noChallengeData": "Ez dago erronken daturik"
+    "noChallengeData": "Ez dago erronken daturik",
+    "advancedView": "Ikuspegi aurreratua",
+    "directAbsencesBreakdown": "Zuzeneko falten banaketa",
+    "derivedAbsencesBreakdown": "Erronketatik datorren falten banaketa"
   },
   "weekly": {
     "noDataAvailable": "Ez dago daturik eskuragarri",
@@ -194,5 +221,186 @@
     "updateRequired": "Eguneratzea beharrezkoa",
     "downloadUpdate": "Eguneratzea deskargatu",
     "reason": "Arrazoia"
+  },
+  "theme": {
+    "title": "Gaiaren Konfigurazioa",
+    "subtitle": "Pertsonalizatu koloreak eta aplikazioaren itxura",
+    "mode": {
+      "title": "Gai Modua",
+      "description": "Hautatu nola bistaratu nahi duzun gaia",
+      "light": "Argia",
+      "dark": "Iluna",
+      "system": "Sistema"
+    },
+    "presets": {
+      "title": "Kolore Presetak",
+      "description": "Hautatu aurredefinitutako kolore multzoa edo sortu zure",
+      "createButton": "Preseta Sortu",
+      "cancelButton": "Utzi",
+      "custom": "Pertsonalizatua",
+      "system": {
+        "default": {
+          "name": "Lehenetsia",
+          "description": "Gai neutral lehenetsia"
+        },
+        "blue": {
+          "name": "Urdina",
+          "description": "Gai urdin profesionala"
+        },
+        "green": {
+          "name": "Berdea",
+          "description": "Gai berde freskoa"
+        },
+        "purple": {
+          "name": "Morea",
+          "description": "Gai more sortzailea"
+        },
+        "orange": {
+          "name": "Laranja",
+          "description": "Gai laranja beroa"
+        }
+      },
+      "form": {
+        "name": "Presetaren Izena",
+        "namePlaceholder": "Nire gai pertsonalizatua",
+        "description": "Deskribapena",
+        "descriptionPlaceholder": "Nire kolore gogokoenak dituen gaia",
+        "saveButton": "Uneko Preseta Gorde",
+        "saveDescription": "Uneko gaia (pertsonalizazio guztiak barne) preseta berrerabilgarri gisa gordeko da."
+      },
+      "delete": {
+        "confirm": "Ziur zaude preseta hau ezabatu nahi duzula?"
+      }
+    },
+    "colors": {
+      "title": "Kolore Pertsonalizatuak",
+      "subtitle": "Doitu koloreak banaka OKLCH formatua erabiliz.",
+      "learnMore": "Ikasi OKLCH-ri buruz →",
+      "editLight": "Gai Argia Editatu",
+      "editDark": "Gai Iluna Editatu",
+      "invalid": "Baliogabea",
+      "placeholder": "oklch(0.5 0.2 180)",
+      "categories": {
+        "base": "Oinarrizko Koloreak",
+        "surfaces": "Azalerak",
+        "interactive": "Elementu Interaktiboak",
+        "states": "Egoerak eta Azentuak",
+        "borders": "Ertzak",
+        "charts": "Grafikoak",
+        "absences": "Falta Motak",
+        "modules": "Moduluen Koloreak"
+      },
+      "labels": {
+        "background": "Atzeko planoa",
+        "foreground": "Aurreko planoa",
+        "card": "Txartela",
+        "cardForeground": "Txartelaren testua",
+        "popover": "Popover",
+        "popoverForeground": "Popover testua",
+        "primary": "Nagusia",
+        "primaryForeground": "Testu nagusia",
+        "secondary": "Bigarrena",
+        "secondaryForeground": "Testu bigarrena",
+        "muted": "Itzalia",
+        "mutedForeground": "Testu itzalia",
+        "accent": "Azentua",
+        "accentForeground": "Azentu testua",
+        "destructive": "Suntsitzailea",
+        "border": "Ertza",
+        "input": "Sarrera",
+        "ring": "Eraztuna",
+        "chart1": "Grafiko 1",
+        "chart2": "Grafiko 2",
+        "chart3": "Grafiko 3",
+        "chart4": "Grafiko 4",
+        "chart5": "Grafiko 5",
+        "absenceF": "Falta - Atzekoa",
+        "absenceFText": "Falta - Testua",
+        "absenceJ": "Justifikatua - Atzekoa",
+        "absenceJText": "Justifikatua - Testua",
+        "absenceC": "Konpentsatua - Atzekoa",
+        "absenceCText": "Konpentsatua - Testua",
+        "absenceE": "Kanporaketa - Atzekoa",
+        "absenceEText": "Kanporaketa - Testua",
+        "absenceR": "Atzerapena - Atzekoa",
+        "absenceRText": "Atzerapena - Testua",
+        "absenceH": "Greba - Atzekoa",
+        "absenceHText": "Greba - Testua",
+        "module1": "Modulua 1",
+        "module2": "Modulua 2",
+        "module3": "Modulua 3",
+        "module4": "Modulua 4",
+        "module5": "Modulua 5",
+        "module6": "Modulua 6",
+        "module7": "Modulua 7",
+        "module8": "Modulua 8",
+        "module9": "Modulua 9",
+        "module10": "Modulua 10"
+      },
+      "description": {
+        "unknown": "Kolore ezezaguna",
+        "lightness": {
+          "veryDark": "oso iluna",
+          "dark": "iluna",
+          "medium": "tartekoa",
+          "light": "argia",
+          "veryLight": "oso argia"
+        },
+        "chroma": {
+          "neutral": "neutrala",
+          "muted": "itzalia",
+          "saturated": "asea",
+          "vivid": "bizia"
+        },
+        "hue": {
+          "red": "gorria",
+          "orange": "laranja",
+          "yellow": "horia",
+          "green": "berdea",
+          "cyan": "cyan",
+          "blue": "urdina",
+          "purple": "morea",
+          "gray": "grisa"
+        }
+      }
+    },
+    "actions": {
+      "title": "Ekintzak",
+      "reset": "Berrezarri Lehenetsitako Balioak",
+      "resetDialog": {
+        "title": "Lehenetsitako balioak berrezarri?",
+        "description": "Ekintza honek gaiaren konfigurazioa guztiz berrezarriko du. Aldaketa hauek galduko dira:",
+        "items": {
+          "mode": "Gai modua: Sistemara itzuliko da",
+          "preset": "Hautatutako aurrezarpena: Lehenetsira itzuliko da",
+          "customColors": "Kolore pertsonalizatuak: aldaketa guztiak ezabatuko dira",
+          "customPresets": "Aurrezarpen pertsonalizatuak: sortutako aurrezarpen guztiak ezabatuko dira"
+        },
+        "warning": "Ekintza hau ezin da desegin.",
+        "confirm": "Bai, berrezarri",
+        "cancel": "Ezeztatu"
+      }
+    },
+    "preview": {
+      "title": "Aurrebista",
+      "description": "Bistaratu nola ikusiko diren elementuak uneko gaiarekin",
+      "buttons": "Botoiak",
+      "cards": "Txartelak",
+      "forms": "Inprimakiak",
+      "badges": "Badgeak",
+      "palette": "Kolore Paleta",
+      "cardNormal": "Card Normala",
+      "cardNormalDesc": "Txartel estandarra",
+      "cardNormalContent": "Adibideko edukia.",
+      "cardPrimary": "Card Nagusia",
+      "cardPrimaryDesc": "Txartel nagusia",
+      "cardPrimaryContent": "Kolore nagusiekin.",
+      "cardSecondary": "Card Bigarrena",
+      "cardSecondaryDesc": "Txartel bigarrena",
+      "cardSecondaryContent": "Kolore bigarrenekin.",
+      "field1": "Eremua 1",
+      "field2": "Eremua 2",
+      "textField": "Testu eremua"
+    }
   }
 }

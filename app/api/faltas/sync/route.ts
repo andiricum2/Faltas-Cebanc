@@ -4,6 +4,7 @@ import { FaltasClient } from "@/lib/http/faltasClient";
 import { parseMostrarAlumno, buildSnapshot } from "@/lib/http/scraper";
 import { getAcademicYearRange, enumerateMondaysBetween, isoToDDMMYYYY } from "@/lib/utils";
 import { logger } from "@/lib/logging/appLogger";
+import { writeJsonFile } from "@/lib/server/storage";
 import fs from "node:fs/promises";
 import path from "node:path";
 
@@ -69,15 +70,12 @@ export async function POST(req: NextRequest) {
     const baseBase = process.env.APP_DATA_DIR || process.cwd();
     const baseDir = path.join(baseBase, ".data", snapshot.identity.dni);
     await fs.mkdir(baseDir, { recursive: true });
-    // atomic-ish writes
-    await fs.writeFile(path.join(baseDir, "snapshot.json.tmp"), JSON.stringify(snapshot, null, 2), "utf-8");
-    await fs.rename(path.join(baseDir, "snapshot.json.tmp"), path.join(baseDir, "snapshot.json"));
-    await fs.writeFile(path.join(baseDir, "weeks.json.tmp"), JSON.stringify(weeks, null, 2), "utf-8");
-    await fs.rename(path.join(baseDir, "weeks.json.tmp"), path.join(baseDir, "weeks.json"));
-    await fs.writeFile(path.join(baseDir, "legend.json.tmp"), JSON.stringify(snapshot.legend, null, 2), "utf-8");
-    await fs.rename(path.join(baseDir, "legend.json.tmp"), path.join(baseDir, "legend.json"));
-    await fs.writeFile(path.join(baseDir, "percentages.json.tmp"), JSON.stringify(snapshot.percentages, null, 2), "utf-8");
-    await fs.rename(path.join(baseDir, "percentages.json.tmp"), path.join(baseDir, "percentages.json"));
+    
+    // Use robust writeJsonFile function that handles Windows file locking issues
+    await writeJsonFile(path.join(baseDir, "snapshot.json"), snapshot);
+    await writeJsonFile(path.join(baseDir, "weeks.json"), weeks);
+    await writeJsonFile(path.join(baseDir, "legend.json"), snapshot.legend);
+    await writeJsonFile(path.join(baseDir, "percentages.json"), snapshot.percentages);
 
     // refresh session cookie if renewed during scraping
     const renewed = client.getSession();

@@ -12,6 +12,7 @@ export function useModuleCalculations(snapshot: SnapshotData | null) {
       .map(([code, cal]) => {
         const fd = Number(cal?.faltasDirectas || 0);
         const fe = Number(cal?.faltasDerivadas || 0);
+        const faltasDerivadasPorTipo = cal?.faltasDerivadasPorTipo || {};
         const sd = Number(cal?.sesionesDirectas || 0);
         const se = Number(cal?.sesionesDerivadas || 0);
         const tf = Number(cal?.totalFaltas ?? (fd + fe));
@@ -21,6 +22,7 @@ export function useModuleCalculations(snapshot: SnapshotData | null) {
           name: names[code] || code,
           faltasDirectas: fd,
           faltasDerivadas: fe,
+          faltasDerivadasPorTipo,
           sesionesDirectas: sd,
           sesionesDerivadas: se,
           totalFaltas: tf,
@@ -82,3 +84,4 @@ export function useStatisticsMetrics(statistics: any) {
     };
   }, [statistics?.weeklySeries]);
 }
+

@@ -35,34 +35,34 @@ export interface MetricCardProps {
 
 const colorClasses = {
   blue: {
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    barGradient: 'from-blue-500 to-blue-600',
-    ringColor: 'ring-blue-400'
+    iconBg: 'bg-primary/10',
+    iconColor: 'text-primary',
+    barGradient: 'from-primary to-primary',
+    ringColor: 'ring-primary/40'
   },
   green: {
-    iconBg: 'bg-green-100',
-    iconColor: 'text-green-600',
-    barGradient: 'from-green-500 to-green-600',
-    ringColor: 'ring-green-400'
+    iconBg: 'bg-chart-1/10',
+    iconColor: 'text-chart-1',
+    barGradient: 'from-chart-1 to-chart-1',
+    ringColor: 'ring-chart-1/40'
   },
   amber: {
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
-    barGradient: 'from-amber-500 to-amber-600',
-    ringColor: 'ring-amber-400'
+    iconBg: 'bg-chart-4/10',
+    iconColor: 'text-chart-4',
+    barGradient: 'from-chart-4 to-chart-4',
+    ringColor: 'ring-chart-4/40'
   },
   purple: {
-    iconBg: 'bg-purple-100',
-    iconColor: 'text-purple-600',
-    barGradient: 'from-purple-500 to-purple-600',
-    ringColor: 'ring-purple-400'
+    iconBg: 'bg-chart-2/10',
+    iconColor: 'text-chart-2',
+    barGradient: 'from-chart-2 to-chart-2',
+    ringColor: 'ring-chart-2/40'
   },
   red: {
-    iconBg: 'bg-red-100',
-    iconColor: 'text-red-600',
-    barGradient: 'from-red-500 to-red-600',
-    ringColor: 'ring-red-400'
+    iconBg: 'bg-destructive/10',
+    iconColor: 'text-destructive',
+    barGradient: 'from-destructive to-destructive',
+    ringColor: 'ring-destructive/40'
   }
 };
 
@@ -109,7 +109,7 @@ export function MetricCard({
 
           {progressBar !== undefined && (
             <div className="mt-4">
-              <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-muted rounded-full h-2 overflow-hidden">
                 <motion.div
                   initial={{ width: 0 }}
                   animate={{ width: `${Math.min(100, Math.max(0, (progressBar / progressMax) * 100))}%` }}

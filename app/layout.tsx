@@ -9,6 +9,7 @@ import { Toaster } from "sonner";
 import GlobalErrorToasts from "@/components/ui/GlobalErrorToasts";
 import VersionGate from "@/components/VersionGate";
 import { ThemeProvider } from "@/components/ThemeProvider";
+import { ThemeContextProvider } from "@/lib/services/themeContext";
 import { LocaleProvider } from "@/lib/hooks/useLocaleContext";
 
 const geistSans = Geist({
@@ -40,13 +41,15 @@ export default function RootLayout({
         <GlobalErrorToasts />
         <ConfigProvider>
           <LocaleProvider>
-            <ThemeProvider>
-              <SnapshotProvider>
-                <AppShell>
-                  {children}
-                </AppShell>
-              </SnapshotProvider>
-            </ThemeProvider>
+            <ThemeContextProvider>
+              <ThemeProvider>
+                <SnapshotProvider>
+                  <AppShell>
+                    {children}
+                  </AppShell>
+                </SnapshotProvider>
+              </ThemeProvider>
+            </ThemeContextProvider>
           </LocaleProvider>
         </ConfigProvider>
       </body>

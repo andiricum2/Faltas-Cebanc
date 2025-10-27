@@ -47,7 +47,7 @@ export default function DashboardPage() {
             <CardContent className="p-6 pb-0 pt-0 h-full">
               <div className="flex items-center h-full">
                 <div className="flex items-center gap-4">
-                  <div className="h-14 w-14 rounded-full bg-blue-600/90 text-white flex items-center justify-center text-2xl font-semibold shadow-sm">
+                  <div className="h-14 w-14 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-2xl font-semibold shadow-sm">
                     {userInitial}
                   </div>
                   <div>
@@ -136,12 +136,12 @@ export default function DashboardPage() {
                   return (
                     <div
                       key={d.date}
-                      className={`rounded-lg border p-3 hover:bg-muted/40 transition-colors ${isToday ? "border-blue-500 bg-blue-50 dark:bg-blue-900/20 ring-1 ring-blue-400" : ""}`}
+                      className={`rounded-lg border p-3 hover:bg-muted/40 transition-colors ${isToday ? "border-primary bg-primary/10 ring-1 ring-primary/40" : ""}`}
                     >
                       <div className="flex items-center justify-between">
                         <div className="text-xs text-muted-foreground">{d.date}</div>
                         {isToday ? (
-                          <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300">{t('common.today')}</Badge>
+                          <Badge className="bg-primary/20 text-primary">{t('common.today')}</Badge>
                         ) : null}
                       </div>
                       <div className="mt-1 text-2xl font-semibold">{d.total}</div>
@@ -187,14 +187,14 @@ export default function DashboardPage() {
                               <span className={`text-s font-bold ${
                                   percentage < 7 ? 'text-emerald-600' :
                                   percentage < 14 ? 'text-amber-600' :
-                                  'text-red-600'
+                                  'text-destructive'
                                 }`}>
                                 {percentage.toFixed(2)}%
                               </span>
                             </div>
 
                             <div className="space-y-1">
-                              <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                              <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                                 <div
                                   style={{
                                     width: animateBars ? `${Math.min(100, Math.max(0, (percentage / 20) * 100))}%` : '0%',

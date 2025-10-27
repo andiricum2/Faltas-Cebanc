@@ -78,7 +78,7 @@ export default function ModulosPage() {
                         <td className="py-2">
                           <div className="flex items-center gap-2 min-w-[160px]">
                             <span className={`text-xs font-bold ${textColor}`}>{m.percent.toFixed(2)}%</span>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                               <div
                                 className={`h-1.5 rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700 ease-out`}
                                 style={{ width: `${ratio}%` }}
@@ -90,17 +90,38 @@ export default function ModulosPage() {
                       {isOpen ? (
                         <tr className="border-b bg-muted/30">
                           <td colSpan={9} className="py-3 pl-4">
-                            <div className="flex flex-wrap gap-2">
-                              {breakdown.length === 0 ? (
-                                <span className="text-muted-foreground text-xs">Sin faltas desglosadas</span>
-                              ) : (
-                                breakdown.map(([code, count]) => (
-                                  <Badge key={`${m.code}-${code}`} className="gap-1">
-                                    <span className="font-mono text-xs">{code}</span>
-                                    <span className="text-xs">×{count}</span>
-                                    <span className="text-[10px] opacity-70">{snapshot?.legend?.absenceTypes?.[code] || ''}</span>
-                                  </Badge>
-                                ))
+                            <div className="space-y-3">
+                              <div>
+                                <div className="text-xs font-semibold text-muted-foreground mb-1.5">{t('modules.directAbsencesBreakdown')}</div>
+                                <div className="flex flex-wrap gap-2">
+                                  {breakdown.length === 0 ? (
+                                    <span className="text-muted-foreground text-xs">{t('modules.noBreakdown')}</span>
+                                  ) : (
+                                    breakdown.map(([code, count]) => (
+                                      <Badge key={`${m.code}-${code}`} variant="outline" className="gap-1">
+                                        <span className="font-mono text-xs">{code}</span>
+                                        <span className="text-xs">×{count}</span>
+                                        <span className="text-[10px] opacity-70">{snapshot?.legend?.absenceTypes?.[code] || ''}</span>
+                                      </Badge>
+                                    ))
+                                  )}
+                                </div>
+                              </div>
+                              {m.faltasDerivadasPorTipo && Object.keys(m.faltasDerivadasPorTipo).length > 0 && (
+                                <div>
+                                  <div className="text-xs font-semibold text-muted-foreground mb-1.5">{t('modules.derivedAbsencesBreakdown')}</div>
+                                  <div className="flex flex-wrap gap-2">
+                                    {Object.entries(m.faltasDerivadasPorTipo)
+                                      .sort((a, b) => b[1] - a[1])
+                                      .map(([code, count]) => (
+                                        <Badge key={`${m.code}-derived-${code}`} variant="outline" className="gap-1">
+                                          <span className="font-mono text-xs">{code}</span>
+                                          <span className="text-xs">×{count.toFixed(2)}</span>
+                                          <span className="text-[10px] opacity-70">{snapshot?.legend?.absenceTypes?.[code] || ''}</span>
+                                        </Badge>
+                                      ))}
+                                  </div>
+                                </div>
                               )}
                             </div>
                           </td>
@@ -160,7 +181,7 @@ export default function ModulosPage() {
                         <td className="py-2">
                           <div className="flex items-center gap-2 min-w-[160px]">
                             <span className={`text-xs font-bold ${textColor}`}>{r.percent.toFixed(2)}%</span>
-                            <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                            <div className="w-full bg-muted rounded-full h-1.5 overflow-hidden">
                               <div
                                 className={`h-1.5 rounded-full bg-gradient-to-r ${colorClass} transition-all duration-700 ease-out`}
                                 style={{ width: `${ratio}%` }}

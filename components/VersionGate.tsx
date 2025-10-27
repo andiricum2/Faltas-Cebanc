@@ -37,7 +37,7 @@ export default function VersionGate() {
         <div className="text-sm text-muted-foreground mb-3">{message}</div>
         <div className="text-xs text-muted-foreground/70 mb-4">Motivo: {reason}</div>
         <div className="flex gap-3 justify-end">
-          <Button onClick={() => openExternalUrl(url)} className="px-3">Descargar actualización</Button>
+          <Button onClick={() => openExternalUrl(url)} className="px-3 cursor-pointer">Descargar actualización</Button>
         </div>
       </div>
     </div>

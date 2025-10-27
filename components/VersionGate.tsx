@@ -31,11 +31,11 @@ export default function VersionGate() {
   const url = policy?.learnMoreUrl || "https://github.com/andiricum2/Faltas-Cebanc/releases";
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-      <div className="mx-4 w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
-        <div className="text-lg font-semibold mb-1">Actualización requerida</div>
-        <div className="text-sm opacity-80 mb-3">{message}</div>
-        <div className="text-xs opacity-60 mb-4">Motivo: {reason}</div>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+      <div className="mx-4 w-full max-w-lg rounded-xl bg-card border border-border p-5 shadow-xl">
+        <div className="text-lg font-semibold mb-1 text-card-foreground">Actualización requerida</div>
+        <div className="text-sm text-muted-foreground mb-3">{message}</div>
+        <div className="text-xs text-muted-foreground/70 mb-4">Motivo: {reason}</div>
         <div className="flex gap-3 justify-end">
           <Button onClick={() => openExternalUrl(url)} className="px-3">Descargar actualización</Button>
         </div>

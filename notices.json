@@ -26,13 +26,17 @@
     }
   },
   {
-    "id": "huelga-28-octubre",
-    "title": "Huelga: 28 de octubre",
-    "description": "Pendiente de convocatoria",
-    "icon": "warning",
-    "severity": "warning",
-    "startDate": "2025-10-22T00:00:00.000Z",
-    "endDate": "2025-10-29T00:00:00.000Z"
+    "id": "huelga-28-octubre-aceptada",
+    "title": "Huelga: 28 de octubre aprobada",
+    "description": "La huelga de 28 de octubre ha sido aprobada.",
+    "icon": "success",
+    "severity": "success",
+    "startDate": "2025-10-27T00:00:00.000Z",
+    "endDate": "2025-10-29T00:00:00.000Z",
+    "action": {
+      "label": "Ver más información",
+      "url": "https://sindicatodeestudiantes.net/index.php/noticias/movimiento-estudiantil/28-de-octubre-huelga-estudiantil-sandra-no-te-olvidamos-basta-de-bullying-basta-de-discursos-de-odio-hay-responsables"
+    }
   }
 ]
 

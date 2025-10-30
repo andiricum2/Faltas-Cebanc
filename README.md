@@ -7,7 +7,7 @@
 Aplicación de escritorio (Tauri + Next.js) para consultar, sincronizar y visualizar faltas de CEBANC de forma rápida y segura.
 
 [![Repo](https://img.shields.io/badge/GitHub-Faltas--Cebanc-181717?logo=github)](https://github.com/andiricum2/Faltas-Cebanc)
-![Built with Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js)
+![Built with Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js)
 ![Tauri](https://img.shields.io/badge/Tauri-2.0-orange?logo=tauri)
 ![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=222)
 ![License](https://img.shields.io/badge/License-MIT-green)
@@ -40,7 +40,7 @@ Faltas Cebanc es un cliente de escritorio ligero que empaqueta un frontend Next.
 
 | Capa | Tecnología |
 |------|------------|
-| UI   | React 19, Next.js 15, Tailwind CSS 4 |
+| UI   | React 19, Next.js 16, Tailwind CSS 4 |
 | Desktop | Tauri 2.0 (Rust) |
 | Utils | Cheerio, Pino, Framer Motion, Recharts |
 

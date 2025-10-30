@@ -136,7 +136,7 @@ export default function TendenciasPage() {
         ) : metrics ? (
           <>
             <MetricCard
-              title={t('dashboard.attendancePercentage')}
+              title={t('dashboard.totalPercentage')}
               value={`${snapshot.percentages.totalPercent}%`}
               icon={Activity}
               color="blue"

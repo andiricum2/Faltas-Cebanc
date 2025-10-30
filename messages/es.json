@@ -110,7 +110,7 @@
     "title": "Vista general",
     "welcome": "¡Hola, {name}!",
     "totalAbsences": "Total faltas",
-    "attendancePercentage": "Porcentaje de asistencia",
+    "totalPercentage": "Porcentaje total",
     "currentWeek": "Semana actual",
     "absenceBreakdown": "Desglose de faltas",
     "weeklyAbsences": "Faltas semanales",

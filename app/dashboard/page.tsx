@@ -63,7 +63,7 @@ export default function DashboardPage() {
             <CardContent className="p-5 flex items-center">
               <div className="flex items-center justify-between w-full">
                 <div>
-                  <div className="text-xs text-muted-foreground">{t('dashboard.attendancePercentage')}</div>
+                  <div className="text-xs text-muted-foreground">{t('dashboard.totalPercentage')}</div>
                   <div className="text-sm text-muted-foreground">{t('dashboard.totalAbsences')}</div>
                 </div>
                 <div className="relative h-20 w-20">

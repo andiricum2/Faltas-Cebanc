@@ -110,7 +110,7 @@
     "title": "Ikuspegi orokorra",
     "welcome": "Kaixo, {name}!",
     "totalAbsences": "Falta guztiak",
-    "attendancePercentage": "Asistentzia ehunekoa",
+    "totalPercentage": "Ehuneko totala",
     "currentWeek": "Uneko astea",
     "absenceBreakdown": "Falten banaketa",
     "weeklyAbsences": "Asteko falta",

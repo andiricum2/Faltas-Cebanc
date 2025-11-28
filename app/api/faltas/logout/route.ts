@@ -1,14 +1,16 @@
 import { cookies } from "next/headers";
+import { NextRequest } from "next/server";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   const cookieStore = await cookies();
+  const isSecure = req.nextUrl.protocol === "https:";
   // Remove the session cookie by expiring it
   cookieStore.set({
     name: "PHPSESSID",
     value: "",
     path: "/",
     httpOnly: true,
-    secure: true,
+    secure: isSecure,
     sameSite: "lax",
     expires: new Date(0),
   });

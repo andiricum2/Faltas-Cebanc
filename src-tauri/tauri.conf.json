@@ -24,14 +24,27 @@
   },
   "bundle": {
     "active": true,
-    "targets": ["nsis"],
+    "targets": ["nsis", "deb"],
     "icon": [
-      "icons/icon.ico"
+      "icons/icon.ico",
+      "icons/icon.png"
     ],
     "resources": [
       "next/",
       "bin/"
-    ]
+    ],
+    "linux": {
+      "deb": {
+        "depends": [
+          "libgtk-3-0",
+          "libsoup-3.0-0",
+          "libjavascriptcoregtk-4.1-0",
+          "libwebkit2gtk-4.1-0"
+        ],
+        "section": "utils",
+        "priority": "optional"
+      }
+    }
   },
   "plugins": {}
 }

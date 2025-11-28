@@ -5,7 +5,6 @@ import { ComponentType } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
-import { usePathname } from "next/navigation";
 import { RefreshCcw, LogOut, LayoutDashboard, LineChart, CalendarDays, Calculator, Layers, Clock } from "lucide-react";
 import { useSnapshot } from "@/lib/services/snapshotContext";
 import { saveRememberedCredentials } from "@/lib/services/credentials";
@@ -17,26 +16,29 @@ import { openExternalUrl } from "@/lib/utils";
 import NoticeBanner from "@/components/ui/notice-banner";
 import { SnapshotRequired } from "@/components/ui/loading-state";
 import { useTranslations } from "next-intl";
+import { useStablePathname } from "@/lib/hooks/useStablePathname";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
+  const pathname = useStablePathname();
   const { syncNow, loading, error, snapshot } = useSnapshot();
   const [loggingOut, setLoggingOut] = useState<boolean>(false);
   const [updateInfo, setUpdateInfo] = useState<{ version: string; url: string } | null>(null);
   const t = useTranslations();
-  const isLogin = pathname === "/login";
-  const isHome = pathname === "/";
-  const isDashboard = pathname?.startsWith("/dashboard");
-  const isTendencias = pathname?.startsWith("/tendencias");
-  const isSemanal = pathname?.startsWith("/semanal");
-  const isHorario = pathname?.startsWith("/horario");
-  const isModulos = pathname?.startsWith("/modulos");
-  const isCalcular = pathname?.startsWith("/calcular");
-  const isConfiguracion = pathname?.startsWith("/configuracion");
+  const currentPath = pathname ?? "";
+  
+  const isLogin = currentPath === "/login";
+  const isHome = currentPath === "/";
+  const isDashboard = currentPath.startsWith("/dashboard");
+  const isTendencias = currentPath.startsWith("/tendencias");
+  const isSemanal = currentPath.startsWith("/semanal");
+  const isHorario = currentPath.startsWith("/horario");
+  const isModulos = currentPath.startsWith("/modulos");
+  const isCalcular = currentPath.startsWith("/calcular");
+  const isConfiguracion = currentPath.startsWith("/configuracion");
   
   // Páginas que requieren snapshot para funcionar
   const requiresSnapshot = isDashboard || isTendencias || isSemanal || isHorario || isModulos || isCalcular || 
-    (isConfiguracion && pathname !== "/configuracion");
+    (isConfiguracion && currentPath !== "/configuracion");
   
   const onSync = useCallback(async () => { await syncNow(); }, [syncNow]);
   const onLogout = async () => {

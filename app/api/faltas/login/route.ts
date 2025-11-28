@@ -21,7 +21,15 @@ export async function POST(req: NextRequest) {
     // Set cookie for PHPSESSID if present
     if (result.sessionId) {
       const cookieStore = await cookies();
-      cookieStore.set({ name: "PHPSESSID", value: result.sessionId, httpOnly: true, secure: true, sameSite: "lax", path: "/" });
+      const isSecure = req.nextUrl.protocol === "https:";
+      cookieStore.set({
+        name: "PHPSESSID",
+        value: result.sessionId,
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: "lax",
+        path: "/",
+      });
     }
 
     // Do not trigger sync here; the client will call sync after navigation

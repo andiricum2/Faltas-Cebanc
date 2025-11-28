@@ -5,7 +5,19 @@ mod logging;
 mod sidecar;
 mod commands;
 
-use tauri::Manager;
+use tauri::{Manager, RunEvent, WindowEvent, AppHandle};
+
+fn terminate_sidecar(app_handle: &AppHandle) {
+	let state = app_handle.state::<state::AppState>();
+	if let Some(mut child) = state.sidecar_process.lock().unwrap().take() {
+		logging::log_sidecar_exit(app_handle);
+		if let Err(e) = child.kill() {
+			logging::log_sidecar_error(app_handle, &format!("Failed to kill sidecar process: {}", e));
+		} else {
+			logging::log_info(app_handle, "Sidecar process terminated successfully");
+		}
+	}
+}
 
 fn main() {
 	let app = tauri::Builder::default()
@@ -35,20 +47,20 @@ fn main() {
 		.build(tauri::generate_context!())
 		.expect("error while building tauri application");
 
-	use tauri::RunEvent;
 	app.run(|app_handle, event| match event {
-		RunEvent::ExitRequested { .. } | RunEvent::Exit => {
-			let state = app_handle.state::<state::AppState>();
-			if let Some(mut child) = state.sidecar_process.lock().unwrap().take() {
-				logging::log_sidecar_exit(&app_handle);
-				if let Err(e) = child.kill() {
-					logging::log_sidecar_error(&app_handle, &format!("Failed to kill sidecar process: {}", e));
-				} else {
-					logging::log_info(&app_handle, "Sidecar process terminated successfully");
-				}
-			}
+		RunEvent::WindowEvent { label: _, event: WindowEvent::CloseRequested { api, .. }, .. } => {
+			api.prevent_close();
+			terminate_sidecar(&app_handle);
 			logging::log_app_exit(&app_handle);
-		}
+			app_handle.exit(0);
+		},
+		RunEvent::WindowEvent { event: WindowEvent::Destroyed, .. } => {
+			terminate_sidecar(&app_handle);
+		},
+		RunEvent::ExitRequested { .. } | RunEvent::Exit => {
+			terminate_sidecar(&app_handle);
+			logging::log_app_exit(&app_handle);
+		},
 		_ => {}
 	});
 }

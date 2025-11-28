@@ -6,6 +6,7 @@ import type { StudentSnapshot as Snapshot } from "@/lib/types/faltas";
 import { saveRememberedCredentials } from "@/lib/services/credentials";
 import { useState, useCallback, useEffect, useRef, useMemo, useContext } from "react";
 import { createContext } from "react";
+import { useStablePathname } from "@/lib/hooks/useStablePathname";
 
 type SnapshotContextType = {
   snapshot: Snapshot | null;
@@ -22,16 +23,12 @@ async function getSnapshot(): Promise<Snapshot | null> { return apiGetSnapshot()
 async function postSync(): Promise<void> { await apiPostSync(); }
 
 export function SnapshotProvider({ children }: { children: React.ReactNode }) {
-    const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
+  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const didAutoSyncRef = useRef<boolean>(false);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Use Next.js navigation hook to avoid direct window access
-  // Defer import to avoid SSR issues since this is a client component
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { usePathname } = require("next/navigation");
-  const pathname: string | null = usePathname?.() ?? null;
+  const pathname = useStablePathname();
   const isLoginPage = pathname === "/login";
   const { config } = useConfig();
 
@@ -63,7 +60,7 @@ export function SnapshotProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isLoginPage]);
 
   useEffect(() => {
     // Initial load (skip on login page)

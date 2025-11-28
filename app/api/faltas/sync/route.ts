@@ -79,12 +79,28 @@ export async function POST(req: NextRequest) {
 
     // refresh session cookie if renewed during scraping
     const renewed = client.getSession();
+    const isSecure = req.nextUrl.protocol === "https:";
+
     if (renewed && renewed !== session) {
-      cookieStore.set({ name: "PHPSESSID", value: renewed, httpOnly: true, path: "/" });
+      cookieStore.set({
+        name: "PHPSESSID",
+        value: renewed,
+        httpOnly: true,
+        secure: isSecure,
+        sameSite: "lax",
+        path: "/",
+      });
     }
 
     // ensure DNI is available for subsequent snapshot reads
-    cookieStore.set({ name: "DNI", value: snapshot.identity.dni, httpOnly: true, secure: true, sameSite: "lax", path: "/" });
+    cookieStore.set({
+      name: "DNI",
+      value: snapshot.identity.dni,
+      httpOnly: true,
+      secure: isSecure,
+      sameSite: "lax",
+      path: "/",
+    });
 
     return new Response(JSON.stringify({ ok: true, dni: snapshot.identity.dni, weeks: weeks.length }), { status: 200 });
   } catch (error: any) {

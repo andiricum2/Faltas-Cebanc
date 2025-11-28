@@ -53,6 +53,18 @@
       "SisI": true
     }
   },
+  "2DM3 - R3": {
+      "Emple II": false,
+      "PdDAM": true,
+      "DI": true,
+      "SGE": true,
+      "PSyP": true,
+      "PtCdC": true,
+      "PMyDM": true,
+      "AaD": true,
+      "SisI": true
+    }
+  },
   "retoModuleHours": {
     "2DM3 - R1": {
       "AaD": 16,
@@ -70,6 +82,16 @@
       "PtCdC": 24,
       "SGE": 18,
       "SisI": 30
+    },
+    "2DM3 - R3": {
+      "AaD": 1,
+      "DI": 1,
+      "PSyP": 1,
+      "PtCdC": 1,
+      "SGE": 1,
+      "SisI": 1,
+      "PdDAM": 1,
+      "PMyDM": 1
     },
     "2DM3_IKASE": {
       "Emple II": 42,

@@ -17,12 +17,14 @@ import NoticeBanner from "@/components/ui/notice-banner";
 import { SnapshotRequired } from "@/components/ui/loading-state";
 import { useTranslations } from "next-intl";
 import { useStablePathname } from "@/lib/hooks/useStablePathname";
+import { useServerStatus } from "@/lib/hooks";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = useStablePathname();
   const { syncNow, loading, error, snapshot } = useSnapshot();
   const [loggingOut, setLoggingOut] = useState<boolean>(false);
   const [updateInfo, setUpdateInfo] = useState<{ version: string; url: string } | null>(null);
+  const serverStatus = useServerStatus();
   const t = useTranslations();
   const currentPath = pathname ?? "";
   
@@ -185,10 +187,34 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Footer */}
-          <div className="px-4 py-3 border-t border-border/50 flex items-center justify-between">
+          <div className="px-4 py-3 border-t border-border/50 flex items-center justify-between gap-2">
             <div className="text-[10px] text-muted-foreground font-medium">
               v{pkg.version}
             </div>
+
+            <div
+              className="flex items-center gap-1 text-[10px] text-muted-foreground"
+              title={
+                serverStatus === "online"
+                  ? "Servidor faltas.cebanc.com operativo"
+                  : serverStatus === "offline"
+                  ? "No se puede contactar con faltas.cebanc.com"
+                  : "Comprobando estado de faltas.cebanc.com..."
+              }
+            >
+              <span
+                className={[
+                  "inline-block w-2 h-2 rounded-full",
+                  serverStatus === "online"
+                    ? "bg-emerald-500"
+                    : serverStatus === "offline"
+                    ? "bg-red-500"
+                    : "bg-amber-400 animate-pulse",
+                ].join(" ")}
+              />
+              <span>Servidor</span>
+            </div>
+
             <Button
               variant="ghost"
               size="sm"

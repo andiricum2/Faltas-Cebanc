@@ -104,7 +104,11 @@
     "loginSuccess": "Saioa zuzen hasi da",
     "invalidCredentials": "Kredentzial baliogabeak",
     "networkError": "Konexio errorea",
-    "autoLogin": "Hasi automatikoa"
+    "autoLogin": "Hasi automatikoa",
+    "serverStatusLabel": "Zerbitzariaren egoera",
+    "serverOnline": "Martxan",
+    "serverOffline": "Konexiorik gabe",
+    "serverChecking": "Egiaztatzen..."
   },
   "dashboard": {
     "title": "Ikuspegi orokorra",

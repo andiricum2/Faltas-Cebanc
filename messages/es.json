@@ -26,6 +26,8 @@
     "show": "Mostrar",
     "hide": "Ocultar",
     "today": "Hoy",
+    "noDataAvailable": "No hay datos disponibles",
+    "syncRequired": "Se requiere sincronización",
     "noAbsences": "Sin faltas",
     "sync": "Sincronizar",
     "syncing": "Sincronizando...",
@@ -104,7 +106,11 @@
     "loginSuccess": "Login correcto",
     "invalidCredentials": "Credenciales inválidas",
     "networkError": "Error de conexión",
-    "autoLogin": "Inicio automático"
+    "autoLogin": "Inicio automático",
+    "serverStatusLabel": "Estado del servidor",
+    "serverOnline": "Operativo",
+    "serverOffline": "Sin conexión",
+    "serverChecking": "Comprobando..."
   },
   "dashboard": {
     "title": "Vista general",

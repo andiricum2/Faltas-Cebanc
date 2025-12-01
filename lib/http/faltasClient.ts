@@ -69,7 +69,7 @@ export class FaltasClient {
       return { ok: false, errorMessage: "Respuesta no reconocida" };
     } catch (error: any) {
       logger.error(`login error`, 'HTTP', { error: String(error?.message || error) });
-      return { ok: false, errorMessage: "Error de red" };
+      return { ok: false, errorMessage: "Error de red: " + String(error?.message || error) };
     } finally {
       clearTimeout(timeout);
     }

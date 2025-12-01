@@ -13,6 +13,7 @@ import { useTranslations } from "next-intl";
 import type { Role } from "@/lib/types/faltas";
 import { roles } from "@/lib/utils";
 import { CheckCircle, XCircle } from "lucide-react";
+import { useServerStatus } from "@/lib/hooks";
 
 export default function LoginPage() {
   const [role, setRole] = useState<Role>("E");
@@ -23,6 +24,25 @@ export default function LoginPage() {
   const [submitting, setSubmitting] = useState(false);
   const [autoLogging, setAutoLogging] = useState<boolean>(false);
   const t = useTranslations();
+  const serverStatus = useServerStatus();
+  const serverStatusLabel =
+    serverStatus === "online"
+      ? t("login.serverOnline")
+      : serverStatus === "offline"
+      ? t("login.serverOffline")
+      : t("login.serverChecking");
+  const serverStatusColor =
+    serverStatus === "online"
+      ? "bg-emerald-500"
+      : serverStatus === "offline"
+      ? "bg-red-500"
+      : "bg-amber-400 animate-pulse";
+  const serverStatusTitle =
+    serverStatus === "online"
+      ? "Servidor faltas.cebanc.com operativo"
+      : serverStatus === "offline"
+      ? "No se puede contactar con faltas.cebanc.com"
+      : "Comprobando estado de faltas.cebanc.com...";
 
   const { loading, error, success, login, autoLogin, clearError } = useLogin({
     onSuccess: async () => {
@@ -102,6 +122,15 @@ export default function LoginPage() {
             <div className="h-full bg-foreground indeterminate-bar" />
           </div>
           <p className="text-muted-foreground text-sm">{t('login.loggingIn')}</p>
+          <div
+            className="flex items-center gap-2 text-xs text-muted-foreground font-medium"
+            title={serverStatusTitle}
+          >
+            <span className={`inline-block w-2 h-2 rounded-full ${serverStatusColor}`} />
+            <span>
+              {t("login.serverStatusLabel")}: {serverStatusLabel}
+            </span>
+          </div>
         </div>
         <style jsx>{`
           @keyframes indeterminateLogin {
@@ -217,6 +246,15 @@ export default function LoginPage() {
                 {submitting ? t('login.loggingIn') : t('login.loginButton')}
               </Button>
             </form>
+            <div
+              className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground font-medium"
+              title={serverStatusTitle}
+            >
+              <span className={`inline-block w-2 h-2 rounded-full ${serverStatusColor}`} />
+              <span>
+                {t("login.serverStatusLabel")}: {serverStatusLabel}
+              </span>
+            </div>
           </CardContent>
         </Card>
       </div>

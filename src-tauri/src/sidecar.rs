@@ -1,4 +1,5 @@
 use anyhow::Context;
+use std::fs;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 use tauri::AppHandle;
@@ -38,12 +39,25 @@ pub fn spawn_next_sidecar(app: &AppHandle) -> anyhow::Result<Option<(std::proces
 	let host = "127.0.0.1";
 	let port: u16 = 34425;
 
+	let app_data_dir = app
+		.path()
+		.app_data_dir()
+		.unwrap_or_else(|_| resource_dir.join("data"));
+	let cache_dir = app
+		.path()
+		.app_cache_dir()
+		.unwrap_or_else(|_| resource_dir.join("cache"));
+	let _ = fs::create_dir_all(&app_data_dir);
+	let _ = fs::create_dir_all(&cache_dir);
+
 	let mut cmd = Command::new(node_path);
 	cmd.current_dir(&standalone_dir)
 		.stdin(Stdio::null())
 		.env("PORT", format!("{}", port))
 		.env("NODE_ENV", "production")
 		.env("HOSTNAME", host)
+		.env("APP_DATA_DIR", app_data_dir.as_os_str())
+		.env("NEXT_CACHE_DIR", cache_dir.as_os_str())
 		.arg("server.js");
 
 	#[cfg(debug_assertions)]

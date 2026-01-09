@@ -37,6 +37,19 @@
       "label": "Ver más información",
       "url": "https://sindicatodeestudiantes.net/index.php/noticias/movimiento-estudiantil/28-de-octubre-huelga-estudiantil-sandra-no-te-olvidamos-basta-de-bullying-basta-de-discursos-de-odio-hay-responsables"
     }
+  },
+  {
+    "id": "2dm3-reto3-sinconfigurar",
+    "title": "El Reto 3 esta sin configurar, contribuye para que funcione como es debido.",
+    "description": "",
+    "icon": "warning",
+    "severity": "warning",
+    "startDate": "2025-10-27T00:00:00.000Z",
+    "endDate": "2026-08-01T00:00:00.000Z",
+    "action": {
+      "label": "Contribuir",
+      "url": "https://github.com/andiricum2/Faltas-Cebanc/"
+    }
   }
 ]
 

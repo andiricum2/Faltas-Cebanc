@@ -40,8 +40,8 @@
   },
   {
     "id": "2dm3-reto3-sinconfigurar",
-    "title": "El Reto 3 esta sin configurar, contribuye para que funcione como es debido.",
-    "description": "",
+    "title": "Reto 3",
+    "description": "El Reto 3 esta sin configurar, contribuye para que funcione como es debido.",
     "icon": "warning",
     "severity": "warning",
     "startDate": "2025-10-27T00:00:00.000Z",

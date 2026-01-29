@@ -1,11 +1,47 @@
 {
   "weekSchedule": [
-    ["AaD", "Emple II", "SisI", "PMyDM", "PMyDM"],
-    ["AaD", "SisI", "SisI", "PSyP", "PMyDM"],
-    ["SGE", "SGE", "DI", "PSyP", "DI"],
-    ["Emple II", "DI", "PdDAM", "AaD", "SGE"],
-    ["DI", "AaD", "PtCdC", "PtCdC", "SisI"],
-    ["DI", "PtCdC", "PSyP", "PtCdC", "SisI"]
+    [
+      "AaD",
+      "Emple II",
+      "SisI",
+      "PMyDM",
+      "PMyDM"
+    ],
+    [
+      "AaD",
+      "SisI",
+      "SisI",
+      "PSyP",
+      "PMyDM"
+    ],
+    [
+      "SGE",
+      "SGE",
+      "DI",
+      "PSyP",
+      "DI"
+    ],
+    [
+      "Emple II",
+      "DI",
+      "PdDAM",
+      "AaD",
+      "SGE"
+    ],
+    [
+      "DI",
+      "AaD",
+      "PtCdC",
+      "PtCdC",
+      "SisI"
+    ],
+    [
+      "DI",
+      "PtCdC",
+      "PSyP",
+      "PtCdC",
+      "SisI"
+    ]
   ],
   "hoursPerModule": {
     "AaD": 4,
@@ -51,9 +87,8 @@
       "PMyDM": false,
       "AaD": true,
       "SisI": true
-    }
-  },
-  "2DM3 - R3": {
+    },
+    "2DM3 - R3": {
       "Emple II": false,
       "PdDAM": true,
       "DI": true,
@@ -99,5 +134,3 @@
     }
   }
 }
-
-
